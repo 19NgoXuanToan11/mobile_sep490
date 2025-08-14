@@ -1,164 +1,180 @@
-# 📱 IoT-Based Farm Management System – Mobile App (Customer & Guest)
+# IFMS Farm Management System - Mobile App
 
-> **Graduation Project – Advanced IoT-powered mobile platform** for customers and guests to explore, order, and track farm products in real-time.  
-> Built with **React Native + Expo Go + TypeScript**, following modern architecture, professional UI/UX design, and a green-first brand identity.
+A comprehensive React Native mobile application for IoT-Based Farm Management System built with Expo, TypeScript, and modern development practices.
 
----
+## 🌱 Features
 
-## 🌱 Introduction
+- **Guest & Customer Experience**: Browse products as guest, full shopping experience when authenticated
+- **E-Commerce**: Product catalog, shopping cart, order management, checkout process
+- **Multi-Language**: English and Vietnamese support
+- **Dark/Light Theme**: Automatic theme switching with green-first design
+- **Real-time Updates**: Optimistic UI with simulated network delays
+- **Offline Ready**: Local storage and caching
 
-The **IoT-Based Farm Management System (Mobile)** is the companion application to the IFMS web platform.  
-It provides **guests** with an engaging way to browse fresh agricultural products and **customers** with tools to manage their shopping experience — from catalog browsing to order tracking.
+## 🏗️ Tech Stack
 
-The mobile app is designed with:
+- **Expo SDK 53+** with React Native
+- **TypeScript** for type safety
+- **Expo Router** for file-based navigation
+- **NativeWind** (Tailwind CSS for React Native)
+- **Zustand** + **TanStack Query** for state management
+- **React Hook Form** + **Zod** for forms
+- **i18next** for internationalization
 
-- **Expo Go** for fast prototyping and easy testing.
-- **React Native + TypeScript** for type safety and scalability.
-- **Modern design system** with green as the primary brand color.
-- **Fake local data** to simulate a real backend for development & demo purposes.
+## 🚀 Quick Start
 
----
+1. **Install dependencies**
 
-## ✨ Core Features (Wave 1)
+   ```bash
+   npm install --legacy-peer-deps
+   ```
 
-### For Guests
+2. **Start development server**
 
-- **Onboarding flow** with engaging illustrations and brand messaging.
-- **Welcome screen** with banners, categories, and featured products.
-- Browse **public product catalog** (grid/list view).
-- **Product details** page with price, description, and images.
+   ```bash
+   npm start
+   ```
 
-### For Customers (after login)
+3. **Run on device**
+   - Scan QR code with Expo Go app
+   - Or use `npm run android` / `npm run ios`
 
-- **Authentication** (login/register) with client-side validation.
-- Personalized **Home feed** with recommended products.
-- **Advanced catalog browsing** with category filters and search.
-- **Shopping cart** with quantity updates and item removal.
-- **Checkout flow** (address select, payment method stub).
-- **Order management**: view orders, statuses, and details.
-- **Order tracking**: status timeline + map placeholder.
-- **Account page**: profile info, theme & language settings, logout.
+## 🔐 Demo Credentials
 
----
+- **Email**: `demo@ifms.com`
+- **Password**: `password`
 
-## 🛠 Tech Stack
+## 📁 Project Structure
 
-| Category             | Technology                                              |
-| -------------------- | ------------------------------------------------------- |
-| Framework            | React Native (Expo SDK)                                 |
-| Language             | TypeScript                                              |
-| Navigation           | expo-router                                             |
-| State Management     | Zustand + TanStack Query                                |
-| Styling              | NativeWind (Tailwind for RN) + class-variance-authority |
-| Forms & Validation   | React Hook Form + Zod                                   |
-| Images               | expo-image                                              |
-| Animations           | moti + react-native-reanimated                          |
-| Icons                | @expo/vector-icons                                      |
-| Internationalization | i18next + react-i18next + expo-localization             |
-| Storage              | AsyncStorage + SecureStore                              |
-| Lists                | FlashList (or FlatList fallback)                        |
-
----
-
-## 📂 Project Structure
-
-```plaintext
-app/
-  (public)/
-    onboarding.tsx
-    welcome.tsx
-    auth/
-      login.tsx
-      register.tsx
-    product/[id].tsx
-    search.tsx
-  (app)/
-    (tabs)/
-      _layout.tsx
-      home.tsx
-      catalog.tsx
-      cart.tsx
-      orders.tsx
-      account.tsx
-    checkout.tsx
-    track/[orderId].tsx
-src/
-  features/
-    auth/
-    catalog/
-    cart/
-    orders/
-    account/
-  shared/
-    ui/       # Reusable UI components
-    lib/      # Theme, hooks, utilities
-    data/     # Fixtures & fake fetchers
-    
-⚙️ Installation & Setup
-1. Clone the repository
-git clone https://github.com/19NgoXuanToan11/mobile_sep490.git
-cd mobile_sep490
-
-2. Install dependencies
-npm install
-
-
-If starting fresh, initialize with:
-
-npx create-expo-app mobile_sep490 --template blank-typescript
-
-3. Install required libraries
-npm install @tanstack/react-query @hookform/resolvers zod zustand react-hook-form
-npm install expo-router react-native-safe-area-context react-native-screens react-native-gesture-handler react-native-reanimated
-npm install nativewind class-variance-authority @expo/vector-icons moti
-npx tailwindcss init --full
-npm install @shopify/flash-list expo-image
-npm install i18next react-i18next expo-localization expo-secure-store @react-native-async-storage/async-storage
-npm install expo-file-system expo-sharing
-
-🎨 Theming & Brand Identity
-
-Primary color: Green (#2E7D32) with light/dark variations.
-
-Typography: Clean, modern sans-serif style for readability.
-
-Components: Consistent padding, rounded corners (rounded-2xl), soft shadows, smooth transitions.
-
-Dark mode: System-based toggle in Account page.
-
-Multi-language: English & Vietnamese toggle in Account page.
-
-▶️ Running the App
-npm start
-
-
-Scan the QR code with Expo Go (Android/iOS).
-
-Use guest features without login.
-
-Log in with demo credentials (fake auth) to unlock customer features.
-
-📊 Demo Data (Fixtures)
-
-All data is local to ensure the app works without backend:
-
-Categories, products, banners.
-
-User profile.
-
-Cart items.
-
-Orders with timelines.
-
-Addresses.
-
-💡 Notes
-
-No backend in this wave — suitable for UI/UX development & demo.
-
-Simulated loading & error states for realism.
-
-Responsive layouts for various device sizes.
-
-Accessible UI: labels, roles, touch targets.
 ```
+mobile_sep490/
+├── app/                     # Expo Router app directory
+│   ├── (app)/              # Authenticated routes
+│   │   ├── (tabs)/         # Bottom tabs (home, catalog, cart, orders, account)
+│   │   ├── checkout.tsx    # Checkout flow
+│   │   └── track/[id].tsx  # Order tracking
+│   ├── (public)/           # Public routes
+│   │   ├── onboarding.tsx  # App intro
+│   │   ├── welcome.tsx     # Guest homepage
+│   │   ├── auth/           # Login/register
+│   │   └── product/[id].tsx # Product details
+│   └── _layout.tsx         # Root layout
+├── src/
+│   ├── features/           # Feature modules (auth)
+│   ├── shared/
+│   │   ├── ui/            # Reusable components
+│   │   ├── lib/           # Utils, theme, i18n
+│   │   ├── data/          # Fake API & fixtures
+│   │   └── hooks/         # Custom hooks
+│   └── types.ts           # TypeScript definitions
+└── README.md
+```
+
+## 🎨 Key Components
+
+### UI Components
+
+- **Button**: Multiple variants with loading states
+- **Card**: Flexible containers with elevation
+- **Input**: Form inputs with validation
+- **Toast**: Success/error notifications
+- **Skeleton**: Loading placeholders
+
+### Screens
+
+- **Onboarding**: 3-slide app introduction
+- **Welcome**: Guest home with products
+- **Auth**: Login/register with validation
+- **Home**: Personalized customer dashboard
+- **Catalog**: Product browsing with search
+- **Cart**: Shopping cart management
+- **Orders**: Order history and tracking
+- **Account**: Profile and settings
+
+## 🔧 Development
+
+### Available Scripts
+
+```bash
+npm start          # Start Expo dev server
+npm run android    # Run on Android
+npm run ios        # Run on iOS
+npm run web        # Run on web
+```
+
+### Key Features Implemented
+
+✅ **Authentication System**
+
+- Route guards with automatic redirects
+- Demo credentials for testing
+- Secure token storage
+
+✅ **Shopping Experience**
+
+- Product catalog with categories
+- Shopping cart with persistence
+- Order management system
+
+✅ **UI/UX Excellence**
+
+- Green-themed design system
+- Dark/light mode support
+- Smooth animations
+
+✅ **Internationalization**
+
+- English and Vietnamese
+- Automatic language detection
+- Locale-aware formatting
+
+## 📱 App Flow
+
+1. **Onboarding** → Introduction slides
+2. **Welcome** → Browse as guest or sign up
+3. **Authentication** → Login/register
+4. **Home** → Personalized dashboard
+5. **Catalog** → Browse and search products
+6. **Cart** → Manage selected items
+7. **Checkout** → Complete purchase
+8. **Orders** → Track order status
+
+## 🎯 Fake Data System
+
+The app includes comprehensive mock data:
+
+- 10+ realistic farm products with images
+- 6 product categories
+- Sample orders with tracking
+- User profiles and preferences
+- Promotional banners
+
+All API calls simulate network delays (200-500ms) for realistic testing.
+
+## 🌐 Internationalization
+
+Toggle between English and Vietnamese in Account settings. All text is translatable with proper pluralization and formatting.
+
+## 🔄 State Management
+
+- **Authentication**: Zustand with secure token storage
+- **Cart**: Persistent cart state with AsyncStorage
+- **Server State**: TanStack Query with caching
+- **Preferences**: Theme and language persistence
+
+## 🚀 Future Enhancements
+
+- Real API integration
+- Push notifications
+- Advanced filtering
+- Map integration for tracking
+- Offline functionality
+- Multiple vendor support
+
+## 📄 License
+
+MIT License - feel free to use this project as a learning resource or starting point for your own farm management app.
+
+---
+
+**Built with ❤️ for sustainable agriculture and fresh food delivery**
