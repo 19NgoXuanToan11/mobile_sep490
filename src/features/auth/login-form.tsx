@@ -1,9 +1,16 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { useState, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  Pressable,
+} from "react-native";
 import { Link, router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Ionicons } from "@expo/vector-icons";
 import { Button, Input } from "../../shared/ui";
 import { useAuth } from "../../shared/hooks";
 import { useToast } from "../../shared/ui/toast";
@@ -44,8 +51,8 @@ export const LoginForm: React.FC = () => {
       const success = await login(data.email, data.password);
 
       if (success) {
-        toast.success(t("auth.welcomeBack"));
-        router.replace("/(app)/(tabs)/home");
+        toast.success("Welcome back!");
+        router.replace("/(app)/(tabs)/catalog");
       } else {
         toast.error(
           "Invalid credentials",
@@ -57,25 +64,100 @@ export const LoginForm: React.FC = () => {
     }
   };
 
+  // Premium button component
+  const PremiumButton = ({
+    title,
+    onPress,
+    loading = false,
+    variant = "primary",
+  }: {
+    title: string;
+    onPress: () => void;
+    loading?: boolean;
+    variant?: "primary" | "secondary";
+  }) => {
+    const [isPressed, setIsPressed] = useState(false);
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+      setIsPressed(true);
+      Animated.spring(scaleAnim, {
+        toValue: 0.96,
+        tension: 200,
+        friction: 7,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      setIsPressed(false);
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 200,
+        friction: 7,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const isPrimary = variant === "primary";
+
+    return (
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <Pressable
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          disabled={loading}
+          className={`flex-row items-center justify-center rounded-2xl py-4 px-8 ${
+            isPrimary ? "bg-primary-500" : "bg-neutral-100"
+          } ${loading ? "opacity-70" : ""}`}
+          style={{
+            shadowColor: isPrimary ? "#00623A" : "#000",
+            shadowOffset: { width: 0, height: isPressed ? 2 : 6 },
+            shadowOpacity: isPressed ? 0.1 : isPrimary ? 0.3 : 0.1,
+            shadowRadius: isPressed ? 4 : 12,
+            elevation: isPressed ? 2 : 8,
+          }}
+        >
+          {loading && (
+            <Ionicons
+              name="refresh"
+              size={20}
+              color={isPrimary ? "white" : "#666"}
+              style={{ marginRight: 8 }}
+            />
+          )}
+          <Text
+            className={`text-lg font-medium tracking-wide ${
+              isPrimary ? "text-white" : "text-neutral-600"
+            }`}
+          >
+            {title}
+          </Text>
+        </Pressable>
+      </Animated.View>
+    );
+  };
+
   return (
-    <View className="space-y-6">
-      <View className="space-y-4">
+    <View className="justify-center" style={{ minHeight: 350 }}>
+      {/* Input Fields */}
+      <View style={{ gap: 14 }}>
         <Controller
           control={control}
           name="email"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label={t("auth.email")}
-              placeholder="your@email.com"
+              placeholder="Email address"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
               error={errors.email?.message}
-              leftIcon="mail-outline"
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
-              required
+              size="lg"
+              className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
             />
           )}
         />
@@ -85,56 +167,58 @@ export const LoginForm: React.FC = () => {
           name="password"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label={t("auth.password")}
-              placeholder="Enter your password"
+              placeholder="Password"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
               error={errors.password?.message}
-              leftIcon="lock-closed-outline"
               secureTextEntry
               autoComplete="password"
-              required
+              size="lg"
+              className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
             />
           )}
         />
       </View>
 
-      <View className="space-y-4">
-        <Button
-          title={t("auth.signIn")}
+      {/* Sign In Button */}
+      <View style={{ marginTop: 24 }}>
+        <PremiumButton
+          title="Sign In"
           onPress={handleSubmit(onSubmit)}
           loading={isSubmitting}
-          fullWidth
+          variant="primary"
         />
+      </View>
 
+      {/* Forgot Password */}
+      <View style={{ marginTop: 18 }}>
         <TouchableOpacity className="items-center">
-          <Text className="text-primary-500 text-sm">
-            {t("auth.forgotPassword")}
+          <Text className="text-primary-500 text-sm font-medium">
+            Forgot Password?
           </Text>
         </TouchableOpacity>
       </View>
 
-      <View className="flex-row items-center justify-center space-x-2">
-        <Text className="text-neutral-600 text-sm">
-          {t("auth.dontHaveAccount")}
+      {/* Divider */}
+      <View className="flex-row items-center" style={{ marginTop: 20, gap: 16 }}>
+        <View className="flex-1 h-px bg-neutral-200" />
+        <Text className="text-neutral-500 text-sm">or</Text>
+        <View className="flex-1 h-px bg-neutral-200" />
+      </View>
+
+      {/* Sign Up Link */}
+      <View className="items-center" style={{ marginTop: 18 }}>
+        <Text className="text-neutral-600 text-sm mb-2">
+          Don't have an account?
         </Text>
         <Link href="/(public)/auth/register" asChild>
           <TouchableOpacity>
-            <Text className="text-primary-500 text-sm font-medium">
-              {t("auth.signUp")}
+            <Text className="text-primary-500 text-base font-medium">
+              Create Account
             </Text>
           </TouchableOpacity>
         </Link>
-      </View>
-
-      {/* Demo credentials hint */}
-      <View className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <Text className="text-blue-800 text-sm font-medium mb-2">
-          Demo Credentials:
-        </Text>
-        <Text className="text-blue-700 text-sm">Email: demo@ifms.com</Text>
-        <Text className="text-blue-700 text-sm">Password: password</Text>
       </View>
     </View>
   );
