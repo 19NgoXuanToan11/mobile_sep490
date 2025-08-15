@@ -38,15 +38,15 @@ export default function PublicLayout() {
         <Stack.Screen
           name="auth/login"
           options={{
-            title: "Sign In",
-            presentation: "modal",
+            headerShown: false,
+            presentation: "fullScreenModal",
           }}
         />
         <Stack.Screen
           name="auth/register"
           options={{
-            title: "Create Account",
-            presentation: "modal",
+            headerShown: false,
+            presentation: "fullScreenModal",
           }}
         />
         <Stack.Screen

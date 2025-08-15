@@ -1,9 +1,16 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { useState, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  Pressable,
+} from "react-native";
 import { Link, router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Ionicons } from "@expo/vector-icons";
 import { Button, Input } from "../../shared/ui";
 import { useAuth } from "../../shared/hooks";
 import { useToast } from "../../shared/ui/toast";
@@ -57,7 +64,7 @@ export const RegisterForm: React.FC = () => {
 
       if (success) {
         toast.success("Account created successfully!");
-        router.replace("/(app)/(tabs)/home");
+        router.replace("/(app)/(tabs)/catalog");
       } else {
         toast.error("Registration failed", "Please try again");
       }
@@ -66,25 +73,100 @@ export const RegisterForm: React.FC = () => {
     }
   };
 
+  // Premium button component
+  const PremiumButton = ({
+    title,
+    onPress,
+    loading = false,
+    variant = "primary",
+  }: {
+    title: string;
+    onPress: () => void;
+    loading?: boolean;
+    variant?: "primary" | "secondary";
+  }) => {
+    const [isPressed, setIsPressed] = useState(false);
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const handlePressIn = () => {
+      setIsPressed(true);
+      Animated.spring(scaleAnim, {
+        toValue: 0.96,
+        tension: 200,
+        friction: 7,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      setIsPressed(false);
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 200,
+        friction: 7,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const isPrimary = variant === "primary";
+
+    return (
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <Pressable
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          disabled={loading}
+          className={`flex-row items-center justify-center rounded-2xl py-4 px-8 ${
+            isPrimary ? "bg-primary-500" : "bg-neutral-100"
+          } ${loading ? "opacity-70" : ""}`}
+          style={{
+            shadowColor: isPrimary ? "#00623A" : "#000",
+            shadowOffset: { width: 0, height: isPressed ? 2 : 6 },
+            shadowOpacity: isPressed ? 0.1 : isPrimary ? 0.3 : 0.1,
+            shadowRadius: isPressed ? 4 : 12,
+            elevation: isPressed ? 2 : 8,
+          }}
+        >
+          {loading && (
+            <Ionicons
+              name="refresh"
+              size={20}
+              color={isPrimary ? "white" : "#666"}
+              style={{ marginRight: 8 }}
+            />
+          )}
+          <Text
+            className={`text-lg font-medium tracking-wide ${
+              isPrimary ? "text-white" : "text-neutral-600"
+            }`}
+          >
+            {title}
+          </Text>
+        </Pressable>
+      </Animated.View>
+    );
+  };
+
   return (
-    <View className="space-y-6">
-      <View className="space-y-4">
+    <View className="justify-center" style={{ minHeight: 350 }}>
+      {/* Input Fields */}
+      <View style={{ gap: 14 }}>
         <Controller
           control={control}
           name="name"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label={t("auth.name")}
-              placeholder="Enter your full name"
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              error={errors.name?.message}
-              leftIcon="person-outline"
-              autoCapitalize="words"
-              autoComplete="name"
-              required
-            />
+                placeholder="Full name"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.name?.message}
+                autoCapitalize="words"
+                autoComplete="name"
+                size="lg"
+                className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
+              />
           )}
         />
 
@@ -93,18 +175,17 @@ export const RegisterForm: React.FC = () => {
           name="email"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label={t("auth.email")}
-              placeholder="your@email.com"
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              error={errors.email?.message}
-              leftIcon="mail-outline"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              required
-            />
+                placeholder="Email address"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.email?.message}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                size="lg"
+                className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
+              />
           )}
         />
 
@@ -113,17 +194,16 @@ export const RegisterForm: React.FC = () => {
           name="password"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label={t("auth.password")}
-              placeholder="Create a password"
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              error={errors.password?.message}
-              leftIcon="lock-closed-outline"
-              secureTextEntry
-              autoComplete="new-password"
-              required
-            />
+                placeholder="Create password"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.password?.message}
+                secureTextEntry
+                autoComplete="new-password"
+                size="lg"
+                className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
+              />
           )}
         />
 
@@ -132,45 +212,39 @@ export const RegisterForm: React.FC = () => {
           name="confirmPassword"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-              label={t("auth.confirmPassword")}
-              placeholder="Confirm your password"
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              error={errors.confirmPassword?.message}
-              leftIcon="lock-closed-outline"
-              secureTextEntry
-              autoComplete="new-password"
-              required
-            />
+                placeholder="Confirm password"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.confirmPassword?.message}
+                secureTextEntry
+                autoComplete="new-password"
+                size="lg"
+                className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
+              />
           )}
         />
       </View>
 
-      <View className="space-y-4">
-        <Button
-          title={t("auth.signUp")}
+      {/* Create Account Button */}
+      <View style={{ marginTop: 24 }}>
+        <PremiumButton
+          title="Create Account"
           onPress={handleSubmit(onSubmit)}
           loading={isSubmitting}
-          fullWidth
+          variant="primary"
         />
-
-        {/* Terms and Privacy */}
-        <Text className="text-xs text-neutral-500 text-center leading-5">
-          By creating an account, you agree to our{" "}
-          <Text className="text-primary-500">Terms of Service</Text> and{" "}
-          <Text className="text-primary-500">Privacy Policy</Text>
-        </Text>
       </View>
-
-      <View className="flex-row items-center justify-center space-x-2">
-        <Text className="text-neutral-600 text-sm">
-          {t("auth.alreadyHaveAccount")}
+      
+      {/* Sign In Link */}
+      <View className="items-center" style={{ marginTop: 18 }}>
+        <Text className="text-neutral-600 text-sm mb-2">
+          Already have an account?
         </Text>
         <Link href="/(public)/auth/login" asChild>
           <TouchableOpacity>
-            <Text className="text-primary-500 text-sm font-medium">
-              {t("auth.signIn")}
+            <Text className="text-primary-500 text-base font-medium">
+              Sign In
             </Text>
           </TouchableOpacity>
         </Link>

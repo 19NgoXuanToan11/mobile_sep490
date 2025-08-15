@@ -18,32 +18,33 @@ import { useAuth } from "../../src/shared/hooks";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-// Premium onboarding slides for farm management
+// Premium onboarding slides for buying/selling flow
 const ONBOARDING_SLIDES = [
   {
     id: 1,
-    title: "Smart Farm Management",
+    title: "Fresh Farm Products",
     subtitle:
-      "Monitor your livestock with IoT technology and real-time data analytics",
+      "Discover high-quality, fresh farm products delivered directly to your doorstep",
     image:
-      "https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=800&h=600&fit=crop&crop=center",
+      "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=600&fit=crop&crop=center",
     gradient: ["#f0f9f5", "#ffffff"],
   },
   {
     id: 2,
-    title: "Health Monitoring",
-    subtitle: "Track animal health, weight, and behavior with advanced sensors",
+    title: "Easy Ordering",
+    subtitle:
+      "Browse, select, and order your favorite farm products with just a few taps",
     image:
-      "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&h=600&fit=crop&crop=center",
+      "https://i.pinimg.com/1200x/d1/c9/16/d1c916e908888e5c89777c4ac3bc3ae6.jpg",
     gradient: ["#f0f9f5", "#ffffff"],
   },
   {
     id: 3,
-    title: "Sustainable Future",
+    title: "Fast Delivery",
     subtitle:
-      "Optimize resources and maximize yield with eco-friendly farming practices",
+      "Get your fresh products delivered quickly and safely with real-time tracking",
     image:
-      "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&h=600&fit=crop&crop=center",
+      "https://i.pinimg.com/736x/86/1a/1b/861a1b634f7afb186906200a989394d3.jpg",
     gradient: ["#f0f9f5", "#ffffff"],
   },
 ];
@@ -108,9 +109,10 @@ export default function OnboardingScreen() {
     // Navigate based on authentication status
     // Don't save any onboarding completion flag - always show onboarding on app restart
     if (isAuthenticated) {
-      router.replace("/(app)/(tabs)/home");
+      // Authenticated customers go to main shopping interface
+      router.replace("/(app)/(tabs)/catalog");
     } else {
-      // Navigate to the old catalog page (renamed from welcome) or login
+      // Guests go to login/register to start shopping
       router.replace("/(public)/auth/login");
     }
   };
@@ -336,31 +338,14 @@ export default function OnboardingScreen() {
     <SafeAreaView className="flex-1 bg-white">
       {/* Floating decorative elements */}
       <View className="absolute top-20 left-8 opacity-5">
-        <Ionicons name="leaf-outline" size={20} color="#00623A" />
+        <Ionicons name="bag-outline" size={20} color="#00623A" />
       </View>
       <View className="absolute top-32 right-12 opacity-5">
         <Ionicons name="leaf-outline" size={16} color="#00623A" />
       </View>
       <View className="absolute bottom-40 left-12 opacity-5">
-        <Ionicons name="leaf-outline" size={14} color="#00623A" />
+        <Ionicons name="car-outline" size={14} color="#00623A" />
       </View>
-
-      {/* Skip Button */}
-      {currentIndex < slides.length - 1 && (
-        <View className="absolute top-safe-top right-6 z-10 mt-4">
-          <TouchableOpacity onPress={handleSkip}>
-            <BlurView
-              intensity={20}
-              tint="light"
-              className="rounded-full px-4 py-2"
-            >
-              <Text className="text-neutral-600 text-base font-medium">
-                Skip
-              </Text>
-            </BlurView>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Slides */}
       <Animated.View
@@ -396,23 +381,21 @@ export default function OnboardingScreen() {
         {renderDots()}
 
         {/* Action Buttons */}
-        <View className="space-y-4">
+        <View className="w-full" style={{ rowGap: 8 }}>
           <ActionButton
             title={
-              currentIndex === slides.length - 1 ? "Get Started" : "Continue"
+              currentIndex === slides.length - 1 ? "Start Shopping" : "Continue"
             }
             onPress={handleNext}
             variant="primary"
             icon={
-              currentIndex === slides.length - 1
-                ? "arrow-forward"
-                : "chevron-forward"
+              currentIndex === slides.length - 1 ? "bag" : "chevron-forward"
             }
           />
 
           {currentIndex < slides.length - 1 && (
             <ActionButton
-              title="Skip for now"
+              title="Skip to Shopping"
               onPress={handleSkip}
               variant="secondary"
             />
