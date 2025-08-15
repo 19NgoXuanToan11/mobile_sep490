@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nextProvider } from "react-i18next";
 import i18n from "../src/shared/lib/i18n";
 import { ToastProvider } from "../src/shared/ui/toast";
+import { userPreferences } from "../src/shared/lib/storage";
 import "../global.css";
 
 // Prevent the splash screen from auto-hiding
@@ -34,6 +35,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
+      // Clear any legacy onboarding flags on app start
+      userPreferences.clearLegacyOnboardingFlags();
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);

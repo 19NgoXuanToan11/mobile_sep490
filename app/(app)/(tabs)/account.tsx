@@ -58,7 +58,7 @@ export default function AccountScreen() {
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/(public)/welcome");
+    router.replace("/(public)/auth/login");
   };
 
   const getThemeLabel = () => {

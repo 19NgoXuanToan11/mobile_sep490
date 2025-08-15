@@ -238,11 +238,9 @@ export const useDebounce = <T>(value: T, delay: number): T => {
 interface PreferencesStore {
   language: string;
   theme: "light" | "dark" | "system";
-  onboardingCompleted: boolean;
   lastActiveTab: string;
   setLanguage: (language: string) => Promise<void>;
   setTheme: (theme: "light" | "dark" | "system") => Promise<void>;
-  setOnboardingCompleted: (completed: boolean) => Promise<void>;
   setLastActiveTab: (tab: string) => Promise<void>;
 }
 
@@ -251,7 +249,6 @@ export const usePreferencesStore = create<PreferencesStore>()(
     (set) => ({
       language: "vi",
       theme: "system",
-      onboardingCompleted: false,
       lastActiveTab: "home",
 
       setLanguage: async (language) => {
@@ -262,11 +259,6 @@ export const usePreferencesStore = create<PreferencesStore>()(
       setTheme: async (theme) => {
         set({ theme });
         await storage.setItem(STORAGE_KEYS.THEME, theme);
-      },
-
-      setOnboardingCompleted: async (completed) => {
-        set({ onboardingCompleted: completed });
-        await storage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETED, completed);
       },
 
       setLastActiveTab: async (tab) => {

@@ -11,7 +11,6 @@ export const STORAGE_KEYS = {
   USER_PREFERENCES: "user_preferences",
   THEME: "theme",
   LANGUAGE: "language",
-  ONBOARDING_COMPLETED: "onboarding_completed",
   CART_ITEMS: "cart_items",
   RECENT_SEARCHES: "recent_searches",
   LAST_ACTIVE_TAB: "last_active_tab",
@@ -155,22 +154,26 @@ export const userPreferences = {
     return await storage.getItem(STORAGE_KEYS.LANGUAGE);
   },
 
-  async setOnboardingCompleted(completed: boolean): Promise<void> {
-    await storage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETED, completed);
-  },
-
-  async isOnboardingCompleted(): Promise<boolean> {
-    const completed = await storage.getItem<boolean>(
-      STORAGE_KEYS.ONBOARDING_COMPLETED
-    );
-    return completed ?? false;
-  },
-
   async setLastActiveTab(tab: string): Promise<void> {
     await storage.setItem(STORAGE_KEYS.LAST_ACTIVE_TAB, tab);
   },
 
   async getLastActiveTab(): Promise<string | null> {
     return await storage.getItem(STORAGE_KEYS.LAST_ACTIVE_TAB);
+  },
+
+  // Clean up any legacy onboarding flags that might exist
+  async clearLegacyOnboardingFlags(): Promise<void> {
+    try {
+      await storage.removeItem("onboarding_completed");
+      // Also clear from the persisted zustand store
+      const keys = await storage.getAllKeys();
+      const onboardingKeys = keys.filter(
+        (key) => key.includes("onboarding") || key.includes("user-preferences")
+      );
+      await Promise.all(onboardingKeys.map((key) => storage.removeItem(key)));
+    } catch (error) {
+      console.error("Error clearing legacy onboarding flags:", error);
+    }
   },
 };

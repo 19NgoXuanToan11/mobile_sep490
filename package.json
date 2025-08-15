@@ -42,7 +42,8 @@
     "react-native-super-grid": "^6.0.1",
     "tailwind-merge": "^2.5.4",
     "zod": "^3.23.8",
-    "zustand": "^4.5.5"
+    "zustand": "^4.5.5",
+    "expo-blur": "~14.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

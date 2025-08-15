@@ -37,7 +37,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // Redirect if authentication requirement is not met
   if (requireAuth && !isAuthenticated) {
-    return <Redirect href={redirectTo || "/(public)/welcome"} />;
+    return <Redirect href={redirectTo || "/(public)/auth/login"} />;
   }
 
   if (!requireAuth && isAuthenticated) {
@@ -65,7 +65,7 @@ export const withAuthGuard = (
 export const useAuthGuard = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
 
-  const requireAuth = (redirectTo = "/(public)/welcome") => {
+  const requireAuth = (redirectTo = "/(public)/auth/login") => {
     if (isLoading) return { canAccess: false, isLoading: true };
     if (!isAuthenticated)
       return { canAccess: false, isLoading: false, redirectTo };

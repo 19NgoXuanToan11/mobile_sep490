@@ -7,7 +7,7 @@ export default function AppLayout() {
   const { colors } = useTheme();
 
   return (
-    <AuthGuard requireAuth={true} redirectTo="/(public)/welcome">
+    <AuthGuard requireAuth={true} redirectTo="/(public)/auth/login">
       <Stack
         screenOptions={{
           headerStyle: {
