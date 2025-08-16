@@ -7,7 +7,6 @@ A comprehensive React Native mobile application for IoT-Based Farm Management Sy
 - **Guest & Customer Experience**: Browse products as guest, full shopping experience when authenticated
 - **E-Commerce**: Product catalog, shopping cart, order management, checkout process
 - **Multi-Language**: English and Vietnamese support
-- **Dark/Light Theme**: Automatic theme switching with green-first design
 - **Real-time Updates**: Optimistic UI with simulated network delays
 - **Offline Ready**: Local storage and caching
 
@@ -63,7 +62,7 @@ mobile_sep490/
 │   ├── features/           # Feature modules (auth)
 │   ├── shared/
 │   │   ├── ui/            # Reusable components
-│   │   ├── lib/           # Utils, theme, i18n
+│   │   ├── lib/           # Utils, i18n
 │   │   ├── data/          # Fake API & fixtures
 │   │   └── hooks/         # Custom hooks
 │   └── types.ts           # TypeScript definitions
@@ -119,7 +118,6 @@ npm run web        # Run on web
 ✅ **UI/UX Excellence**
 
 - Green-themed design system
-- Dark/light mode support
 - Smooth animations
 
 ✅ **Internationalization**
@@ -160,7 +158,7 @@ Toggle between English and Vietnamese in Account settings. All text is translata
 - **Authentication**: Zustand with secure token storage
 - **Cart**: Persistent cart state with AsyncStorage
 - **Server State**: TanStack Query with caching
-- **Preferences**: Theme and language persistence
+- **Preferences**: Language persistence
 
 ## 🚀 Future Enhancements
 

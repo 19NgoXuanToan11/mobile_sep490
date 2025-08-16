@@ -125,11 +125,12 @@ export default function OrdersScreen() {
         onPress={() => router.push(`/(app)/track/${order.id}`)}
       >
         <View className="p-4 space-y-4">
-          {/* Header */}
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center space-x-3">
+          {/* Header - Optimized Layout */}
+          <View className="flex-row items-start justify-between">
+            {/* Left Section: Icon + Order Info */}
+            <View className="flex-1 flex-row items-start space-x-3 pr-3">
               <View
-                className="w-10 h-10 rounded-full items-center justify-center"
+                className="w-12 h-12 rounded-full items-center justify-center shadow-sm"
                 style={{ backgroundColor: statusInfo.bgColor }}
               >
                 <Ionicons
@@ -138,40 +139,46 @@ export default function OrdersScreen() {
                   color={statusInfo.color}
                 />
               </View>
-              <View>
-                <Text className="font-semibold text-neutral-900 text-base">
+
+              <View className="flex-1 space-y-1">
+                <Text
+                  className="font-bold text-neutral-900 text-base leading-5"
+                  numberOfLines={1}
+                >
                   Đơn hàng #{order.orderNumber}
                 </Text>
                 <Text className="text-sm text-neutral-600">
                   {formatDate(order.createdAt)}
                 </Text>
+                <Text className="text-xs text-neutral-500">
+                  {order.itemCount} món
+                </Text>
               </View>
             </View>
 
-            <View className="items-end space-y-1">
+            {/* Right Section: Status Badge */}
+            <View className="items-end">
               <Badge
                 text={statusInfo.text}
                 size="sm"
-                className="text-xs"
                 style={{
                   backgroundColor: statusInfo.bgColor,
                 }}
               />
-              <Text className="text-xs text-neutral-500">
-                {order.itemCount} món
-              </Text>
             </View>
           </View>
 
-          {/* Products Preview */}
-          <View className="space-y-3">
-            <View className="flex-row space-x-2">
+          {/* Products Preview + Total - Horizontal Layout */}
+          <View className="flex-row items-center justify-between">
+            {/* Product Images */}
+            <View className="flex-row items-center space-x-2 flex-1">
               {order.items.slice(0, 3).map((item, index) => (
                 <View key={item.id} className="relative">
                   <Image
                     source={{ uri: item.product.images[0] }}
-                    style={{ width: 50, height: 50 }}
-                    className="rounded-lg"
+                    style={{ width: 52, height: 52 }}
+                    className="rounded-xl"
+                    contentFit="cover"
                   />
                   {item.product.tags?.includes("organic") && (
                     <View className="absolute -top-1 -right-1 w-5 h-5 bg-success-500 rounded-full items-center justify-center">
@@ -181,55 +188,71 @@ export default function OrdersScreen() {
                 </View>
               ))}
               {order.items.length > 3 && (
-                <View className="w-12 h-12 bg-neutral-100 rounded-lg items-center justify-center">
-                  <Text className="text-xs font-medium text-neutral-600">
+                <View className="w-[52px] h-[52px] bg-neutral-100 rounded-xl items-center justify-center">
+                  <Text className="text-xs font-semibold text-neutral-600">
                     +{order.items.length - 3}
                   </Text>
                 </View>
               )}
             </View>
 
-            <View className="space-y-2">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-neutral-600">Tổng tiền</Text>
-                <Text className="text-lg font-bold text-primary-600">
-                  {formatCurrency(order.total)}
+            {/* Total Price - Right Aligned */}
+            <View className="items-end space-y-1 ml-4">
+              <Text className="text-xs text-neutral-500">Tổng tiền</Text>
+              <Text className="text-lg font-bold text-primary-600">
+                {formatCurrency(order.total)}
+              </Text>
+            </View>
+          </View>
+
+          {/* Delivery Estimate - Conditional */}
+          {order.status === "SHIPPED" && order.estimatedDelivery && (
+            <View className="bg-primary-50 px-3 py-2.5 rounded-xl flex-row items-center space-x-2">
+              <Ionicons name="time-outline" size={16} color="#00623A" />
+              <Text
+                className="text-sm text-primary-700 font-medium flex-1"
+                numberOfLines={1}
+              >
+                Dự kiến giao: {formatDate(order.estimatedDelivery)}
+              </Text>
+            </View>
+          )}
+
+          {/* Action Buttons - Responsive */}
+          <View className="flex-row space-x-3 pt-1">
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                router.push(`/(app)/track/${order.id}`);
+              }}
+              className="flex-1 bg-primary-500 rounded-xl py-3 items-center shadow-sm"
+              activeOpacity={0.8}
+            >
+              <View className="flex-row items-center space-x-1.5">
+                <Ionicons name="eye-outline" size={16} color="white" />
+                <Text className="text-white font-semibold text-sm">
+                  Theo dõi
                 </Text>
               </View>
+            </TouchableOpacity>
 
-              {/* Delivery estimate for shipped orders */}
-              {order.status === "SHIPPED" && order.estimatedDelivery && (
-                <View className="bg-primary-50 p-3 rounded-xl flex-row items-center space-x-2">
-                  <Ionicons name="time-outline" size={16} color="#00623A" />
-                  <Text className="text-sm text-primary-700 font-medium flex-1">
-                    Dự kiến giao: {formatDate(order.estimatedDelivery)}
+            {order.status === "DELIVERED" && (
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  router.push("/(app)/(tabs)/catalog");
+                }}
+                className="flex-1 bg-white border-2 border-primary-500 rounded-xl py-3 items-center"
+                activeOpacity={0.8}
+              >
+                <View className="flex-row items-center space-x-1.5">
+                  <Ionicons name="repeat-outline" size={16} color="#00623A" />
+                  <Text className="text-primary-600 font-semibold text-sm">
+                    Mua lại
                   </Text>
                 </View>
-              )}
-
-              {/* Quick actions */}
-              <View className="flex-row space-x-2 pt-2">
-                <TouchableOpacity
-                  onPress={() => router.push(`/(app)/track/${order.id}`)}
-                  className="flex-1 bg-primary-500 rounded-lg py-2 items-center"
-                >
-                  <Text className="text-white font-medium text-sm">
-                    Theo dõi
-                  </Text>
-                </TouchableOpacity>
-
-                {order.status === "DELIVERED" && (
-                  <TouchableOpacity
-                    onPress={() => router.push("/(app)/(tabs)/catalog")}
-                    className="flex-1 bg-white border border-primary-500 rounded-lg py-2 items-center"
-                  >
-                    <Text className="text-primary-600 font-medium text-sm">
-                      Mua lại
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </Card>

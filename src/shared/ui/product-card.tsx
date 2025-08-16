@@ -16,14 +16,9 @@ const productCardVariants = cva("", {
       lg: "w-56",
       full: "w-full",
     },
-    layout: {
-      vertical: "flex-col",
-      horizontal: "flex-row",
-    },
   },
   defaultVariants: {
     size: "md",
-    layout: "vertical",
   },
 });
 
@@ -38,6 +33,8 @@ export interface ProductCardProps
     images: string[];
     rating?: number;
     reviewCount?: number;
+    soldCount?: number;
+    certifications?: string[];
     unit?: string;
     tags?: string[];
     origin?: string;
@@ -61,7 +58,6 @@ const formatCurrency = (amount: number) => {
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   size,
-  layout,
   onPress,
   onAddToCart,
   showAddToCart = true,
@@ -69,7 +65,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   className,
   ...props
 }) => {
-  const isHorizontal = layout === "horizontal";
   const hasDiscount =
     product.originalPrice && product.originalPrice > product.price;
   const discountPercent = hasDiscount
@@ -80,134 +75,193 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     : 0;
 
   const renderImage = () => (
-    <View
-      className={cn(
-        "relative bg-neutral-100 rounded-xl overflow-hidden",
-        isHorizontal ? "w-20 h-20" : "w-full h-32"
-      )}
-    >
+    <View className="relative bg-neutral-100 rounded-xl overflow-hidden w-full h-36">
       <Image
         source={{ uri: product.images[0] }}
         style={{ width: "100%", height: "100%" }}
         contentFit="cover"
       />
 
-      {/* Badges */}
-      <View className="absolute top-2 left-2 flex-row gap-1">
+      {/* Top Badges - Left Side */}
+      <View className="absolute top-1.5 left-1.5 space-y-1">
         {hasDiscount && (
-          <Badge text={`-${discountPercent}%`} variant="error" size="xs" />
+          <View className="bg-red-500 px-1.5 py-0.5 rounded-md">
+            <Text className="text-white text-xs font-bold">
+              -{discountPercent}%
+            </Text>
+          </View>
         )}
-        {product.isFeatured && <Badge text="HOT" variant="organic" size="xs" />}
-        {product.tags?.includes("organic") && (
-          <Badge text="Organic" variant="success" size="xs" />
+        {product.isFeatured && (
+          <View className="bg-orange-500 px-1.5 py-0.5 rounded-md">
+            <Text className="text-white text-xs font-bold">HOT</Text>
+          </View>
         )}
       </View>
 
+      {/* Top Badge - Right Side */}
+      {product.tags?.includes("organic") && (
+        <View className="absolute top-1.5 right-1.5">
+          <View className="bg-green-500 px-1.5 py-0.5 rounded-md">
+            <Text className="text-white text-xs font-bold">Organic</Text>
+          </View>
+        </View>
+      )}
+
       {/* Quick actions */}
       {showQuickView && (
-        <View className="absolute top-2 right-2">
+        <View
+          className="absolute top-1.5 right-1.5"
+          style={{ marginTop: product.tags?.includes("organic") ? 28 : 0 }}
+        >
           <TouchableOpacity
-            className="w-8 h-8 bg-white/80 rounded-full items-center justify-center"
+            className="w-7 h-7 bg-white/90 rounded-full items-center justify-center shadow-sm"
             onPress={onPress}
           >
-            <Ionicons name="eye-outline" size={16} color="#00623A" />
+            <Ionicons name="eye-outline" size={14} color="#00623A" />
           </TouchableOpacity>
         </View>
       )}
 
       {/* Out of stock overlay */}
       {product.isInStock === false && (
-        <View className="absolute inset-0 bg-black/50 items-center justify-center">
-          <Text className="text-white text-xs font-medium">Hết hàng</Text>
+        <View className="absolute inset-0 bg-black/60 items-center justify-center rounded-xl">
+          <Text className="text-white text-xs font-semibold">Hết hàng</Text>
         </View>
       )}
     </View>
   );
 
   const renderContent = () => (
-    <View
-      className={cn(
-        "flex-1 space-y-2",
-        isHorizontal ? "pl-3 justify-between" : "pt-3"
-      )}
-    >
-      {/* Product name */}
-      <Text
-        className="font-semibold text-neutral-900 leading-4"
-        numberOfLines={isHorizontal ? 1 : 2}
-      >
-        {product.name}
-      </Text>
+    <View className="flex-1 justify-between pt-3">
+      {/* Top Section: Product Info */}
+      <View className="space-y-2 flex-1">
+        {/* Product Name */}
+        <Text
+          className="font-semibold text-neutral-900 text-sm leading-5"
+          numberOfLines={2}
+        >
+          {product.name}
+        </Text>
 
-      {/* Origin & Harvest info */}
-      {(product.origin || product.harvestDate) && (
-        <View className="flex-row items-center gap-2">
-          {product.origin && (
-            <View className="flex-row items-center gap-1">
-              <Ionicons name="location-outline" size={12} color="#6b7280" />
-              <Text className="text-xs text-neutral-600">{product.origin}</Text>
-            </View>
+        {/* Location & Date Row */}
+        {(product.origin || product.harvestDate) && (
+          <View className="flex-row items-center flex-wrap gap-x-3 gap-y-1">
+            {product.origin && (
+              <View className="flex-row items-center gap-1">
+                <Ionicons name="location-outline" size={11} color="#6b7280" />
+                <Text className="text-xs text-neutral-600" numberOfLines={1}>
+                  {product.origin}
+                </Text>
+              </View>
+            )}
+            {product.harvestDate && (
+              <View className="flex-row items-center gap-1">
+                <Ionicons name="calendar-outline" size={11} color="#6b7280" />
+                <Text className="text-xs text-neutral-600">
+                  {new Date(product.harvestDate).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  })}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Rating & Trust Row */}
+        <View className="space-y-1.5">
+          {product.rating && (
+            <RatingDisplay
+              rating={product.rating}
+              reviewCount={product.reviewCount}
+              size="sm"
+            />
           )}
-          {product.harvestDate && (
-            <View className="flex-row items-center gap-1">
-              <Ionicons name="calendar-outline" size={12} color="#6b7280" />
-              <Text className="text-xs text-neutral-600">
-                {new Date(product.harvestDate).toLocaleDateString("vi-VN")}
+
+          {/* Trust Elements Row */}
+          <View className="flex-row items-center flex-wrap gap-x-3 gap-y-1">
+            {/* Sold Count */}
+            {product.soldCount && (
+              <View className="flex-row items-center gap-1">
+                <Ionicons name="checkmark-circle" size={11} color="#16a34a" />
+                <Text className="text-xs text-neutral-600">
+                  Đã bán{" "}
+                  {product.soldCount > 1000
+                    ? `${Math.floor(product.soldCount / 1000)}k+`
+                    : product.soldCount}
+                </Text>
+              </View>
+            )}
+
+            {/* VietGAP Badge */}
+            {product.certifications?.includes("VietGAP") && (
+              <View className="flex-row items-center gap-1">
+                <Ionicons name="shield-checkmark" size={11} color="#2563eb" />
+                <Text className="text-xs text-blue-600 font-medium">
+                  VietGAP
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+
+      {/* Bottom Section: Price & CTA */}
+      <View className="space-y-2.5 mt-2">
+        {/* Price Section */}
+        <View className="space-y-1">
+          <View className="flex-row items-baseline gap-2 flex-wrap">
+            <Text className="text-base font-bold text-primary-600">
+              {formatCurrency(product.price)}
+            </Text>
+            {product.unit && (
+              <Text className="text-xs text-neutral-500">/{product.unit}</Text>
+            )}
+          </View>
+
+          {/* Original Price Row */}
+          {hasDiscount && (
+            <View className="flex-row items-center gap-2">
+              <Text className="text-sm text-neutral-400 line-through">
+                {formatCurrency(product.originalPrice!)}
               </Text>
+              <View className="bg-red-100 px-1.5 py-0.5 rounded">
+                <Text className="text-xs font-medium text-red-600">
+                  -{discountPercent}%
+                </Text>
+              </View>
             </View>
           )}
         </View>
-      )}
 
-      {/* Rating */}
-      {product.rating && (
-        <RatingDisplay
-          rating={product.rating}
-          reviewCount={product.reviewCount}
-          size="sm"
-        />
-      )}
-
-      {/* Price */}
-      <View className="flex-row items-center gap-2">
-        <Text className="text-lg font-bold text-primary-600">
-          {formatCurrency(product.price)}
-        </Text>
-        {hasDiscount && (
-          <Text className="text-sm text-neutral-400 line-through">
-            {formatCurrency(product.originalPrice!)}
-          </Text>
-        )}
-        {product.unit && (
-          <Text className="text-xs text-neutral-500">/{product.unit}</Text>
+        {/* CTA Button */}
+        {showAddToCart && product.isInStock !== false && (
+          <TouchableOpacity
+            className="bg-primary-500 rounded-xl py-2.5 items-center justify-center shadow-sm"
+            onPress={onAddToCart}
+            activeOpacity={0.8}
+          >
+            <View className="flex-row items-center gap-1.5">
+              <Ionicons name="basket-outline" size={14} color="white" />
+              <Text className="text-white text-sm font-semibold">
+                Thêm vào giỏ
+              </Text>
+            </View>
+          </TouchableOpacity>
         )}
       </View>
-
-      {/* Add to cart button */}
-      {showAddToCart && product.isInStock !== false && (
-        <TouchableOpacity
-          className="bg-primary-500 rounded-lg py-2 items-center justify-center mt-2"
-          onPress={onAddToCart}
-          activeOpacity={0.8}
-        >
-          <View className="flex-row items-center gap-1">
-            <Ionicons name="basket-outline" size={14} color="white" />
-            <Text className="text-white text-xs font-medium">Thêm vào giỏ</Text>
-          </View>
-        </TouchableOpacity>
-      )}
     </View>
   );
 
   return (
     <Card
       variant="product"
-      padding="sm"
+      padding="md"
       onPress={onPress}
-      className={cn(productCardVariants({ size, layout }), className)}
+      className={cn(productCardVariants({ size }), "shadow-sm", className)}
       {...props}
     >
-      <View className={cn("space-y-0", isHorizontal ? "flex-row" : "flex-col")}>
+      <View className="flex-col space-y-3">
         {renderImage()}
         {renderContent()}
       </View>

@@ -1,7 +1,6 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../../../src/shared/lib/theme";
 import { useCart } from "../../../src/shared/hooks";
 import { View, Text } from "react-native";
 
@@ -26,7 +25,6 @@ interface TabIconProps {
 }
 
 const TabIcon: React.FC<TabIconProps> = ({ name, focused, count }) => {
-  const { colors } = useTheme();
   const iconName = focused
     ? name
     : (`${name.replace("-", "-outline")}` as keyof typeof Ionicons.glyphMap);
@@ -36,7 +34,7 @@ const TabIcon: React.FC<TabIconProps> = ({ name, focused, count }) => {
       <Ionicons
         name={iconName}
         size={28}
-        color={focused ? colors.primary : colors.textSecondary}
+        color={focused ? "#00623A" : "#6b7280"}
       />
       {count !== undefined && <CartBadge count={count} />}
     </View>
@@ -44,7 +42,6 @@ const TabIcon: React.FC<TabIconProps> = ({ name, focused, count }) => {
 };
 
 export default function TabLayout() {
-  const { colors, isDark } = useTheme();
   const { cart } = useCart();
 
   return (
@@ -52,7 +49,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false, // Xóa header để có cảm giác premium
         tabBarStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: "#ffffff",
           borderTopColor: "transparent",
           borderTopWidth: 0,
           paddingTop: 16,
@@ -74,8 +71,8 @@ export default function TabLayout() {
           borderColor: "rgba(0,0,0,0.05)",
           position: "absolute",
         },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveTintColor: "#00623A",
+        tabBarInactiveTintColor: "#6b7280",
         tabBarShowLabel: false, // Ẩn toàn bộ text labels
         animation: "shift",
       }}

@@ -79,7 +79,7 @@ const AddressSelector: React.FC<{
                     {address.name}
                   </Text>
                   {address.isDefault && (
-                    <Badge text="Mặc định" size="xs" variant="success" />
+                    <Badge text="Mặc định" size="sm" variant="success" />
                   )}
                   <Badge
                     text={
@@ -89,7 +89,7 @@ const AddressSelector: React.FC<{
                         ? "Văn phòng"
                         : "Khác"
                     }
-                    size="xs"
+                    size="sm"
                     variant="outline"
                   />
                 </View>
@@ -338,7 +338,6 @@ export default function CheckoutScreen() {
           onPress: () =>
             createOrderMutation.mutate({
               ...data,
-              deliveryTime: selectedDeliveryTime,
             }),
         },
       ]
@@ -426,7 +425,7 @@ export default function CheckoutScreen() {
                             {item.quantity} × {formatCurrency(item.price)}
                           </Text>
                           {item.product.tags?.includes("organic") && (
-                            <Badge text="Organic" variant="success" size="xs" />
+                            <Badge text="Organic" variant="success" size="sm" />
                           )}
                         </View>
                       </View>
@@ -499,7 +498,7 @@ export default function CheckoutScreen() {
 
                       <View className="flex-row items-center space-x-2">
                         {option.price === 0 && (
-                          <Badge text="Miễn phí" variant="success" size="xs" />
+                          <Badge text="Miễn phí" variant="success" size="sm" />
                         )}
                         <Ionicons
                           name={

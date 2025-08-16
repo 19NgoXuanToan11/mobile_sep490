@@ -31,6 +31,8 @@ export interface Product {
   images: string[];
   rating: number;
   reviewCount: number;
+  soldCount?: number; // Number of items sold for trust building
+  certifications?: string[]; // e.g., ["VietGAP", "Organic", "GlobalGAP"]
   stock: number;
   isInStock: boolean;
   isFeatured: boolean;
@@ -190,21 +192,6 @@ export interface FilterState {
   priceRange: [number, number];
   sortBy: "name" | "price_asc" | "price_desc" | "rating" | "newest";
   inStockOnly: boolean;
-}
-
-// Theme types
-export type ColorScheme = "light" | "dark" | "system";
-
-export interface ThemeColors {
-  primary: string;
-  background: string;
-  surface: string;
-  text: string;
-  textSecondary: string;
-  border: string;
-  success: string;
-  warning: string;
-  error: string;
 }
 
 // Navigation types

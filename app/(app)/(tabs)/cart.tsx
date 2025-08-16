@@ -77,36 +77,51 @@ export default function CartScreen() {
 
   const renderCartItem = ({ item }: { item: CartItem }) => (
     <Card className="mx-4 mb-4" padding="none" variant="elevated">
-      <View className="p-4">
+      <View className="p-4 space-y-4">
+        {/* Top Row: Badge + Total Price */}
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row space-x-2">
+            {item.product.tags?.includes("organic") && (
+              <Badge text="Organic" variant="success" size="sm" />
+            )}
+            {item.product.certifications?.includes("VietGAP") && (
+              <Badge text="VietGAP" variant="secondary" size="sm" />
+            )}
+          </View>
+
+          <Text className="font-bold text-primary-600 text-lg">
+            {formatCurrency(item.subtotal)}
+          </Text>
+        </View>
+
+        {/* Main Content Row */}
         <View className="flex-row space-x-4">
-          {/* Product Image */}
+          {/* Product Image with Quantity Badge */}
           <View className="relative">
             <Image
               source={{ uri: item.product.images[0] }}
-              style={{ width: 90, height: 90 }}
+              style={{ width: 80, height: 80 }}
               className="rounded-xl"
+              contentFit="cover"
             />
-            {item.product.tags?.includes("organic") && (
-              <Badge
-                text="Organic"
-                variant="success"
-                size="sm"
-                className="absolute -top-1 -right-1"
-              />
-            )}
+            <View className="absolute -top-2 -right-2 bg-primary-500 rounded-full w-6 h-6 items-center justify-center">
+              <Text className="text-white text-xs font-bold">
+                {item.quantity}
+              </Text>
+            </View>
           </View>
 
           {/* Product Info */}
           <View className="flex-1 space-y-3">
             <View className="space-y-1">
               <Text
-                className="font-semibold text-neutral-900 text-base"
+                className="font-semibold text-neutral-900 text-base leading-5"
                 numberOfLines={2}
               >
                 {item.product.name}
               </Text>
 
-              <View className="flex-row items-center space-x-2">
+              <View className="flex-row items-center space-x-2 flex-wrap">
                 <Text className="text-sm text-neutral-600">
                   {formatCurrency(item.price)} / {item.product.unit}
                 </Text>
@@ -119,7 +134,10 @@ export default function CartScreen() {
                         size={12}
                         color="#6b7280"
                       />
-                      <Text className="text-xs text-neutral-600">
+                      <Text
+                        className="text-xs text-neutral-600"
+                        numberOfLines={1}
+                      >
                         {item.product.origin}
                       </Text>
                     </View>
@@ -128,7 +146,7 @@ export default function CartScreen() {
               </View>
             </View>
 
-            {/* Quantity & Price */}
+            {/* Quantity Controls + Stock */}
             <View className="flex-row items-center justify-between">
               <QuantityStepper
                 value={item.quantity}
@@ -138,16 +156,17 @@ export default function CartScreen() {
                 size="sm"
               />
 
-              <Text className="font-bold text-primary-600 text-lg">
-                {formatCurrency(item.subtotal)}
+              <Text className="text-xs text-neutral-500">
+                Còn {item.product.stock} {item.product.unit}
               </Text>
             </View>
 
-            {/* Actions */}
+            {/* Action Buttons */}
             <View className="flex-row items-center space-x-4">
               <TouchableOpacity
                 onPress={() => handleSaveForLater(item.id)}
                 className="flex-row items-center space-x-1"
+                activeOpacity={0.7}
               >
                 <Ionicons name="heart-outline" size={16} color="#6b7280" />
                 <Text className="text-sm text-neutral-600">Lưu sau</Text>
@@ -156,6 +175,7 @@ export default function CartScreen() {
               <TouchableOpacity
                 onPress={() => handleRemoveItem(item.id, item.product.name)}
                 className="flex-row items-center space-x-1"
+                activeOpacity={0.7}
               >
                 <Ionicons name="trash-outline" size={16} color="#ef4444" />
                 <Text className="text-sm text-red-500">Xóa</Text>
@@ -163,15 +183,15 @@ export default function CartScreen() {
             </View>
           </View>
         </View>
-      </View>
 
-      {/* Delivery Time Estimate */}
-      <View className="bg-primary-50 mx-4 mb-4 p-3 rounded-xl">
-        <View className="flex-row items-center space-x-2">
-          <Ionicons name="time-outline" size={16} color="#00623A" />
-          <Text className="text-sm text-primary-700 font-medium">
-            Giao trong 2-4 giờ (nông sản tươi)
-          </Text>
+        {/* Delivery Info */}
+        <View className="bg-primary-50 p-3 rounded-xl">
+          <View className="flex-row items-center space-x-2">
+            <Ionicons name="time-outline" size={16} color="#00623A" />
+            <Text className="text-sm text-primary-700 font-medium">
+              Giao trong 2-4 giờ (nông sản tươi)
+            </Text>
+          </View>
         </View>
       </View>
     </Card>

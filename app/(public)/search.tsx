@@ -216,9 +216,17 @@ export default function SearchScreen() {
         data={searchResults}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ProductCard product={item} onAddToCart={handleAddToCart} />
+          <View className="w-[48%] mb-4">
+            <ProductCard product={item} onAddToCart={handleAddToCart} />
+          </View>
         )}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        numColumns={2}
+        contentContainerStyle={{
+          paddingBottom: 20,
+          paddingHorizontal: 16,
+          paddingTop: 16,
+        }}
+        columnWrapperStyle={{ justifyContent: "space-between" }}
         ListEmptyComponent={renderEmptyState()}
         onRefresh={() => {
           // Trigger refetch
