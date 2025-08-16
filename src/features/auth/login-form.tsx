@@ -1,10 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   Animated,
   Pressable,
+  TextInput,
 } from "react-native";
 import { Link, router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
@@ -34,6 +35,10 @@ export const LoginForm: React.FC = () => {
   const toast = useToast();
   const { t } = useLocalization();
 
+  // Refs for input focus management
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+
   const {
     control,
     handleSubmit,
@@ -45,6 +50,13 @@ export const LoginForm: React.FC = () => {
       password: "password",
     },
   });
+
+  const focusNextField = useCallback(
+    (nextFieldRef: React.RefObject<TextInput | null>) => {
+      nextFieldRef.current?.focus();
+    },
+    []
+  );
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -140,14 +152,15 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <View className="justify-center" style={{ minHeight: 350 }}>
+    <View className="justify-center" style={{ minHeight: 320 }}>
       {/* Input Fields */}
-      <View style={{ gap: 14 }}>
+      <View style={{ gap: 16 }}>
         <Controller
           control={control}
           name="email"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
+              ref={emailRef}
               placeholder="Email address"
               value={value}
               onChangeText={onChange}
@@ -156,6 +169,9 @@ export const LoginForm: React.FC = () => {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              textContentType="emailAddress"
+              returnKeyType="next"
+              onSubmitEditing={() => focusNextField(passwordRef)}
               size="lg"
               className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
             />
@@ -167,13 +183,17 @@ export const LoginForm: React.FC = () => {
           name="password"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
+              ref={passwordRef}
               placeholder="Password"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
               error={errors.password?.message}
               secureTextEntry
-              autoComplete="password"
+              autoComplete="current-password"
+              textContentType="password"
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit(onSubmit)}
               size="lg"
               className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
             />
@@ -182,7 +202,7 @@ export const LoginForm: React.FC = () => {
       </View>
 
       {/* Sign In Button */}
-      <View style={{ marginTop: 24 }}>
+      <View style={{ marginTop: 28 }}>
         <PremiumButton
           title="Sign In"
           onPress={handleSubmit(onSubmit)}
@@ -192,7 +212,7 @@ export const LoginForm: React.FC = () => {
       </View>
 
       {/* Forgot Password */}
-      <View style={{ marginTop: 18 }}>
+      <View style={{ marginTop: 20 }}>
         <TouchableOpacity className="items-center">
           <Text className="text-primary-500 text-sm font-medium">
             Forgot Password?
@@ -201,14 +221,20 @@ export const LoginForm: React.FC = () => {
       </View>
 
       {/* Divider */}
-      <View className="flex-row items-center" style={{ marginTop: 20, gap: 16 }}>
+      <View
+        className="flex-row items-center"
+        style={{ marginTop: 24, gap: 16 }}
+      >
         <View className="flex-1 h-px bg-neutral-200" />
         <Text className="text-neutral-500 text-sm">or</Text>
         <View className="flex-1 h-px bg-neutral-200" />
       </View>
 
       {/* Sign Up Link */}
-      <View className="items-center" style={{ marginTop: 18 }}>
+      <View
+        className="items-center"
+        style={{ marginTop: 20, marginBottom: 20 }}
+      >
         <Text className="text-neutral-600 text-sm mb-2">
           Don't have an account?
         </Text>

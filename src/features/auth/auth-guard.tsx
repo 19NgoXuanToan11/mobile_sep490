@@ -37,11 +37,11 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // Redirect if authentication requirement is not met
   if (requireAuth && !isAuthenticated) {
-    return <Redirect href={redirectTo || "/(public)/auth/login"} />;
+                                          return <Redirect href={(redirectTo || "/(public)/auth/login") as any} />;
   }
 
   if (!requireAuth && isAuthenticated) {
-    return <Redirect href={redirectTo || "/(app)/(tabs)/home"} />;
+    return <Redirect href={(redirectTo || "/(app)/(tabs)/home") as any} />;
   }
 
   return <>{children}</>;

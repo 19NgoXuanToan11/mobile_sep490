@@ -6,6 +6,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -101,39 +103,53 @@ export default function RegisterScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View className="flex-1 px-8 justify-center">
-          {/* Logo */}
-          <View className="items-center" style={{ marginBottom: 20 }}>
-            <Logo />
-          </View>
-
-          {/* Welcome Section */}
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }}
-            className="mb-8"
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Text className="text-3xl font-light text-neutral-900 text-center mb-2 tracking-tight">
-              Create Account
-            </Text>
-            <Text className="text-base text-neutral-600 text-center font-light">
-              Join us and start shopping
-            </Text>
-          </Animated.View>
+            <View className="flex-1 px-6 py-4">
+              {/* Logo */}
+              <View
+                className="items-center"
+                style={{ marginTop: 40, marginBottom: 20 }}
+              >
+                <Logo />
+              </View>
 
-          {/* Form */}
-          <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            }}
-          >
-            <RegisterForm />
-          </Animated.View>
-        </View>
+              {/* Welcome Section */}
+              <Animated.View
+                style={{
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                }}
+                className="mb-6"
+              >
+                <Text className="text-3xl font-light text-neutral-900 text-center mb-2 tracking-tight">
+                  Create Account
+                </Text>
+                <Text className="text-base text-neutral-600 text-center font-light">
+                  Join us and start shopping
+                </Text>
+              </Animated.View>
+
+              {/* Form */}
+              <Animated.View
+                style={{
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                }}
+                className="flex-1"
+              >
+                <RegisterForm />
+              </Animated.View>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

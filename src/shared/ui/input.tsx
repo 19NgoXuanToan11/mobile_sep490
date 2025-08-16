@@ -1,10 +1,11 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef, useState, useCallback } from "react";
 import {
   TextInput,
   View,
   Text,
   TouchableOpacity,
   TextInputProps,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -24,7 +25,7 @@ const inputVariants = cva(
       size: {
         sm: "h-9 px-3 text-sm",
         md: "h-11 px-3 text-base",
-        lg: "h-12 px-4 text-lg",
+        lg: "h-14 px-4 text-base",
       },
     },
     defaultVariants: {
@@ -78,13 +79,29 @@ export const Input = forwardRef<TextInput, InputProps>(
         : "eye"
       : rightIcon;
 
-    const handleRightIconPress = () => {
+    const handleRightIconPress = useCallback(() => {
       if (showPasswordIcon) {
         setIsPasswordVisible(!isPasswordVisible);
       } else if (onRightIconPress) {
         onRightIconPress();
       }
-    };
+    }, [showPasswordIcon, isPasswordVisible, onRightIconPress]);
+
+    const handleFocus = useCallback(
+      (e: any) => {
+        setIsFocused(true);
+        props.onFocus?.(e);
+      },
+      [props.onFocus]
+    );
+
+    const handleBlur = useCallback(
+      (e: any) => {
+        setIsFocused(false);
+        props.onBlur?.(e);
+      },
+      [props.onBlur]
+    );
 
     return (
       <View className="w-full">
@@ -112,16 +129,26 @@ export const Input = forwardRef<TextInput, InputProps>(
               className
             )}
             secureTextEntry={isPassword && !isPasswordVisible}
-            onFocus={(e) => {
-              setIsFocused(true);
-              props.onFocus?.(e);
-            }}
-            onBlur={(e) => {
-              setIsFocused(false);
-              props.onBlur?.(e);
-            }}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             placeholderTextColor="#9ca3af"
+            autoCorrect={false}
+            spellCheck={false}
+            textContentType={isPassword ? "password" : props.textContentType}
+            importantForAutofill={isPassword ? "yes" : "auto"}
+            blurOnSubmit={false}
+            returnKeyType={props.returnKeyType || "next"}
+            enablesReturnKeyAutomatically={true}
+            contextMenuHidden={isPassword}
             {...props}
+            style={[
+              {
+                fontSize: size === "lg" ? 16 : size === "sm" ? 14 : 15,
+                lineHeight: Platform.OS === "ios" ? 20 : 22,
+                paddingVertical: Platform.OS === "android" ? 12 : 16,
+              },
+              props.style,
+            ]}
           />
 
           {(finalRightIcon || showPasswordIcon) && (
