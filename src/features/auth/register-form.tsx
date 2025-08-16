@@ -1,10 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   Animated,
   Pressable,
+  TextInput,
 } from "react-native";
 import { Link, router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
@@ -44,6 +45,12 @@ export const RegisterForm: React.FC = () => {
   const toast = useToast();
   const { t } = useLocalization();
 
+  // Refs for input focus management
+  const nameRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
+
   const {
     control,
     handleSubmit,
@@ -57,6 +64,13 @@ export const RegisterForm: React.FC = () => {
       confirmPassword: "",
     },
   });
+
+  const focusNextField = useCallback(
+    (nextFieldRef: React.RefObject<TextInput | null>) => {
+      nextFieldRef.current?.focus();
+    },
+    []
+  );
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -149,24 +163,28 @@ export const RegisterForm: React.FC = () => {
   };
 
   return (
-    <View className="justify-center" style={{ minHeight: 350 }}>
+    <View className="flex-1" style={{ minHeight: 400 }}>
       {/* Input Fields */}
-      <View style={{ gap: 14 }}>
+      <View style={{ gap: 16 }}>
         <Controller
           control={control}
           name="name"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-                placeholder="Full name"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                error={errors.name?.message}
-                autoCapitalize="words"
-                autoComplete="name"
-                size="lg"
-                className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
-              />
+              ref={nameRef}
+              placeholder="Full name"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              error={errors.name?.message}
+              autoCapitalize="words"
+              autoComplete="name"
+              textContentType="givenName"
+              returnKeyType="next"
+              onSubmitEditing={() => focusNextField(emailRef)}
+              size="lg"
+              className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
+            />
           )}
         />
 
@@ -175,17 +193,21 @@ export const RegisterForm: React.FC = () => {
           name="email"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-                placeholder="Email address"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                error={errors.email?.message}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                size="lg"
-                className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
-              />
+              ref={emailRef}
+              placeholder="Email address"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              error={errors.email?.message}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
+              returnKeyType="next"
+              onSubmitEditing={() => focusNextField(passwordRef)}
+              size="lg"
+              className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
+            />
           )}
         />
 
@@ -194,16 +216,20 @@ export const RegisterForm: React.FC = () => {
           name="password"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-                placeholder="Create password"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                error={errors.password?.message}
-                secureTextEntry
-                autoComplete="new-password"
-                size="lg"
-                className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
-              />
+              ref={passwordRef}
+              placeholder="Create password"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              error={errors.password?.message}
+              secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
+              returnKeyType="next"
+              onSubmitEditing={() => focusNextField(confirmPasswordRef)}
+              size="lg"
+              className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
+            />
           )}
         />
 
@@ -212,22 +238,26 @@ export const RegisterForm: React.FC = () => {
           name="confirmPassword"
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-                placeholder="Confirm password"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                error={errors.confirmPassword?.message}
-                secureTextEntry
-                autoComplete="new-password"
-                size="lg"
-                className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
-              />
+              ref={confirmPasswordRef}
+              placeholder="Confirm password"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              error={errors.confirmPassword?.message}
+              secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit(onSubmit)}
+              size="lg"
+              className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
+            />
           )}
         />
       </View>
 
       {/* Create Account Button */}
-      <View style={{ marginTop: 24 }}>
+      <View style={{ marginTop: 28 }}>
         <PremiumButton
           title="Create Account"
           onPress={handleSubmit(onSubmit)}
@@ -235,9 +265,12 @@ export const RegisterForm: React.FC = () => {
           variant="primary"
         />
       </View>
-      
+
       {/* Sign In Link */}
-      <View className="items-center" style={{ marginTop: 18 }}>
+      <View
+        className="items-center"
+        style={{ marginTop: 20, marginBottom: 40 }}
+      >
         <Text className="text-neutral-600 text-sm mb-2">
           Already have an account?
         </Text>
