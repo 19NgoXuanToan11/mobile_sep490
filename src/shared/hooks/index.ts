@@ -237,10 +237,8 @@ export const useDebounce = <T>(value: T, delay: number): T => {
 // Preferences hook
 interface PreferencesStore {
   language: string;
-  theme: "light" | "dark" | "system";
   lastActiveTab: string;
   setLanguage: (language: string) => Promise<void>;
-  setTheme: (theme: "light" | "dark" | "system") => Promise<void>;
   setLastActiveTab: (tab: string) => Promise<void>;
 }
 
@@ -248,17 +246,11 @@ export const usePreferencesStore = create<PreferencesStore>()(
   persist(
     (set) => ({
       language: "vi",
-      theme: "system",
       lastActiveTab: "home",
 
       setLanguage: async (language) => {
         set({ language });
         await storage.setItem(STORAGE_KEYS.LANGUAGE, language);
-      },
-
-      setTheme: async (theme) => {
-        set({ theme });
-        await storage.setItem(STORAGE_KEYS.THEME, theme);
       },
 
       setLastActiveTab: async (tab) => {

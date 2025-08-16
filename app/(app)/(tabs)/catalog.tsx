@@ -40,7 +40,6 @@ export default function CatalogScreen() {
   const { addItem } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<
     "name" | "price_asc" | "price_desc" | "newest"
   >("newest");
@@ -96,18 +95,6 @@ export default function CatalogScreen() {
       <ProductCard
         product={product}
         size="full"
-        onPress={() => router.push(`/(public)/product/${product.id}`)}
-        onAddToCart={() => handleAddToCart(product.id, product.name)}
-      />
-    </View>
-  );
-
-  const renderProductList = ({ item: product }: { item: any }) => (
-    <View className="mx-4 mb-4">
-      <ProductCard
-        product={product}
-        size="full"
-        layout="horizontal"
         onPress={() => router.push(`/(public)/product/${product.id}`)}
         onAddToCart={() => handleAddToCart(product.id, product.name)}
       />
@@ -192,16 +179,6 @@ export default function CatalogScreen() {
               className="flex-1"
             />
             <TouchableOpacity
-              onPress={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-              className="w-10 h-10 bg-neutral-100 rounded-full items-center justify-center"
-            >
-              <Ionicons
-                name={viewMode === "grid" ? "list-outline" : "grid-outline"}
-                size={20}
-                color="#6b7280"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
               onPress={() => setShowFilters(true)}
               className="w-10 h-10 bg-neutral-100 rounded-full items-center justify-center"
             >
@@ -243,7 +220,7 @@ export default function CatalogScreen() {
         </View>
       </View>
 
-      {/* Products List */}
+      {/* Products Grid */}
       <View className="flex-1">
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
@@ -258,22 +235,15 @@ export default function CatalogScreen() {
         ) : (
           <FlatList
             data={products}
-            renderItem={
-              viewMode === "grid" ? renderProductGrid : renderProductList
-            }
+            renderItem={renderProductGrid}
             keyExtractor={(item) => item.id}
-            numColumns={viewMode === "grid" ? 2 : 1}
-            key={viewMode} // Force re-render when view mode changes
+            numColumns={2}
             contentContainerStyle={{
               paddingVertical: 16,
-              paddingHorizontal: viewMode === "grid" ? 16 : 0,
+              paddingHorizontal: 16,
               paddingBottom: 110,
             }}
-            columnWrapperStyle={
-              viewMode === "grid"
-                ? { justifyContent: "space-between" }
-                : undefined
-            }
+            columnWrapperStyle={{ justifyContent: "space-between" }}
             showsVerticalScrollIndicator={false}
           />
         )}

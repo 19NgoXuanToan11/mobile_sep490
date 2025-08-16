@@ -164,20 +164,12 @@ const resources = {
         addresses: "Addresses",
         paymentMethods: "Payment Methods",
         language: "Language",
-        theme: "Theme",
         notifications: "Notifications",
         help: "Help & Support",
         about: "About",
         version: "Version",
         signOut: "Sign Out",
         settings: "Settings",
-      },
-
-      // Theme
-      theme: {
-        light: "Light",
-        dark: "Dark",
-        system: "System",
       },
 
       // Language
@@ -399,20 +391,12 @@ const resources = {
         addresses: "Địa chỉ",
         paymentMethods: "Phương thức thanh toán",
         language: "Ngôn ngữ",
-        theme: "Giao diện",
         notifications: "Thông báo",
         help: "Trợ giúp & Hỗ trợ",
         about: "Về chúng tôi",
         version: "Phiên bản",
         signOut: "Đăng xuất",
         settings: "Cài đặt",
-      },
-
-      // Theme
-      theme: {
-        light: "Sáng",
-        dark: "Tối",
-        system: "Hệ thống",
       },
 
       // Language

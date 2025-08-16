@@ -121,9 +121,9 @@ const FeaturedProductsSection: React.FC = () => {
             <View key={index} className="w-[48%] mb-4">
               <Skeleton height={140} className="rounded-lg" />
               <View className="space-y-2 mt-2">
-                <Skeleton height={16} width="80%" />
-                <Skeleton height={12} width="60%" />
-                <Skeleton height={20} width="40%" />
+                <Skeleton height={16} width={80} />
+                <Skeleton height={12} width={60} />
+                <Skeleton height={20} width={40} />
               </View>
             </View>
           ))}

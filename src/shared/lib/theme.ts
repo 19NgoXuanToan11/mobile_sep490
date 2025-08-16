@@ -1,8 +1,4 @@
-import { useColorScheme } from "react-native";
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ColorScheme, ThemeColors } from "../../types";
+// Design system for farming e-commerce app
 
 // Design tokens
 export const colors = {
@@ -171,78 +167,3 @@ export const farmingTheme = {
     padding: spacing.md,
   },
 };
-
-// Light theme colors
-export const lightTheme: ThemeColors = {
-  primary: colors.primary[500],
-  background: "#ffffff",
-  surface: colors.neutral[50],
-  text: colors.neutral[900],
-  textSecondary: colors.neutral[600],
-  border: colors.neutral[200],
-  success: colors.success[500],
-  warning: colors.warning[500],
-  error: colors.error[500],
-};
-
-// Dark theme colors
-export const darkTheme: ThemeColors = {
-  primary: colors.primary[400],
-  background: colors.neutral[950],
-  surface: colors.neutral[900],
-  text: colors.neutral[50],
-  textSecondary: colors.neutral[400],
-  border: colors.neutral[700],
-  success: colors.success[400],
-  warning: colors.warning[400],
-  error: colors.error[400],
-};
-
-// Theme store
-interface ThemeStore {
-  colorScheme: ColorScheme;
-  setColorScheme: (scheme: ColorScheme) => void;
-}
-
-export const useThemeStore = create<ThemeStore>()(
-  persist(
-    (set) => ({
-      colorScheme: "system",
-      setColorScheme: (scheme) => set({ colorScheme: scheme }),
-    }),
-    {
-      name: "theme-storage",
-      storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
-);
-
-// Theme hook
-export const useTheme = () => {
-  const { colorScheme } = useThemeStore();
-  const systemColorScheme = useColorScheme();
-
-  const resolvedColorScheme =
-    colorScheme === "system" ? systemColorScheme || "light" : colorScheme;
-
-  const isDark = resolvedColorScheme === "dark";
-  const colors = isDark ? darkTheme : lightTheme;
-
-  return {
-    colorScheme: resolvedColorScheme,
-    isDark,
-    colors,
-    setColorScheme: useThemeStore.getState().setColorScheme,
-  };
-};
-
-// Utility function to get theme-aware Tailwind classes
-export const getThemeClasses = (isDark: boolean) => ({
-  background: isDark ? "bg-neutral-950" : "bg-white",
-  surface: isDark ? "bg-neutral-900" : "bg-neutral-50",
-  text: isDark ? "text-neutral-50" : "text-neutral-900",
-  textSecondary: isDark ? "text-neutral-400" : "text-neutral-600",
-  border: isDark ? "border-neutral-700" : "border-neutral-200",
-  primary: "bg-primary-500",
-  primaryText: "text-primary-500",
-});

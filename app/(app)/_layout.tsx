@@ -1,19 +1,16 @@
 import React from "react";
 import { Stack } from "expo-router";
 import { AuthGuard } from "../../src/features/auth";
-import { useTheme } from "../../src/shared/lib/theme";
 
 export default function AppLayout() {
-  const { colors } = useTheme();
-
   return (
     <AuthGuard requireAuth={true} redirectTo="/(public)/auth/login">
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: colors.background,
+            backgroundColor: "#ffffff",
           },
-          headerTintColor: colors.text,
+          headerTintColor: "#111827",
           headerTitleStyle: {
             fontWeight: "600",
           },

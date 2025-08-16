@@ -52,11 +52,11 @@ const ImageGallery: React.FC<{ images: string[] }> = ({ images }) => {
       >
         {images.map((image, index) => (
           <View key={index} className="relative">
-            <Image
-              source={{ uri: image }}
+          <Image
+            source={{ uri: image }}
               style={{ width: screenWidth, height: 400 }}
-              contentFit="cover"
-            />
+            contentFit="cover"
+          />
             {/* Subtle vignette */}
             <LinearGradient
               colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.1)"]}
@@ -148,11 +148,11 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
         </Text>
 
         <View className="flex-row items-center space-x-4">
-          <RatingDisplay
-            rating={product.rating}
-            reviewCount={product.reviewCount}
-            size="md"
-          />
+        <RatingDisplay
+          rating={product.rating}
+          reviewCount={product.reviewCount}
+          size="md"
+        />
           <View className="flex-row items-center space-x-1">
             <Ionicons name="eye-outline" size={16} color="#6b7280" />
             <Text className="text-sm text-neutral-600">1.2k lượt xem</Text>
@@ -165,13 +165,13 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
         <View className="space-y-3">
           <View className="flex-row items-center space-x-3">
             <Text className="text-3xl font-bold text-primary-600">
-              {formatCurrency(product.price)}
-            </Text>
+          {formatCurrency(product.price)}
+        </Text>
             {hasDiscount && (
               <>
-                <Text className="text-lg text-neutral-500 line-through">
-                  {formatCurrency(product.originalPrice)}
-                </Text>
+          <Text className="text-lg text-neutral-500 line-through">
+            {formatCurrency(product.originalPrice)}
+          </Text>
                 <Badge
                   text={`-${discountPercent}%`}
                   variant="error"
@@ -188,24 +188,24 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
               • Miễn phí giao hàng
             </Text>
           </View>
-        </View>
+      </View>
       </Card>
 
       {/* Stock & Availability */}
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center space-x-3">
-          <Badge
-            text={stockInfo.text}
-            variant={
-              stockInfo.status === "in_stock"
-                ? "success"
-                : stockInfo.status === "low_stock"
-                ? "warning"
-                : "error"
-            }
-            size="sm"
-          />
-          <Text className="text-sm text-neutral-600">
+        <Badge
+          text={stockInfo.text}
+          variant={
+            stockInfo.status === "in_stock"
+              ? "success"
+              : stockInfo.status === "low_stock"
+              ? "warning"
+              : "error"
+          }
+          size="sm"
+        />
+        <Text className="text-sm text-neutral-600">
             Còn {product.stock} sản phẩm
           </Text>
         </View>
@@ -250,8 +250,8 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
             </View>
             <Text className="text-neutral-700">
               Chứng nhận an toàn thực phẩm
-            </Text>
-          </View>
+        </Text>
+      </View>
 
           <View className="flex-row items-center space-x-3">
             <View className="w-6 h-6 bg-blue-100 rounded-full items-center justify-center">
@@ -268,10 +268,10 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
       {product.tags.length > 0 && (
         <View className="space-y-3">
           <Text className="text-lg font-semibold text-neutral-900">Tags</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {product.tags.map((tag) => (
-              <Badge key={tag} text={tag} variant="outline" size="sm" />
-            ))}
+        <View className="flex-row flex-wrap gap-2">
+            {product.tags.map((tag: string) => (
+            <Badge key={tag} text={tag} variant="outline" size="sm" />
+          ))}
           </View>
         </View>
       )}
@@ -308,7 +308,7 @@ const ProductDetails: React.FC<{ product: any }> = ({ product }) => {
               }`}
             >
               {tab.label}
-            </Text>
+        </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -318,8 +318,8 @@ const ProductDetails: React.FC<{ product: any }> = ({ product }) => {
         {activeTab === "description" && (
           <View className="space-y-4">
             <Text className="text-neutral-700 leading-7 text-base">
-              {product.description}
-            </Text>
+          {product.description}
+        </Text>
 
             <View className="space-y-4 pt-4 border-t border-neutral-100">
               <Text className="text-lg font-semibold text-neutral-900">
@@ -334,23 +334,23 @@ const ProductDetails: React.FC<{ product: any }> = ({ product }) => {
                   </Text>
                 </View>
 
-                {product.origin && (
+          {product.origin && (
                   <View className="flex-row justify-between py-2">
                     <Text className="text-neutral-600">Xuất xứ</Text>
-                    <Text className="text-neutral-900 font-medium">
-                      {product.origin}
-                    </Text>
-                  </View>
-                )}
+              <Text className="text-neutral-900 font-medium">
+                {product.origin}
+              </Text>
+            </View>
+          )}
 
-                {product.harvestDate && (
+          {product.harvestDate && (
                   <View className="flex-row justify-between py-2">
                     <Text className="text-neutral-600">Ngày thu hoạch</Text>
-                    <Text className="text-neutral-900 font-medium">
-                      {formatDate(product.harvestDate)}
-                    </Text>
-                  </View>
-                )}
+              <Text className="text-neutral-900 font-medium">
+                {formatDate(product.harvestDate)}
+              </Text>
+            </View>
+          )}
 
                 <View className="flex-row justify-between py-2">
                   <Text className="text-neutral-600">Bảo quản</Text>
@@ -468,7 +468,7 @@ const ProductDetails: React.FC<{ product: any }> = ({ product }) => {
                         <Text className="font-medium text-neutral-900">
                           Nguyễn Văn A
                         </Text>
-                        <RatingDisplay rating={5} size="xs" />
+                        <RatingDisplay rating={5} size="sm" />
                       </View>
                       <Text className="text-sm text-neutral-600 mb-2">
                         2 ngày trước
@@ -477,8 +477,8 @@ const ProductDetails: React.FC<{ product: any }> = ({ product }) => {
                         Sản phẩm rất tươi ngon, đóng gói cẩn thận. Giao hàng
                         nhanh chóng. Sẽ mua lại!
                       </Text>
-                    </View>
-                  </View>
+          </View>
+        </View>
                 </View>
               ))}
             </View>
@@ -525,7 +525,7 @@ export default function ProductDetailsScreen() {
 
     try {
       await addItem(product.id, quantity);
-      router.push("/(app)/cart");
+      router.push("/(app)/(tabs)/cart");
     } catch (error) {
       toast.error("Error", "Failed to add item to cart");
     }
@@ -578,13 +578,13 @@ export default function ProductDetailsScreen() {
 
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center space-x-4">
-                  <QuantityStepper
-                    value={quantity}
-                    onValueChange={setQuantity}
-                    min={1}
-                    max={Math.min(product.stock, 99)}
-                    size="md"
-                  />
+                <QuantityStepper
+                  value={quantity}
+                  onValueChange={setQuantity}
+                  min={1}
+                  max={Math.min(product.stock, 99)}
+                  size="md"
+                />
                   <Text className="text-sm text-neutral-600">
                     Tối đa {Math.min(product.stock, 99)} sản phẩm
                   </Text>
@@ -643,7 +643,7 @@ export default function ProductDetailsScreen() {
 
       {/* Sticky Action Buttons */}
       <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-200">
-        <LinearGradient
+      <LinearGradient
           colors={["rgba(255,255,255,0.95)", "rgba(255,255,255,1)"]}
           className="px-4 py-3"
         >
@@ -701,6 +701,6 @@ export default function ProductDetailsScreen() {
           )}
         </LinearGradient>
       </View>
-    </View>
+        </View>
   );
 }

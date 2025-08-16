@@ -9,7 +9,6 @@ export const STORAGE_KEYS = {
 
   // Async storage keys
   USER_PREFERENCES: "user_preferences",
-  THEME: "theme",
   LANGUAGE: "language",
   CART_ITEMS: "cart_items",
   RECENT_SEARCHES: "recent_searches",
@@ -138,14 +137,6 @@ export const authStorage = {
 };
 
 export const userPreferences = {
-  async setTheme(theme: string): Promise<void> {
-    await storage.setItem(STORAGE_KEYS.THEME, theme);
-  },
-
-  async getTheme(): Promise<string | null> {
-    return await storage.getItem(STORAGE_KEYS.THEME);
-  },
-
   async setLanguage(language: string): Promise<void> {
     await storage.setItem(STORAGE_KEYS.LANGUAGE, language);
   },
