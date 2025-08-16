@@ -36,3 +36,12 @@ export type { QuantityStepperProps } from "./quantity-stepper";
 
 export { RatingStars, RatingDisplay } from "./rating-stars";
 export type { RatingStarsProps, RatingDisplayProps } from "./rating-stars";
+
+export { ProductCard } from "./product-card";
+export type { ProductCardProps } from "./product-card";
+
+export { CategoryCard } from "./category-card";
+export type { CategoryCardProps } from "./category-card";
+
+export { SearchBar } from "./search-bar";
+export type { SearchBarProps } from "./search-bar";

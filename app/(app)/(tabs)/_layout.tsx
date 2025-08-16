@@ -2,7 +2,6 @@ import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../src/shared/lib/theme";
-import { useLocalization } from "../../../src/shared/hooks";
 import { useCart } from "../../../src/shared/hooks";
 import { View, Text } from "react-native";
 
@@ -11,7 +10,7 @@ const CartBadge: React.FC<{ count: number }> = ({ count }) => {
   if (count === 0) return null;
 
   return (
-    <View className="absolute -top-1 -right-1 bg-error-500 rounded-full min-w-[18px] h-[18px] items-center justify-center">
+    <View className="absolute -top-2 -right-2 bg-error-500 rounded-full min-w-[20px] h-[20px] items-center justify-center">
       <Text className="text-white text-xs font-bold">
         {count > 99 ? "99+" : count}
       </Text>
@@ -36,7 +35,7 @@ const TabIcon: React.FC<TabIconProps> = ({ name, focused, count }) => {
     <View className="relative">
       <Ionicons
         name={iconName}
-        size={24}
+        size={28}
         color={focused ? colors.primary : colors.textSecondary}
       />
       {count !== undefined && <CartBadge count={count} />}
@@ -46,46 +45,45 @@ const TabIcon: React.FC<TabIconProps> = ({ name, focused, count }) => {
 
 export default function TabLayout() {
   const { colors, isDark } = useTheme();
-  const { t } = useLocalization();
   const { cart } = useCart();
 
   return (
     <Tabs
       screenOptions={{
-        headerStyle: {
-          backgroundColor: colors.background,
-          elevation: 0,
-          shadowOpacity: 0,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-        },
-        headerTintColor: colors.text,
-        headerTitleStyle: {
-          fontWeight: "600",
-          fontSize: 18,
-        },
+        headerShown: false, // Xóa header để có cảm giác premium
         tabBarStyle: {
           backgroundColor: colors.background,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-          paddingTop: 8,
-          paddingBottom: 8,
-          height: 65,
+          borderTopColor: "transparent",
+          borderTopWidth: 0,
+          paddingTop: 16,
+          paddingBottom: 20,
+          paddingHorizontal: 20,
+          height: 80,
+          marginHorizontal: 16,
+          marginBottom: 12,
+          borderRadius: 24,
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 4,
+          },
+          shadowOpacity: 0.12,
+          shadowRadius: 12,
+          elevation: 8,
+          borderWidth: 1,
+          borderColor: "rgba(0,0,0,0.05)",
+          position: "absolute",
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "500",
-          marginTop: 4,
-        },
+        tabBarShowLabel: false, // Ẩn toàn bộ text labels
         animation: "shift",
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
-          title: t("nav.home"),
+          title: "Trang chủ",
           tabBarIcon: ({ focused }) => (
             <TabIcon name="home" focused={focused} />
           ),
@@ -95,7 +93,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="catalog"
         options={{
-          title: t("nav.catalog"),
+          title: "Danh mục",
           tabBarIcon: ({ focused }) => (
             <TabIcon name="grid" focused={focused} />
           ),
@@ -105,7 +103,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="cart"
         options={{
-          title: t("nav.cart"),
+          title: "Giỏ hàng",
           tabBarIcon: ({ focused }) => (
             <TabIcon name="bag" focused={focused} count={cart.itemCount} />
           ),
@@ -115,7 +113,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="orders"
         options={{
-          title: t("nav.orders"),
+          title: "Đơn hàng",
           tabBarIcon: ({ focused }) => (
             <TabIcon name="receipt" focused={focused} />
           ),
@@ -125,7 +123,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="account"
         options={{
-          title: t("nav.account"),
+          title: "Tài khoản",
           tabBarIcon: ({ focused }) => (
             <TabIcon name="person" focused={focused} />
           ),

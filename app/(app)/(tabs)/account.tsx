@@ -1,16 +1,16 @@
 import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Button, Card } from "../../../src/shared/ui";
-import {
-  useAuth,
-  useLocalization,
-  usePreferences,
-} from "../../../src/shared/hooks";
-import { useThemeStore } from "../../../src/shared/lib/theme";
-import { changeLanguage } from "../../../src/shared/lib/i18n";
+import { useAuth } from "../../../src/shared/hooks";
 
 const SettingItem: React.FC<{
   icon: keyof typeof Ionicons.glyphMap;
@@ -40,138 +40,114 @@ const SettingItem: React.FC<{
 );
 
 export default function AccountScreen() {
-  const { t, language, changeLanguage: updateLanguage } = useLocalization();
   const { user, logout } = useAuth();
-  const { colorScheme, setColorScheme } = useThemeStore();
-
-  const handleLanguageChange = async () => {
-    const newLanguage = language === "en" ? "vi" : "en";
-    await updateLanguage(newLanguage);
-  };
-
-  const handleThemeChange = () => {
-    const themes = ["system", "light", "dark"] as const;
-    const currentIndex = themes.indexOf(colorScheme);
-    const nextTheme = themes[(currentIndex + 1) % themes.length];
-    setColorScheme(nextTheme);
-  };
 
   const handleLogout = async () => {
     await logout();
     router.replace("/(public)/auth/login");
   };
 
-  const getThemeLabel = () => {
-    switch (colorScheme) {
-      case "light":
-        return t("theme.light");
-      case "dark":
-        return t("theme.dark");
-      case "system":
-        return t("theme.system");
-      default:
-        return t("theme.system");
-    }
-  };
-
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1">
+    <View className="flex-1 bg-neutral-50">
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="transparent"
+        translucent
+      />
+
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 110, paddingTop: 48 }}
+      >
         {/* Profile Section */}
-        <Card className="mx-4 mt-4" padding="lg">
+        <Card className="mx-4 mt-4" padding="lg" variant="elevated">
           <View className="items-center space-y-4">
-            <View className="w-20 h-20 bg-primary-100 rounded-full items-center justify-center">
-              <Text className="text-2xl font-bold text-primary-600">
-                {user?.name?.charAt(0).toUpperCase()}
+            <View className="w-24 h-24 bg-primary-100 rounded-full items-center justify-center">
+              <Text className="text-3xl font-bold text-primary-600">
+                {user?.name?.charAt(0).toUpperCase() || "N"}
               </Text>
             </View>
 
-            <View className="items-center">
+            <View className="items-center space-y-1">
               <Text className="text-xl font-semibold text-neutral-900">
-                {user?.name}
+                {user?.name || "Nguyễn Văn An"}
               </Text>
-              <Text className="text-neutral-600">{user?.email}</Text>
+              <Text className="text-neutral-600">
+                {user?.email || "nguyenvanan@example.com"}
+              </Text>
             </View>
+
+            <TouchableOpacity className="bg-primary-50 px-4 py-2 rounded-lg">
+              <Text className="text-primary-600 font-medium">
+                Chỉnh sửa thông tin
+              </Text>
+            </TouchableOpacity>
           </View>
         </Card>
 
-        {/* Settings */}
-        <Card className="mx-4 mt-6" padding="lg">
+        {/* Quick Actions */}
+        <Card className="mx-4 mt-6" padding="lg" variant="elevated">
           <Text className="text-lg font-semibold text-neutral-900 mb-4">
-            {t("account.settings")}
+            Tài khoản
           </Text>
 
           <View className="space-y-1">
             <SettingItem
               icon="person-outline"
-              title={t("account.profile")}
+              title="Thông tin cá nhân"
               onPress={() => {}}
             />
 
             <SettingItem
-              icon="location-outline"
-              title={t("account.addresses")}
-              onPress={() => {}}
-            />
-
-            <SettingItem
-              icon="language-outline"
-              title={t("account.language")}
-              subtitle={
-                language === "en"
-                  ? t("language.english")
-                  : t("language.vietnamese")
-              }
-              onPress={handleLanguageChange}
-            />
-
-            <SettingItem
-              icon="color-palette-outline"
-              title={t("account.theme")}
-              subtitle={getThemeLabel()}
-              onPress={handleThemeChange}
+              icon="receipt-outline"
+              title="Lịch sử đơn hàng"
+              onPress={() => router.push("/(app)/(tabs)/orders")}
             />
 
             <SettingItem
               icon="notifications-outline"
-              title={t("account.notifications")}
+              title="Thông báo"
               onPress={() => {}}
             />
           </View>
         </Card>
 
-        {/* Support */}
-        <Card className="mx-4 mt-6" padding="lg">
+        {/* Statistics */}
+        <Card className="mx-4 mt-6" padding="lg" variant="fresh">
           <Text className="text-lg font-semibold text-neutral-900 mb-4">
-            Support
+            Thống kê mua sắm
           </Text>
 
-          <View className="space-y-1">
-            <SettingItem
-              icon="help-circle-outline"
-              title={t("account.help")}
-              onPress={() => {}}
-            />
-
-            <SettingItem
-              icon="information-circle-outline"
-              title={t("account.about")}
-              subtitle={`${t("account.version")} 1.0.0`}
-              onPress={() => {}}
-            />
+          <View className="flex-row justify-between">
+            <View className="items-center">
+              <Text className="text-2xl font-bold text-primary-600">12</Text>
+              <Text className="text-sm text-neutral-600">Đơn hàng</Text>
+            </View>
+            <View className="items-center">
+              <Text className="text-2xl font-bold text-primary-600">8</Text>
+              <Text className="text-sm text-neutral-600">
+                Sản phẩm yêu thích
+              </Text>
+            </View>
+            <View className="items-center">
+              <Text className="text-2xl font-bold text-primary-600">95%</Text>
+              <Text className="text-sm text-neutral-600">Hài lòng</Text>
+            </View>
           </View>
         </Card>
 
         {/* Logout */}
         <View className="mx-4 mt-8 mb-8">
           <Button
-            title={t("account.signOut")}
+            title="Đăng xuất"
             variant="outline"
             onPress={handleLogout}
             fullWidth
+            size="lg"
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
