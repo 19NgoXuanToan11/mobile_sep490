@@ -46,13 +46,7 @@ export default function PublicLayout() {
             presentation: "fullScreenModal",
           }}
         />
-        <Stack.Screen
-          name="product/[id]"
-          options={{
-            title: "Product Details",
-            headerBackTitle: "Back",
-          }}
-        />
+
         <Stack.Screen
           name="search"
           options={{
