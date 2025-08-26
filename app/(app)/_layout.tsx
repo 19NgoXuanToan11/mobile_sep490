@@ -32,6 +32,12 @@ export default function AppLayout() {
           }}
         />
         <Stack.Screen
+          name="product/[id]"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
           name="track/[orderId]"
           options={{
             title: "Track Order",

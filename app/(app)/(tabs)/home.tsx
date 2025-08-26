@@ -431,7 +431,12 @@ export default function HomeScreen() {
                   key={product.id}
                   product={product}
                   size="md"
-                  onPress={() => router.push(`/(public)/product/${product.id}`)}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(app)/product/[id]",
+                      params: { id: product.id },
+                    })
+                  }
                   showQuickView={true}
                 />
               ))}
@@ -460,7 +465,10 @@ export default function HomeScreen() {
                     product={product}
                     size="full"
                     onPress={() =>
-                      router.push(`/(public)/product/${product.id}`)
+                      router.push({
+                        pathname: "/(app)/product/[id]",
+                        params: { id: product.id },
+                      })
                     }
                   />
                 </View>

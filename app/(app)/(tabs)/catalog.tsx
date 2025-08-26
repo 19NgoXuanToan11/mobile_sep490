@@ -95,7 +95,12 @@ export default function CatalogScreen() {
       <ProductCard
         product={product}
         size="full"
-        onPress={() => router.push(`/(public)/product/${product.id}`)}
+        onPress={() =>
+          router.push({
+            pathname: "/(app)/product/[id]",
+            params: { id: product.id },
+          })
+        }
         onAddToCart={() => handleAddToCart(product.id, product.name)}
       />
     </View>

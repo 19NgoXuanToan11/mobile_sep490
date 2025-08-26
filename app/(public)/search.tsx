@@ -52,7 +52,12 @@ const ProductCard: React.FC<{
 }> = ({ product, onAddToCart }) => (
   <Card className="mx-4 mb-4" padding="md">
     <TouchableOpacity
-      onPress={() => router.push(`/(public)/product/${product.id}`)}
+      onPress={() =>
+        router.push({
+          pathname: "/(app)/product/[id]",
+          params: { id: product.id },
+        })
+      }
     >
       <View className="flex-row space-x-4">
         <View className="relative">

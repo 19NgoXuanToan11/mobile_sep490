@@ -140,7 +140,12 @@ const FeaturedProductsSection: React.FC = () => {
             key={product.id}
             className="w-[48%] mb-4"
             padding="sm"
-            onPress={() => router.push(`/(public)/product/${product.id}`)}
+            onPress={() =>
+              router.push({
+                pathname: "/(app)/product/[id]",
+                params: { id: product.id },
+              })
+            }
           >
             <View className="space-y-3">
               <View className="relative">

@@ -13,7 +13,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import {
   Button,
   Card,
@@ -22,7 +21,7 @@ import {
   RatingDisplay,
   EmptyState,
 } from "../../../src/shared/ui";
-import { productsApi, cartApi } from "../../../src/shared/data/api";
+import { productsApi } from "../../../src/shared/data/api";
 import { useCart, useLocalization } from "../../../src/shared/hooks";
 import { useToast } from "../../../src/shared/ui/toast";
 import {
@@ -33,7 +32,7 @@ import {
 
 const { width: screenWidth } = Dimensions.get("window");
 
-const ImageGallery: React.FC<{ images: string[] }> = ({ images }) => {
+const ImageGallery = ({ images }: { images: string[] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (images.length === 0) return null;
@@ -46,18 +45,17 @@ const ImageGallery: React.FC<{ images: string[] }> = ({ images }) => {
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={(event) => {
           const slideSize = event.nativeEvent.layoutMeasurement.width;
-          const currentIndex = event.nativeEvent.contentOffset.x / slideSize;
-          setCurrentIndex(Math.round(currentIndex));
+          const newIndex = event.nativeEvent.contentOffset.x / slideSize;
+          setCurrentIndex(Math.round(newIndex));
         }}
       >
         {images.map((image, index) => (
           <View key={index} className="relative">
-          <Image
-            source={{ uri: image }}
+            <Image
+              source={{ uri: image }}
               style={{ width: screenWidth, height: 400 }}
-            contentFit="cover"
-          />
-            {/* Subtle vignette */}
+              contentFit="cover"
+            />
             <LinearGradient
               colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.1)"]}
               className="absolute inset-0"
@@ -128,7 +126,7 @@ const ImageGallery: React.FC<{ images: string[] }> = ({ images }) => {
   );
 };
 
-const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
+const ProductInfo = ({ product }: { product: any }) => {
   const { t } = useLocalization();
   const stockInfo = getStockStatus(product.stock);
   const hasDiscount =
@@ -148,11 +146,11 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
         </Text>
 
         <View className="flex-row items-center space-x-4">
-        <RatingDisplay
-          rating={product.rating}
-          reviewCount={product.reviewCount}
-          size="md"
-        />
+          <RatingDisplay
+            rating={product.rating}
+            reviewCount={product.reviewCount}
+            size="md"
+          />
           <View className="flex-row items-center space-x-1">
             <Ionicons name="eye-outline" size={16} color="#6b7280" />
             <Text className="text-sm text-neutral-600">1.2k lượt xem</Text>
@@ -165,19 +163,19 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
         <View className="space-y-3">
           <View className="flex-row items-center space-x-3">
             <Text className="text-3xl font-bold text-primary-600">
-          {formatCurrency(product.price)}
-        </Text>
+              {formatCurrency(product.price)}
+            </Text>
             {hasDiscount && (
-              <>
-          <Text className="text-lg text-neutral-500 line-through">
-            {formatCurrency(product.originalPrice)}
-          </Text>
+              <View className="flex-row items-center space-x-2">
+                <Text className="text-lg text-neutral-500 line-through">
+                  {formatCurrency(product.originalPrice)}
+                </Text>
                 <Badge
                   text={`-${discountPercent}%`}
                   variant="error"
                   size="sm"
                 />
-              </>
+              </View>
             )}
           </View>
           <View className="flex-row items-center space-x-2">
@@ -188,24 +186,24 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
               • Miễn phí giao hàng
             </Text>
           </View>
-      </View>
+        </View>
       </Card>
 
       {/* Stock & Availability */}
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center space-x-3">
-        <Badge
-          text={stockInfo.text}
-          variant={
-            stockInfo.status === "in_stock"
-              ? "success"
-              : stockInfo.status === "low_stock"
-              ? "warning"
-              : "error"
-          }
-          size="sm"
-        />
-        <Text className="text-sm text-neutral-600">
+          <Badge
+            text={stockInfo.text}
+            variant={
+              stockInfo.status === "in_stock"
+                ? "success"
+                : stockInfo.status === "low_stock"
+                ? "warning"
+                : "error"
+            }
+            size="sm"
+          />
+          <Text className="text-sm text-neutral-600">
             Còn {product.stock} sản phẩm
           </Text>
         </View>
@@ -250,8 +248,8 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
             </View>
             <Text className="text-neutral-700">
               Chứng nhận an toàn thực phẩm
-        </Text>
-      </View>
+            </Text>
+          </View>
 
           <View className="flex-row items-center space-x-3">
             <View className="w-6 h-6 bg-blue-100 rounded-full items-center justify-center">
@@ -265,13 +263,13 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
       </View>
 
       {/* Tags */}
-      {product.tags.length > 0 && (
+      {product.tags && product.tags.length > 0 && (
         <View className="space-y-3">
           <Text className="text-lg font-semibold text-neutral-900">Tags</Text>
-        <View className="flex-row flex-wrap gap-2">
+          <View className="flex-row flex-wrap gap-2">
             {product.tags.map((tag: string) => (
-            <Badge key={tag} text={tag} variant="outline" size="sm" />
-          ))}
+              <Badge key={tag} text={tag} variant="outline" size="sm" />
+            ))}
           </View>
         </View>
       )}
@@ -279,7 +277,7 @@ const ProductInfo: React.FC<{ product: any }> = ({ product }) => {
   );
 };
 
-const ProductDetails: React.FC<{ product: any }> = ({ product }) => {
+const ProductDetails = ({ product }: { product: any }) => {
   const [activeTab, setActiveTab] = useState<
     "description" | "nutrition" | "reviews"
   >("description");
@@ -308,7 +306,7 @@ const ProductDetails: React.FC<{ product: any }> = ({ product }) => {
               }`}
             >
               {tab.label}
-        </Text>
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -318,8 +316,8 @@ const ProductDetails: React.FC<{ product: any }> = ({ product }) => {
         {activeTab === "description" && (
           <View className="space-y-4">
             <Text className="text-neutral-700 leading-7 text-base">
-          {product.description}
-        </Text>
+              {product.description}
+            </Text>
 
             <View className="space-y-4 pt-4 border-t border-neutral-100">
               <Text className="text-lg font-semibold text-neutral-900">
@@ -334,23 +332,23 @@ const ProductDetails: React.FC<{ product: any }> = ({ product }) => {
                   </Text>
                 </View>
 
-          {product.origin && (
+                {product.origin && (
                   <View className="flex-row justify-between py-2">
                     <Text className="text-neutral-600">Xuất xứ</Text>
-              <Text className="text-neutral-900 font-medium">
-                {product.origin}
-              </Text>
-            </View>
-          )}
+                    <Text className="text-neutral-900 font-medium">
+                      {product.origin}
+                    </Text>
+                  </View>
+                )}
 
-          {product.harvestDate && (
+                {product.harvestDate && (
                   <View className="flex-row justify-between py-2">
                     <Text className="text-neutral-600">Ngày thu hoạch</Text>
-              <Text className="text-neutral-900 font-medium">
-                {formatDate(product.harvestDate)}
-              </Text>
-            </View>
-          )}
+                    <Text className="text-neutral-900 font-medium">
+                      {formatDate(product.harvestDate)}
+                    </Text>
+                  </View>
+                )}
 
                 <View className="flex-row justify-between py-2">
                   <Text className="text-neutral-600">Bảo quản</Text>
@@ -427,60 +425,7 @@ const ProductDetails: React.FC<{ product: any }> = ({ product }) => {
                     {product.reviewCount || 124} đánh giá
                   </Text>
                 </View>
-
-                <View className="flex-1 space-y-2">
-                  {[5, 4, 3, 2, 1].map((star) => (
-                    <View
-                      key={star}
-                      className="flex-row items-center space-x-2"
-                    >
-                      <Text className="text-sm text-neutral-600 w-2">
-                        {star}
-                      </Text>
-                      <Ionicons name="star" size={12} color="#fbbf24" />
-                      <View className="flex-1 h-2 bg-neutral-200 rounded-full">
-                        <View
-                          className="h-full bg-yellow-400 rounded-full"
-                          style={{
-                            width: `${star === 5 ? 80 : star === 4 ? 15 : 5}%`,
-                          }}
-                        />
-                      </View>
-                      <Text className="text-sm text-neutral-600 w-8">
-                        {star === 5 ? 80 : star === 4 ? 15 : 5}%
-                      </Text>
-                    </View>
-                  ))}
-                </View>
               </View>
-            </View>
-
-            {/* Sample Reviews */}
-            <View className="space-y-4">
-              {[1, 2].map((review) => (
-                <View key={review} className="border-b border-neutral-100 pb-4">
-                  <View className="flex-row items-start space-x-3">
-                    <View className="w-8 h-8 bg-primary-100 rounded-full items-center justify-center">
-                      <Text className="text-primary-600 font-medium">N</Text>
-                    </View>
-                    <View className="flex-1">
-                      <View className="flex-row items-center space-x-2 mb-1">
-                        <Text className="font-medium text-neutral-900">
-                          Nguyễn Văn A
-                        </Text>
-                        <RatingDisplay rating={5} size="sm" />
-                      </View>
-                      <Text className="text-sm text-neutral-600 mb-2">
-                        2 ngày trước
-                      </Text>
-                      <Text className="text-neutral-700 leading-5">
-                        Sản phẩm rất tươi ngon, đóng gói cẩn thận. Giao hàng
-                        nhanh chóng. Sẽ mua lại!
-                      </Text>
-          </View>
-        </View>
-                </View>
-              ))}
             </View>
           </View>
         )}
@@ -562,11 +507,9 @@ export default function ProductDetailsScreen() {
       />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Product Images */}
         <ImageGallery images={product.images} />
 
         <View className="px-4 py-6 space-y-6">
-          {/* Product Info */}
           <ProductInfo product={product} />
 
           {/* Quantity Selector */}
@@ -578,13 +521,13 @@ export default function ProductDetailsScreen() {
 
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center space-x-4">
-                <QuantityStepper
-                  value={quantity}
-                  onValueChange={setQuantity}
-                  min={1}
-                  max={Math.min(product.stock, 99)}
-                  size="md"
-                />
+                  <QuantityStepper
+                    value={quantity}
+                    onValueChange={setQuantity}
+                    min={1}
+                    max={Math.min(product.stock, 99)}
+                    size="md"
+                  />
                   <Text className="text-sm text-neutral-600">
                     Tối đa {Math.min(product.stock, 99)} sản phẩm
                   </Text>
@@ -600,50 +543,15 @@ export default function ProductDetailsScreen() {
             </View>
           </Card>
 
-          {/* Product Details */}
           <ProductDetails product={product} />
 
-          {/* Related Products */}
-          <View className="space-y-4">
-            <Text className="text-lg font-bold text-neutral-900">
-              Sản Phẩm Liên Quan
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row space-x-3">
-                {/* Mock related products */}
-                {[1, 2, 3].map((item) => (
-                  <Card
-                    key={item}
-                    className="w-40"
-                    padding="sm"
-                    variant="product"
-                  >
-                    <View className="space-y-2">
-                      <View className="w-full h-24 bg-neutral-200 rounded-lg" />
-                      <Text
-                        className="text-sm font-medium text-neutral-900"
-                        numberOfLines={2}
-                      >
-                        Sản phẩm tương tự {item}
-                      </Text>
-                      <Text className="text-primary-600 font-bold">
-                        {formatCurrency(50000)}
-                      </Text>
-                    </View>
-                  </Card>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-
-          {/* Add bottom padding for sticky buttons */}
           <View className="h-24" />
         </View>
       </ScrollView>
 
       {/* Sticky Action Buttons */}
       <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-200">
-      <LinearGradient
+        <LinearGradient
           colors={["rgba(255,255,255,0.95)", "rgba(255,255,255,1)"]}
           className="px-4 py-3"
         >
@@ -701,6 +609,6 @@ export default function ProductDetailsScreen() {
           )}
         </LinearGradient>
       </View>
-        </View>
+    </View>
   );
 }
