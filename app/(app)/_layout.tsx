@@ -27,7 +27,7 @@ export default function AppLayout() {
         <Stack.Screen
           name="checkout"
           options={{
-            title: "Checkout",
+            title: "Thanh toán",
             presentation: "modal",
           }}
         />
@@ -40,8 +40,8 @@ export default function AppLayout() {
         <Stack.Screen
           name="track/[orderId]"
           options={{
-            title: "Track Order",
-            headerBackTitle: "Orders",
+            title: "Theo dõi đơn hàng",
+            headerBackTitle: "Đơn hàng",
           }}
         />
       </Stack>

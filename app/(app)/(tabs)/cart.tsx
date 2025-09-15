@@ -82,7 +82,7 @@ export default function CartScreen() {
         <View className="flex-row items-center justify-between">
           <View className="flex-row space-x-2">
             {item.product.tags?.includes("organic") && (
-              <Badge text="Organic" variant="success" size="sm" />
+              <Badge text="Hữu cơ" variant="success" size="sm" />
             )}
             {item.product.certifications?.includes("VietGAP") && (
               <Badge text="VietGAP" variant="secondary" size="sm" />
@@ -123,7 +123,10 @@ export default function CartScreen() {
 
               <View className="flex-row items-center space-x-2 flex-wrap">
                 <Text className="text-sm text-neutral-600">
-                  {formatCurrency(item.price)} / {item.product.unit}
+                  {formatCurrency(item.price)}
+                  {item.product.unit && !item.product.unit.startsWith("/")
+                    ? ` / ${item.product.unit}`
+                    : ""}
                 </Text>
                 {item.product.origin && (
                   <>

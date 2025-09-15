@@ -215,10 +215,10 @@ export default function WelcomeScreen() {
         {/* Header */}
         <View className="px-4 py-6 space-y-2">
           <Text className="text-2xl font-bold text-neutral-900">
-            Welcome to IFMS
+            Chào mừng đến với IFMS
           </Text>
           <Text className="text-neutral-600">
-            Discover fresh farm products delivered to your doorstep
+            Khám phá sản phẩm nông sản tươi ngon được giao tận nhà
           </Text>
         </View>
 
@@ -231,7 +231,7 @@ export default function WelcomeScreen() {
         <View className="space-y-4 mb-8">
           <View className="px-4">
             <Text className="text-lg font-semibold text-neutral-900">
-              Categories
+              Danh mục
             </Text>
           </View>
           <CategoriesSection />
@@ -241,10 +241,10 @@ export default function WelcomeScreen() {
         <View className="space-y-4 mb-8">
           <View className="px-4 flex-row items-center justify-between">
             <Text className="text-lg font-semibold text-neutral-900">
-              Featured Products
+              Sản phẩm nổi bật
             </Text>
             <Button
-              title="View All"
+              title={t("common.viewAll")}
               variant="ghost"
               size="sm"
               onPress={() => router.push("/(public)/search")}

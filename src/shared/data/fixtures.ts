@@ -59,15 +59,6 @@ export const categories: Category[] = [
     sortOrder: 2,
   },
   {
-    id: "cat_herbs",
-    name: "Herbs & Spices",
-    slug: "herbs",
-    image:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
-    description: "Aromatic herbs and spices",
-    sortOrder: 3,
-  },
-  {
     id: "cat_grains",
     name: "Grains & Cereals",
     slug: "grains",
@@ -149,7 +140,7 @@ export const products: Product[] = [
     isInStock: true,
     isFeatured: false,
     tags: ["organic", "nutritious", "green"],
-    unit: "bundle",
+    unit: "bó",
     origin: "Hồ Chí Minh",
     harvestDate: "2024-01-14",
     createdAt: "2024-01-10T00:00:00Z",
@@ -236,33 +227,6 @@ export const products: Product[] = [
     updatedAt: "2024-01-14T00:00:00Z",
   },
 
-  // Herbs
-  {
-    id: "prod_006",
-    name: "Fresh Basil Leaves",
-    slug: "fresh-basil-leaves",
-    sku: "HRB-BAS-001",
-    description:
-      "Aromatic fresh basil leaves, perfect for Vietnamese cuisine, Italian dishes, and herbal teas. Grown organically without chemicals.",
-    shortDescription: "Aromatic fresh basil leaves",
-    price: 35000,
-    categoryId: "cat_herbs",
-    images: [
-      "https://images.unsplash.com/photo-1618164436241-4473940d1f5c?w=400&h=400&fit=crop",
-    ],
-    rating: 4.8,
-    reviewCount: 134,
-    stock: 42,
-    isInStock: true,
-    isFeatured: false,
-    tags: ["aromatic", "organic", "culinary"],
-    unit: "bundle",
-    origin: "Hà Nội",
-    harvestDate: "2024-01-15",
-    createdAt: "2024-01-10T00:00:00Z",
-    updatedAt: "2024-01-15T00:00:00Z",
-  },
-
   // Grains
   {
     id: "prod_007",
@@ -310,7 +274,7 @@ export const products: Product[] = [
     isInStock: true,
     isFeatured: false,
     tags: ["fresh", "pasteurized", "natural"],
-    unit: "liter",
+    unit: "lít",
     origin: "Mộc Châu, Sơn La",
     harvestDate: "2024-01-15",
     createdAt: "2024-01-10T00:00:00Z",

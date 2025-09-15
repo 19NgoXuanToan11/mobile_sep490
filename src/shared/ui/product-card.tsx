@@ -214,7 +214,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <Text className="text-base font-bold text-primary-600">
               {formatCurrency(product.price)}
             </Text>
-            {product.unit && (
+            {product.unit && !product.unit.startsWith("/") && (
               <Text className="text-xs text-neutral-500">/{product.unit}</Text>
             )}
           </View>

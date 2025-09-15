@@ -11,7 +11,7 @@ const categoryCardVariants = cva("", {
     size: {
       sm: "w-20",
       md: "w-24",
-      lg: "w-32",
+      lg: "w-28",
     },
     layout: {
       vertical: "flex-col items-center",
@@ -25,8 +25,7 @@ const categoryCardVariants = cva("", {
 });
 
 export interface CategoryCardProps
-  extends ViewProps,
-    VariantProps<typeof categoryCardVariants> {
+  extends VariantProps<typeof categoryCardVariants> {
   category: {
     id: string;
     name: string;
@@ -37,6 +36,7 @@ export interface CategoryCardProps
   };
   onPress?: () => void;
   showCount?: boolean;
+  className?: string;
 }
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({
@@ -46,10 +46,9 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   onPress,
   showCount = false,
   className,
-  ...props
 }) => {
   const isHorizontal = layout === "horizontal";
-  const iconSize = size === "sm" ? 24 : size === "md" ? 32 : 40;
+  const iconSize = size === "sm" ? 24 : size === "md" ? 32 : 42;
   const containerSize =
     size === "sm" ? "w-16 h-16" : size === "md" ? "w-20 h-20" : "w-24 h-24";
 
@@ -76,7 +75,10 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 
     return (
       <View
-        className={cn("rounded-2xl items-center justify-center", containerSize)}
+        className={cn(
+          "rounded-2xl items-center justify-center shadow-sm",
+          containerSize
+        )}
         style={{ backgroundColor }}
       >
         <Ionicons name={iconName as any} size={iconSize} color="#00623A" />
@@ -89,12 +91,11 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       className={cn(categoryCardVariants({ size, layout }), className)}
       onPress={onPress}
       activeOpacity={0.7}
-      {...props}
     >
       <View
         className={cn(
-          "space-y-2",
-          isHorizontal ? "flex-row space-y-0 space-x-3" : "flex-col space-y-2"
+          "space-y-3",
+          isHorizontal ? "flex-row space-y-0 space-x-3" : "flex-col space-y-3"
         )}
       >
         {renderIcon()}
@@ -107,8 +108,12 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
         >
           <Text
             className={cn(
-              "font-medium text-neutral-900 text-center",
-              size === "sm" ? "text-xs" : "text-sm"
+              "font-semibold text-neutral-800 text-center leading-tight",
+              size === "sm"
+                ? "text-xs"
+                : size === "md"
+                ? "text-sm"
+                : "text-base"
             )}
             numberOfLines={isHorizontal ? 1 : 2}
           >
@@ -116,7 +121,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
           </Text>
 
           {showCount && category.count !== undefined && (
-            <Text className="text-xs text-neutral-500 mt-1">
+            <Text className="text-xs text-neutral-500 mt-1 font-medium">
               {category.count} sản phẩm
             </Text>
           )}

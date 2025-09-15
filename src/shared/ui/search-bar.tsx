@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
 const searchBarVariants = cva(
-  "flex-row items-center bg-white border border-neutral-200 rounded-xl px-4 py-3 shadow-sm",
+  "flex-row items-center bg-white border border-neutral-200 rounded-xl px-4 shadow-sm h-12",
   {
     variants: {
       variant: {
@@ -14,9 +14,9 @@ const searchBarVariants = cva(
         outlined: "bg-transparent border-neutral-300",
       },
       size: {
-        sm: "py-2 px-3",
-        md: "py-3 px-4",
-        lg: "py-4 px-5",
+        sm: "h-10 px-3",
+        md: "h-12 px-4",
+        lg: "h-14 px-5",
       },
       sticky: {
         true: "shadow-md border-neutral-100",
@@ -95,11 +95,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       {...props}
     >
       {/* Search Icon */}
-      <Ionicons
-        name="search-outline"
-        size={20}
-        color={isFocused ? "#00623A" : "#6b7280"}
-      />
+      <View className="items-center justify-center w-6 h-6">
+        <Ionicons
+          name="search-outline"
+          size={20}
+          color={isFocused ? "#00623A" : "#6b7280"}
+        />
+      </View>
 
       {/* Text Input */}
       <TextInput
@@ -114,6 +116,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         autoFocus={autoFocus}
         editable={editable}
         returnKeyType="search"
+        style={{
+          paddingVertical: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
+          margin: 0,
+          includeFontPadding: false,
+          textAlignVertical: "center",
+          height: "100%",
+          lineHeight: 20,
+          fontSize: 16,
+        }}
       />
 
       {/* Clear Button */}

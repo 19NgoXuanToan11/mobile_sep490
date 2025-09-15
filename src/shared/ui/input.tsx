@@ -114,7 +114,14 @@ export const Input = forwardRef<TextInput, InputProps>(
 
         <View className="relative">
           {leftIcon && (
-            <View className="absolute left-3 top-1/2 z-10 -translate-y-1/2">
+            <View
+              className="absolute left-3 items-center justify-center w-6 h-6"
+              style={{
+                top: "50%",
+                transform: [{ translateY: -12 }],
+                zIndex: 10,
+              }}
+            >
               <Ionicons name={leftIcon} size={20} color="#6b7280" />
             </View>
           )}
@@ -144,8 +151,22 @@ export const Input = forwardRef<TextInput, InputProps>(
             style={[
               {
                 fontSize: size === "lg" ? 16 : size === "sm" ? 14 : 15,
-                lineHeight: Platform.OS === "ios" ? 20 : 22,
-                paddingVertical: Platform.OS === "android" ? 12 : 16,
+                lineHeight:
+                  Platform.OS === "ios"
+                    ? size === "lg"
+                      ? 22
+                      : size === "sm"
+                      ? 18
+                      : 20
+                    : size === "lg"
+                    ? 24
+                    : size === "sm"
+                    ? 20
+                    : 22,
+                paddingVertical: 0,
+                includeFontPadding: false,
+                textAlignVertical: "center",
+                height: size === "lg" ? 56 : size === "sm" ? 36 : 44,
               },
               props.style,
             ]}
@@ -153,7 +174,12 @@ export const Input = forwardRef<TextInput, InputProps>(
 
           {(finalRightIcon || showPasswordIcon) && (
             <TouchableOpacity
-              className="absolute right-3 top-1/2 -translate-y-1/2"
+              className="absolute right-3"
+              style={{
+                top: "50%",
+                transform: [{ translateY: -10 }],
+                zIndex: 10,
+              }}
               onPress={handleRightIconPress}
             >
               <Ionicons name={finalRightIcon!} size={20} color="#6b7280" />

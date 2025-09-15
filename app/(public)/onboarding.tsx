@@ -49,56 +49,8 @@ const ONBOARDING_SLIDES = [
   },
 ];
 
-// Categories for preference selection
-const PRODUCT_CATEGORIES = [
-  {
-    id: "vegetables",
-    name: "Rau Xanh",
-    icon: "leaf-outline" as keyof typeof Ionicons.glyphMap,
-    color: "#dcf2e6",
-    description: "Rau củ tươi ngon",
-  },
-  {
-    id: "fruits",
-    name: "Trái Cây",
-    icon: "nutrition-outline" as keyof typeof Ionicons.glyphMap,
-    color: "#fef3c7",
-    description: "Trái cây tươi mát",
-  },
-  {
-    id: "meat",
-    name: "Thịt Cá",
-    icon: "fish-outline" as keyof typeof Ionicons.glyphMap,
-    color: "#fee2e2",
-    description: "Thịt cá tươi sống",
-  },
-  {
-    id: "dairy",
-    name: "Sữa & Trứng",
-    icon: "egg-outline" as keyof typeof Ionicons.glyphMap,
-    color: "#f3f4f6",
-    description: "Sản phẩm từ sữa",
-  },
-  {
-    id: "grains",
-    name: "Gạo & Ngũ Cốc",
-    icon: "restaurant-outline" as keyof typeof Ionicons.glyphMap,
-    color: "#fbefd9",
-    description: "Gạo và ngũ cốc",
-  },
-  {
-    id: "herbs",
-    name: "Gia Vị & Thảo Mộc",
-    icon: "flower-outline" as keyof typeof Ionicons.glyphMap,
-    color: "#f0fdf4",
-    description: "Gia vị tự nhiên",
-  },
-];
-
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [showCategorySelection, setShowCategorySelection] = useState(false);
   const { isAuthenticated } = useAuth();
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -145,27 +97,16 @@ export default function OnboardingScreen() {
       });
       setCurrentIndex(nextIndex);
     } else {
-      // Show category selection after slides
-      setShowCategorySelection(true);
+      // Navigate directly after slides
+      handleGetStarted();
     }
   };
 
   const handleSkip = () => {
-    setShowCategorySelection(true);
-  };
-
-  const toggleCategory = (categoryId: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
+    handleGetStarted();
   };
 
   const handleGetStarted = () => {
-    // Save selected categories to preferences (you can implement storage later)
-    console.log("Selected categories:", selectedCategories);
-
     // Navigate based on authentication status
     if (isAuthenticated) {
       router.replace("/(app)/(tabs)/home");
@@ -391,107 +332,6 @@ export default function OnboardingScreen() {
     );
   };
 
-  // Category Selection Component
-  const CategorySelectionScreen = () => (
-    <View className="flex-1 bg-white px-6 py-8">
-      <LinearGradient
-        colors={["#f0f9f5", "#ffffff"]}
-        className="absolute inset-0"
-      />
-
-      <View className="flex-1 justify-center">
-        <View className="space-y-6 mb-8">
-          <Text className="text-3xl font-light text-neutral-900 text-center">
-            Sở Thích Của Bạn
-          </Text>
-          <Text className="text-lg text-neutral-600 text-center leading-7">
-            Chọn những loại sản phẩm bạn quan tâm để chúng tôi gợi ý tốt hơn
-          </Text>
-        </View>
-
-        <View className="flex-row flex-wrap justify-center gap-4 mb-8">
-          {PRODUCT_CATEGORIES.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              onPress={() => toggleCategory(category.id)}
-              className={`w-28 h-28 rounded-2xl items-center justify-center border-2 ${
-                selectedCategories.includes(category.id)
-                  ? "border-primary-500 bg-primary-50"
-                  : "border-neutral-200 bg-white"
-              }`}
-              style={{
-                shadowColor: selectedCategories.includes(category.id)
-                  ? "#00623A"
-                  : "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: selectedCategories.includes(category.id)
-                  ? 0.2
-                  : 0.1,
-                shadowRadius: 4,
-                elevation: 3,
-              }}
-              activeOpacity={0.8}
-            >
-              <View
-                className="w-12 h-12 rounded-xl items-center justify-center mb-2"
-                style={{ backgroundColor: category.color }}
-              >
-                <Ionicons
-                  name={category.icon}
-                  size={24}
-                  color={
-                    selectedCategories.includes(category.id)
-                      ? "#00623A"
-                      : "#6b7280"
-                  }
-                />
-              </View>
-              <Text
-                className={`text-xs font-medium text-center ${
-                  selectedCategories.includes(category.id)
-                    ? "text-primary-700"
-                    : "text-neutral-700"
-                }`}
-                numberOfLines={2}
-              >
-                {category.name}
-              </Text>
-
-              {selectedCategories.includes(category.id) && (
-                <View className="absolute -top-1 -right-1 w-6 h-6 bg-primary-500 rounded-full items-center justify-center">
-                  <Ionicons name="checkmark" size={14} color="white" />
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View className="space-y-4">
-          <ActionButton
-            title="Bắt Đầu Mua Sắm"
-            onPress={handleGetStarted}
-            variant="primary"
-            icon="bag"
-          />
-
-          <TouchableOpacity onPress={handleGetStarted}>
-            <Text className="text-neutral-500 text-center">
-              Bỏ qua, tôi sẽ chọn sau
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
-
-  if (showCategorySelection) {
-    return (
-      <SafeAreaView className="flex-1">
-        <CategorySelectionScreen />
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Floating decorative elements */}
@@ -541,12 +381,12 @@ export default function OnboardingScreen() {
         {/* Action Buttons */}
         <View className="w-full" style={{ rowGap: 8 }}>
           <ActionButton
-            title={currentIndex === slides.length - 1 ? "Tiếp Tục" : "Tiếp Tục"}
+            title={currentIndex === slides.length - 1 ? "Bắt Đầu" : "Tiếp Tục"}
             onPress={handleNext}
             variant="primary"
             icon={
               currentIndex === slides.length - 1
-                ? "chevron-forward"
+                ? "rocket-outline"
                 : "chevron-forward"
             }
           />

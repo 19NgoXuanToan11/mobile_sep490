@@ -182,7 +182,7 @@ export const ToastProvider: React.FC = () => {
   if (toasts.length === 0) return null;
 
   return (
-    <View className="absolute top-safe-top left-0 right-0 z-50 pt-4">
+    <View className="absolute top-safe-top left-0 right-0 z-50 pt-16">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} />
       ))}

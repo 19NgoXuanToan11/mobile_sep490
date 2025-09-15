@@ -68,8 +68,6 @@ export default function HomeScreen() {
     if (name.includes("thịt") || name.includes("meat")) return "fish-outline";
     if (name.includes("sữa") || name.includes("milk")) return "wine-outline";
     if (name.includes("gạo") || name.includes("rice")) return "grid-outline";
-    if (name.includes("gia vị") || name.includes("spice"))
-      return "flower-outline";
     return "basket-outline";
   };
 
@@ -78,12 +76,9 @@ export default function HomeScreen() {
     const name = categoryName.toLowerCase();
     if (name.includes("vegetable")) return "Rau củ";
     if (name.includes("fruit")) return "Trái cây";
-    if (name.includes("herb") || name.includes("spice"))
-      return "Thảo mộc & Gia vị";
     if (name.includes("grain") || name.includes("rice")) return "Ngũ cốc";
-    if (name.includes("dairy") || name.includes("milk")) return "Sản phẩm sữa";
-    if (name.includes("meat") || name.includes("poultry"))
-      return "Thịt & Gia cầm";
+    if (name.includes("dairy") || name.includes("milk")) return "Sữa";
+    if (name.includes("meat") || name.includes("poultry")) return "Thịt";
     return categoryName; // Fallback to original name if no match
   };
 
@@ -122,45 +117,6 @@ export default function HomeScreen() {
     router.push("/(public)/search");
   };
 
-  // Enhanced quick actions with modern farming themes
-  const quickActions = [
-    {
-      id: 1,
-      title: "⚡ Flash Sale",
-      icon: "flash-outline",
-      color: "#fee2e2",
-      textColor: "#dc2626",
-    },
-    {
-      id: 2,
-      title: "🌿 Organic",
-      icon: "leaf-outline",
-      color: "#dcfce7",
-      textColor: "#16a34a",
-    },
-    {
-      id: 3,
-      title: "🕐 Tươi hôm nay",
-      icon: "time-outline",
-      color: "#fef3c7",
-      textColor: "#d97706",
-    },
-    {
-      id: 4,
-      title: "📍 Trang trại địa phương",
-      icon: "location-outline",
-      color: "#e0e7ff",
-      textColor: "#2563eb",
-    },
-    {
-      id: 5,
-      title: "🏆 VietGAP",
-      icon: "ribbon-outline",
-      color: "#fce7f3",
-      textColor: "#c2410c",
-    },
-  ];
-
   return (
     <View className="flex-1 bg-neutral-50">
       <StatusBar
@@ -184,9 +140,6 @@ export default function HomeScreen() {
               <Text className="text-xl font-bold text-neutral-900">
                 {user?.name || "Khách hàng"}
               </Text>
-              <Text className="text-xs text-primary-600 font-medium mt-1">
-                🌿 Có {featuredProducts.length} sản phẩm tươi mới cho bạn
-              </Text>
             </View>
 
             <TouchableOpacity
@@ -196,81 +149,17 @@ export default function HomeScreen() {
               <Ionicons name="person-outline" size={20} color="#6b7280" />
             </TouchableOpacity>
           </Animated.View>
-
-          {/* Search Bar - Sticky */}
-          <SearchBar
-            placeholder="Tìm kiếm sản phẩm nông sản..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmit={handleSearch}
-            onFocus={handleSearchFocus}
-            showFilter={true}
-            onFilterPress={() => router.push("/(public)/search")}
-            variant="filled"
-          />
         </View>
       </View>
 
       <ScrollView
-        className="flex-1"
+        className="flex-1 mt-4"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 110 }}
       >
-        {/* Enhanced Quick Actions */}
-        <View className="px-4 py-4">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row space-x-3">
-              {quickActions.map((action) => (
-                <Animated.View
-                  key={action.id}
-                  style={{ transform: [{ scale: scaleAnim }] }}
-                >
-                  <TouchableOpacity
-                    className="items-center space-y-2"
-                    onPress={() => {
-                      // Micro-interaction animation
-                      Animated.sequence([
-                        Animated.timing(scaleAnim, {
-                          toValue: 0.95,
-                          duration: 100,
-                          useNativeDriver: true,
-                        }),
-                        Animated.timing(scaleAnim, {
-                          toValue: 1,
-                          duration: 100,
-                          useNativeDriver: true,
-                        }),
-                      ]).start();
-                      router.push("/(app)/(tabs)/catalog");
-                    }}
-                  >
-                    <View
-                      className="w-16 h-16 rounded-2xl items-center justify-center shadow-sm"
-                      style={{ backgroundColor: action.color }}
-                    >
-                      <Ionicons
-                        name={action.icon as any}
-                        size={24}
-                        color={action.textColor}
-                      />
-                    </View>
-                    <Text
-                      className="text-xs font-medium text-center max-w-[70px]"
-                      style={{ color: action.textColor }}
-                      numberOfLines={2}
-                    >
-                      {action.title}
-                    </Text>
-                  </TouchableOpacity>
-                </Animated.View>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-
         {/* Featured Banners with CTAs */}
         {banners.length > 0 && (
           <View className="px-4 mb-6">
@@ -348,14 +237,17 @@ export default function HomeScreen() {
 
         {/* Categories */}
         <View className="mb-6">
-          <View className="px-4 mb-4 flex-row items-center justify-between">
-            <Text className="text-lg font-bold text-neutral-900">
+          <View className="px-4 mb-5 flex-row items-center justify-between">
+            <Text className="text-xl font-bold text-neutral-900 tracking-tight">
               Danh Mục Sản Phẩm
             </Text>
             <TouchableOpacity
               onPress={() => router.push("/(app)/(tabs)/catalog")}
+              className="bg-primary-50 px-3 py-1.5 rounded-full"
             >
-              <Text className="text-primary-600 font-medium">Xem tất cả</Text>
+              <Text className="text-primary-700 font-semibold text-sm">
+                Xem tất cả
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -363,8 +255,9 @@ export default function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             className="px-4"
+            contentContainerStyle={{ paddingRight: 16 }}
           >
-            <View className="flex-row space-x-4">
+            <View className="flex-row space-x-5">
               {categories.map((category) => (
                 <CategoryCard
                   key={category.id}
@@ -476,113 +369,6 @@ export default function HomeScreen() {
             </View>
           </View>
         )}
-
-        {/* Commitment & Values Section */}
-        <View className="px-4 mb-6">
-          <Text className="text-lg font-bold text-neutral-900 mb-4">
-            Cam Kết & Giá Trị
-          </Text>
-          <View className="flex-row flex-wrap justify-between">
-            {[
-              {
-                icon: "checkmark-circle",
-                title: "100% Sạch",
-                subtitle: "Không chất bảo quản",
-                color: "#16a34a",
-              },
-              {
-                icon: "shield-checkmark",
-                title: "Nông trại uy tín",
-                subtitle: "Chứng nhận VietGAP",
-                color: "#2563eb",
-              },
-              {
-                icon: "flash",
-                title: "Giao hàng nhanh",
-                subtitle: "2-4 giờ trong ngày",
-                color: "#dc2626",
-              },
-              {
-                icon: "heart",
-                title: "Hỗ trợ 24/7",
-                subtitle: "Tư vấn miễn phí",
-                color: "#c2410c",
-              },
-            ].map((item, index) => (
-              <Card
-                key={index}
-                className="w-[48%] mb-3"
-                padding="md"
-                variant="elevated"
-              >
-                <View className="items-center space-y-2">
-                  <View
-                    className="w-12 h-12 rounded-full items-center justify-center"
-                    style={{ backgroundColor: `${item.color}20` }}
-                  >
-                    <Ionicons
-                      name={item.icon as any}
-                      size={24}
-                      color={item.color}
-                    />
-                  </View>
-                  <View className="items-center">
-                    <Text className="font-semibold text-neutral-900 text-center text-sm">
-                      {item.title}
-                    </Text>
-                    <Text className="text-xs text-neutral-600 text-center">
-                      {item.subtitle}
-                    </Text>
-                  </View>
-                </View>
-              </Card>
-            ))}
-          </View>
-        </View>
-
-        {/* Enhanced CTA Section */}
-        <View className="px-4 py-8 mb-6">
-          <Card variant="fresh" padding="lg">
-            <View className="items-center space-y-4">
-              <View className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full items-center justify-center shadow-lg">
-                <Ionicons name="leaf" size={36} color="white" />
-              </View>
-              <View className="items-center space-y-2">
-                <Text className="text-2xl font-bold text-neutral-900 text-center">
-                  Trang Trại Tươi Mỗi Ngày
-                </Text>
-                <Text className="text-neutral-600 text-center leading-6 px-4">
-                  Khám phá những sản phẩm nông sản tươi ngon được thu hoạch hàng
-                  ngày từ các trang trại địa phương uy tín
-                </Text>
-                <View className="flex-row items-center space-x-4 mt-3">
-                  <View className="flex-row items-center space-x-1">
-                    <Ionicons name="star" size={16} color="#fbbf24" />
-                    <Text className="text-sm font-medium text-neutral-700">
-                      4.8/5
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center space-x-1">
-                    <Ionicons name="people" size={16} color="#6b7280" />
-                    <Text className="text-sm font-medium text-neutral-700">
-                      10K+ khách hàng
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              <Button
-                title="Khám Phá Ngay"
-                variant="primary"
-                size="lg"
-                onPress={() => router.push("/(app)/(tabs)/catalog")}
-                rightIcon={
-                  <Ionicons name="arrow-forward" size={18} color="white" />
-                }
-                className="shadow-lg"
-              />
-            </View>
-          </Card>
-        </View>
       </ScrollView>
     </View>
   );

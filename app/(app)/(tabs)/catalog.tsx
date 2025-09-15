@@ -46,6 +46,18 @@ export default function CatalogScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const debouncedQuery = useDebounce(searchQuery, 300);
 
+  // Localize category names from English to Vietnamese
+  const getLocalizedCategoryName = (categoryName: string): string => {
+    const name = categoryName.toLowerCase();
+    if (name.includes("vegetable")) return "Rau củ";
+    if (name.includes("fruit")) return "Trái cây";
+    if (name.includes("grain") || name.includes("rice")) return "Ngũ cốc";
+    if (name.includes("dairy") || name.includes("milk")) return "Sản phẩm sữa";
+    if (name.includes("meat") || name.includes("poultry"))
+      return "Thịt & Gia cầm";
+    return categoryName; // Fallback to original name if no match
+  };
+
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: () => categoriesApi.getAll().then((res) => res.data),
@@ -217,7 +229,9 @@ export default function CatalogScreen() {
                       : "text-neutral-600"
                   }`}
                 >
-                  {item.name}
+                  {item.id === null
+                    ? item.name
+                    : getLocalizedCategoryName(item.name)}
                 </Text>
               </TouchableOpacity>
             )}

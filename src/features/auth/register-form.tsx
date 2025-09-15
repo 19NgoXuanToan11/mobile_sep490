@@ -21,20 +21,20 @@ const registerSchema = z
   .object({
     name: z
       .string()
-      .min(1, "Full name is required")
-      .min(2, "Name must be at least 2 characters"),
+      .min(1, "Họ tên là bắt buộc")
+      .min(2, "Tên phải có ít nhất 2 ký tự"),
     email: z
       .string()
-      .min(1, "Email is required")
-      .email("Please enter a valid email"),
+      .min(1, "Email là bắt buộc")
+      .email("Vui lòng nhập email hợp lệ"),
     password: z
       .string()
-      .min(1, "Password is required")
-      .min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+      .min(1, "Mật khẩu là bắt buộc")
+      .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+    confirmPassword: z.string().min(1, "Vui lòng xác nhận mật khẩu"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: "Mật khẩu không khớp",
     path: ["confirmPassword"],
   });
 
@@ -77,13 +77,13 @@ export const RegisterForm: React.FC = () => {
       const success = await register(data.name, data.email, data.password);
 
       if (success) {
-        toast.success("Account created successfully!");
+        toast.success("Tạo tài khoản thành công!");
         router.replace("/(app)/(tabs)/catalog");
       } else {
-        toast.error("Registration failed", "Please try again");
+        toast.error("Đăng ký thất bại", "Vui lòng thử lại");
       }
     } catch (error) {
-      toast.error("Registration failed", "Please try again");
+      toast.error("Đăng ký thất bại", "Vui lòng thử lại");
     }
   };
 
@@ -172,7 +172,7 @@ export const RegisterForm: React.FC = () => {
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
               ref={nameRef}
-              placeholder="Full name"
+              placeholder="Họ và tên"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -194,7 +194,7 @@ export const RegisterForm: React.FC = () => {
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
               ref={emailRef}
-              placeholder="Email address"
+              placeholder="Địa chỉ email"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -217,7 +217,7 @@ export const RegisterForm: React.FC = () => {
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
               ref={passwordRef}
-              placeholder="Create password"
+              placeholder="Tạo mật khẩu"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -239,7 +239,7 @@ export const RegisterForm: React.FC = () => {
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
               ref={confirmPasswordRef}
-              placeholder="Confirm password"
+              placeholder="Xác nhận mật khẩu"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -259,7 +259,7 @@ export const RegisterForm: React.FC = () => {
       {/* Create Account Button */}
       <View style={{ marginTop: 28 }}>
         <PremiumButton
-          title="Create Account"
+          title="Tạo Tài Khoản"
           onPress={handleSubmit(onSubmit)}
           loading={isSubmitting}
           variant="primary"
@@ -271,13 +271,11 @@ export const RegisterForm: React.FC = () => {
         className="items-center"
         style={{ marginTop: 20, marginBottom: 40 }}
       >
-        <Text className="text-neutral-600 text-sm mb-2">
-          Already have an account?
-        </Text>
+        <Text className="text-neutral-600 text-sm mb-2">Đã có tài khoản?</Text>
         <Link href="/(public)/auth/login" asChild>
           <TouchableOpacity>
             <Text className="text-primary-500 text-base font-medium">
-              Sign In
+              Đăng nhập
             </Text>
           </TouchableOpacity>
         </Link>

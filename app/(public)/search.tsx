@@ -21,7 +21,10 @@ const CategoryFilter: React.FC<{
     <FlatList
       horizontal
       showsHorizontalScrollIndicator={false}
-      data={[{ id: "all", name: "All Categories", slug: "all" }, ...categories]}
+      data={[
+        { id: "all", name: "Tất cả danh mục", slug: "all" },
+        ...categories,
+      ]}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <TouchableOpacity
@@ -105,7 +108,7 @@ const ProductCard: React.FC<{
             </View>
 
             <Button
-              title="Add to Cart"
+              title="Thêm vào giỏ"
               size="sm"
               onPress={(e) => {
                 e.stopPropagation();
@@ -126,7 +129,7 @@ export default function SearchScreen() {
   const { addItem } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const debouncedQuery = useDebounce(searchQuery, 300);
+  const debouncedQuery = useDebounce(searchQuery, 500);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -136,50 +139,72 @@ export default function SearchScreen() {
   const { data: searchResults = [], isLoading } = useQuery({
     queryKey: ["search", debouncedQuery, selectedCategory],
     queryFn: async () => {
-      if (debouncedQuery) {
-        // Search by query
-        const response = await productsApi.search(debouncedQuery);
-        let results = response.data;
+      try {
+        if (debouncedQuery && debouncedQuery.trim()) {
+          // Search by query
+          const response = await productsApi.search(debouncedQuery.trim());
+          let results = response.data || [];
 
-        // Filter by category if selected
-        if (selectedCategory !== "all") {
-          results = results.filter(
-            (product) => product.categoryId === selectedCategory
-          );
+          // Filter by category if selected
+          if (selectedCategory !== "all") {
+            results = results.filter(
+              (product) => product.categoryId === selectedCategory
+            );
+          }
+
+          return results;
+        } else if (selectedCategory !== "all") {
+          // Filter by category only
+          const response = await productsApi.getAll({
+            categories: [selectedCategory],
+          });
+          return response.data?.data || [];
+        } else {
+          // Show limited products when no search query
+          const response = await productsApi.getAll({}, 1, 20);
+          return response.data?.data || [];
         }
-
-        return results;
-      } else if (selectedCategory !== "all") {
-        // Filter by category only
-        const response = await productsApi.getAll({
-          categories: [selectedCategory],
-        });
-        return response.data.data;
-      } else {
-        // Show all products
-        const response = await productsApi.getAll({}, 1, 20);
-        return response.data.data;
+      } catch (error) {
+        console.error("Search error:", error);
+        return [];
       }
     },
+    enabled: true, // Always enable to allow category filtering
   });
 
   const handleAddToCart = async (productId: string, productName: string) => {
     await addItem(productId, 1);
     toast.success(
-      "Added to cart",
-      `${productName} has been added to your cart`
+      "Đã thêm vào giỏ",
+      `${productName} đã được thêm vào giỏ hàng của bạn`
     );
   };
 
   const renderEmptyState = () => {
-    if (debouncedQuery) {
+    if (isLoading) {
+      return null; // Don't show empty state while loading
+    }
+
+    if (debouncedQuery && debouncedQuery.trim()) {
       return (
         <EmptyState
           icon="search-outline"
-          title={t("emptyState.noResults")}
-          description={t("emptyState.noResultsDescription")}
-          actionLabel="Clear Search"
+          title="Không tìm thấy sản phẩm"
+          description={`Không tìm thấy sản phẩm nào cho "${debouncedQuery}". Thử tìm kiếm với từ khóa khác.`}
+          actionLabel="Xóa tìm kiếm"
           onActionPress={() => setSearchQuery("")}
+        />
+      );
+    }
+
+    if (selectedCategory !== "all") {
+      return (
+        <EmptyState
+          icon="basket-outline"
+          title="Không có sản phẩm"
+          description="Danh mục này hiện chưa có sản phẩm nào."
+          actionLabel="Xem tất cả"
+          onActionPress={() => setSelectedCategory("all")}
         />
       );
     }
@@ -187,8 +212,8 @@ export default function SearchScreen() {
     return (
       <EmptyState
         icon="basket-outline"
-        title={t("emptyState.noProducts")}
-        description={t("emptyState.noProductsDescription")}
+        title="Không có sản phẩm"
+        description="Hãy thử tìm kiếm sản phẩm hoặc chọn danh mục."
       />
     );
   };
@@ -198,7 +223,7 @@ export default function SearchScreen() {
       {/* Search Bar */}
       <View className="px-4 py-4 border-b border-neutral-100">
         <Input
-          placeholder="Search products..."
+          placeholder="Tìm kiếm sản phẩm..."
           value={searchQuery}
           onChangeText={setSearchQuery}
           leftIcon="search-outline"
@@ -221,9 +246,7 @@ export default function SearchScreen() {
         data={searchResults}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View className="w-[48%] mb-4">
-            <ProductCard product={item} onAddToCart={handleAddToCart} />
-          </View>
+          <ProductCard product={item} onAddToCart={handleAddToCart} />
         )}
         numColumns={2}
         contentContainerStyle={{
@@ -240,12 +263,13 @@ export default function SearchScreen() {
       />
 
       {/* Search Results Count */}
-      {searchResults.length > 0 && (
+      {searchResults.length > 0 && !isLoading && (
         <View className="px-4 py-2 border-t border-neutral-100 bg-neutral-50">
           <Text className="text-sm text-neutral-600 text-center">
-            {searchResults.length} product
-            {searchResults.length !== 1 ? "s" : ""} found
-            {debouncedQuery && ` for "${debouncedQuery}"`}
+            Tìm thấy {searchResults.length} sản phẩm
+            {debouncedQuery &&
+              debouncedQuery.trim() &&
+              ` cho "${debouncedQuery}"`}
           </Text>
         </View>
       )}

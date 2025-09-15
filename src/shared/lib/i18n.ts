@@ -182,7 +182,6 @@ const resources = {
       categories: {
         vegetables: "Vegetables",
         fruits: "Fruits",
-        herbs: "Herbs & Spices",
         grains: "Grains & Cereals",
         dairy: "Dairy Products",
         meat: "Meat & Poultry",
@@ -409,7 +408,6 @@ const resources = {
       categories: {
         vegetables: "Rau củ",
         fruits: "Trái cây",
-        herbs: "Thảo mộc & Gia vị",
         grains: "Ngũ cốc",
         dairy: "Sản phẩm sữa",
         meat: "Thịt & Gia cầm",
@@ -467,16 +465,16 @@ const initI18n = async () => {
   let savedLanguage = await storage.getItem<string>(STORAGE_KEYS.LANGUAGE);
 
   if (!savedLanguage) {
-    // Get device language
+    // Get device language (default to Vietnamese)
     const deviceLanguage = Localization.getLocales()[0]?.languageCode;
-    savedLanguage = deviceLanguage === "vi" ? "vi" : "en";
+    savedLanguage = deviceLanguage === "en" ? "en" : "vi";
     await storage.setItem(STORAGE_KEYS.LANGUAGE, savedLanguage);
   }
 
   await i18n.use(initReactI18next).init({
     resources,
     lng: savedLanguage,
-    fallbackLng: "en",
+    fallbackLng: "vi",
     compatibilityJSON: "v3", // Fix for Intl API compatibility
     interpolation: {
       escapeValue: false,
