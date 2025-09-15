@@ -179,9 +179,11 @@ const ProductInfo = ({ product }: { product: any }) => {
             )}
           </View>
           <View className="flex-row items-center space-x-2">
-            <Text className="text-sm text-neutral-600">
-              Đơn vị: {product.unit}
-            </Text>
+            {product.unit && !product.unit.startsWith("/") && (
+              <Text className="text-sm text-neutral-600">
+                Đơn vị: {product.unit}
+              </Text>
+            )}
             <Text className="text-sm text-primary-600 font-medium">
               • Miễn phí giao hàng
             </Text>
@@ -461,7 +463,7 @@ export default function ProductDetailsScreen() {
         `${quantity}x ${product.name} added to cart`
       );
     } catch (error) {
-      toast.error("Error", "Failed to add item to cart");
+      toast.error("Lỗi", "Thêm sản phẩm vào giỏ thất bại");
     }
   };
 
@@ -472,14 +474,14 @@ export default function ProductDetailsScreen() {
       await addItem(product.id, quantity);
       router.push("/(app)/(tabs)/cart");
     } catch (error) {
-      toast.error("Error", "Failed to add item to cart");
+      toast.error("Lỗi", "Thêm sản phẩm vào giỏ thất bại");
     }
   };
 
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <Text className="text-lg text-neutral-600">Loading product...</Text>
+        <Text className="text-lg text-neutral-600">Đang tải sản phẩm...</Text>
       </SafeAreaView>
     );
   }
@@ -489,9 +491,9 @@ export default function ProductDetailsScreen() {
       <SafeAreaView className="flex-1 bg-white">
         <EmptyState
           icon="alert-circle-outline"
-          title="Product not found"
-          description="We couldn't find this product. It may have been removed or is temporarily unavailable."
-          actionLabel="Back to Catalog"
+          title="Không tìm thấy sản phẩm"
+          description="Chúng tôi không thể tìm thấy sản phẩm này. Nó có thể đã bị xóa hoặc tạm thời không có sẵn."
+          actionLabel="Trở về danh mục"
           onActionPress={() => router.back()}
         />
       </SafeAreaView>

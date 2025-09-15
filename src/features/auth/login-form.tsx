@@ -20,12 +20,12 @@ import { useLocalization } from "../../shared/hooks";
 const loginSchema = z.object({
   email: z
     .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email"),
+    .min(1, "Email là bắt buộc")
+    .email("Vui lòng nhập email hợp lệ"),
   password: z
     .string()
-    .min(1, "Password is required")
-    .min(6, "Password must be at least 6 characters"),
+    .min(1, "Mật khẩu là bắt buộc")
+    .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -63,16 +63,16 @@ export const LoginForm: React.FC = () => {
       const success = await login(data.email, data.password);
 
       if (success) {
-        toast.success("Welcome back!");
+        toast.success("Chào mừng bạn trở lại!");
         router.replace("/(app)/(tabs)/catalog");
       } else {
         toast.error(
-          "Invalid credentials",
-          "Please check your email and password"
+          "Thông tin đăng nhập không hợp lệ",
+          "Vui lòng kiểm tra email và mật khẩu"
         );
       }
     } catch (error) {
-      toast.error("Login failed", "Please try again");
+      toast.error("Đăng nhập thất bại", "Vui lòng thử lại");
     }
   };
 
@@ -161,7 +161,7 @@ export const LoginForm: React.FC = () => {
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
               ref={emailRef}
-              placeholder="Email address"
+              placeholder="Địa chỉ email"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -184,7 +184,7 @@ export const LoginForm: React.FC = () => {
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
               ref={passwordRef}
-              placeholder="Password"
+              placeholder="Mật khẩu"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
@@ -204,7 +204,7 @@ export const LoginForm: React.FC = () => {
       {/* Sign In Button */}
       <View style={{ marginTop: 28 }}>
         <PremiumButton
-          title="Sign In"
+          title="Đăng Nhập"
           onPress={handleSubmit(onSubmit)}
           loading={isSubmitting}
           variant="primary"
@@ -215,7 +215,7 @@ export const LoginForm: React.FC = () => {
       <View style={{ marginTop: 20 }}>
         <TouchableOpacity className="items-center">
           <Text className="text-primary-500 text-sm font-medium">
-            Forgot Password?
+            Quên mật khẩu?
           </Text>
         </TouchableOpacity>
       </View>
@@ -226,7 +226,7 @@ export const LoginForm: React.FC = () => {
         style={{ marginTop: 24, gap: 16 }}
       >
         <View className="flex-1 h-px bg-neutral-200" />
-        <Text className="text-neutral-500 text-sm">or</Text>
+        <Text className="text-neutral-500 text-sm">hoặc</Text>
         <View className="flex-1 h-px bg-neutral-200" />
       </View>
 
@@ -236,12 +236,12 @@ export const LoginForm: React.FC = () => {
         style={{ marginTop: 20, marginBottom: 20 }}
       >
         <Text className="text-neutral-600 text-sm mb-2">
-          Don't have an account?
+          Chưa có tài khoản?
         </Text>
         <Link href="/(public)/auth/register" asChild>
           <TouchableOpacity>
             <Text className="text-primary-500 text-base font-medium">
-              Create Account
+              Tạo tài khoản
             </Text>
           </TouchableOpacity>
         </Link>

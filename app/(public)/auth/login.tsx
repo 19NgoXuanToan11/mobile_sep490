@@ -127,10 +127,10 @@ export default function LoginScreen() {
                 className="mb-6"
               >
                 <Text className="text-3xl font-light text-neutral-900 text-center mb-2 tracking-tight">
-                  Welcome Back
+                  Chào Mừng Trở Lại
                 </Text>
                 <Text className="text-base text-neutral-600 text-center font-light">
-                  Sign in to your account
+                  Đăng nhập vào tài khoản của bạn
                 </Text>
               </Animated.View>
 

@@ -50,9 +50,9 @@ export default function PublicLayout() {
         <Stack.Screen
           name="search"
           options={{
-            title: "Search Products",
+            title: "Tìm kiếm sản phẩm",
             headerSearchBarOptions: {
-              placeholder: "Search products...",
+              placeholder: "Tìm kiếm sản phẩm...",
             },
           }}
         />

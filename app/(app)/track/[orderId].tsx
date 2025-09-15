@@ -445,7 +445,7 @@ export default function OrderTrackingScreen() {
                           {item.quantity} × {formatCurrency(item.price)}
                         </Text>
                         {item.product.tags?.includes("organic") && (
-                          <Badge text="Organic" variant="success" size="sm" />
+                          <Badge text="Hữu cơ" variant="success" size="sm" />
                         )}
                       </View>
                       {item.product.origin && (

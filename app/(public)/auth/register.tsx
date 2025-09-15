@@ -130,10 +130,10 @@ export default function RegisterScreen() {
                 className="mb-6"
               >
                 <Text className="text-3xl font-light text-neutral-900 text-center mb-2 tracking-tight">
-                  Create Account
+                  Tạo Tài Khoản
                 </Text>
                 <Text className="text-base text-neutral-600 text-center font-light">
-                  Join us and start shopping
+                  Tham gia và bắt đầu mua sắm
                 </Text>
               </Animated.View>
 
