@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
@@ -13,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Button, Card, Badge, EmptyState } from "../../../src/shared/ui";
+import { Card, Badge, EmptyState } from "../../../src/shared/ui";
 import { ordersApi } from "../../../src/shared/data/api";
 import { useLocalization } from "../../../src/shared/hooks";
 import {
@@ -153,95 +152,7 @@ const StatusTimeline: React.FC<{
   );
 };
 
-const TrackingMap: React.FC<{ trackingNumber?: string; status: string }> = ({
-  trackingNumber,
-  status,
-}) => {
-  return (
-    <Card variant="elevated" padding="lg">
-      <View className="space-y-4">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center space-x-2">
-            <Ionicons name="location-outline" size={20} color="#00623A" />
-            <Text className="text-lg font-semibold text-neutral-900">
-              Theo Dõi Realtime
-            </Text>
-          </View>
-          {trackingNumber && (
-            <Badge text={`#${trackingNumber}`} variant="outline" size="sm" />
-          )}
-        </View>
-
-        {/* Map Placeholder */}
-        <View className="h-40 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl items-center justify-center relative overflow-hidden">
-          <LinearGradient
-            colors={["#f0f9f5", "#dcf2e6"]}
-            className="absolute inset-0"
-          />
-
-          <View className="items-center space-y-3 z-10">
-            <View className="w-16 h-16 bg-primary-500 rounded-full items-center justify-center">
-              <Ionicons name="bicycle" size={32} color="white" />
-            </View>
-            <View className="items-center space-y-1">
-              <Text className="font-semibold text-neutral-900">
-                Đang Giao Hàng
-              </Text>
-              <Text className="text-sm text-neutral-600 text-center">
-                Tính năng theo dõi realtime sẽ sớm có mặt
-              </Text>
-            </View>
-          </View>
-
-          {/* Animated circles for effect */}
-          <View className="absolute top-4 right-4 w-3 h-3 bg-primary-300 rounded-full opacity-60" />
-          <View className="absolute bottom-6 left-6 w-2 h-2 bg-primary-400 rounded-full opacity-40" />
-        </View>
-
-        {/* Delivery Status */}
-        <View className="bg-primary-50 p-4 rounded-xl">
-          <View className="flex-row items-center space-x-3">
-            <View className="w-10 h-10 bg-primary-500 rounded-full items-center justify-center">
-              <Ionicons
-                name={
-                  status === "SHIPPED"
-                    ? "car-sport"
-                    : status === "PACKED"
-                    ? "cube"
-                    : status === "DELIVERED"
-                    ? "checkmark-circle"
-                    : "time"
-                }
-                size={20}
-                color="white"
-              />
-            </View>
-            <View className="flex-1">
-              <Text className="font-semibold text-primary-900">
-                {status === "SHIPPED"
-                  ? "Đang trên đường giao"
-                  : status === "PACKED"
-                  ? "Đang chuẩn bị hàng"
-                  : status === "DELIVERED"
-                  ? "Đã giao thành công"
-                  : "Đang xử lý"}
-              </Text>
-              <Text className="text-sm text-primary-700">
-                {status === "SHIPPED"
-                  ? "Dự kiến giao: 14:30 - 16:30 hôm nay"
-                  : status === "PACKED"
-                  ? "Hàng sẽ sớm được giao cho đơn vị vận chuyển"
-                  : status === "DELIVERED"
-                  ? "Cảm ơn bạn đã tin tưởng chúng tôi!"
-                  : "Chúng tôi đang xử lý đơn hàng của bạn"}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </Card>
-  );
-};
+// Realtime tracking UI removed per requirements
 
 export default function OrderTrackingScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
@@ -276,12 +187,7 @@ export default function OrderTrackingScreen() {
     }
   };
 
-  const handleCallSupport = () => {
-    Alert.alert("Liên hệ hỗ trợ", "Bạn có muốn gọi đến tổng đài hỗ trợ?", [
-      { text: "Hủy", style: "cancel" },
-      { text: "Gọi ngay", onPress: () => console.log("Calling support...") },
-    ]);
-  };
+  // Support action removed per requirements
 
   if (isLoading) {
     return (
@@ -333,9 +239,7 @@ export default function OrderTrackingScreen() {
               {formatDate(order.createdAt)}
             </Text>
           </View>
-          <TouchableOpacity onPress={handleCallSupport}>
-            <Ionicons name="headset-outline" size={24} color="#00623A" />
-          </TouchableOpacity>
+          {/* Support button removed */}
         </View>
       </View>
 
@@ -345,63 +249,9 @@ export default function OrderTrackingScreen() {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         <View className="p-4 space-y-6">
-          {/* Order Status Header */}
-          <Card variant="elevated" padding="lg">
-            <View className="items-center space-y-4">
-              <View
-                className="w-20 h-20 rounded-full items-center justify-center"
-                style={{ backgroundColor: statusInfo.bgColor }}
-              >
-                <Ionicons
-                  name={
-                    order.status === "DELIVERED"
-                      ? "checkmark-circle"
-                      : order.status === "SHIPPED"
-                      ? "car"
-                      : order.status === "PACKED"
-                      ? "cube"
-                      : order.status === "CONFIRMED"
-                      ? "checkmark-done"
-                      : "receipt"
-                  }
-                  size={36}
-                  color={statusInfo.color}
-                />
-              </View>
+          {/* Order Status Header removed as requested */}
 
-              <View className="items-center space-y-2">
-                <Badge
-                  text={statusInfo.text}
-                  size="lg"
-                  style={{
-                    backgroundColor: statusInfo.bgColor,
-                  }}
-                />
-
-                <Text className="text-2xl font-bold text-primary-600">
-                  {formatCurrency(order.total)}
-                </Text>
-
-                {order.estimatedDelivery && order.status === "SHIPPED" && (
-                  <View className="bg-primary-50 px-4 py-2 rounded-xl">
-                    <Text className="text-sm text-primary-700 font-medium">
-                      Dự kiến giao: {formatDate(order.estimatedDelivery)}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </Card>
-
-          {/* Live Tracking Map */}
-          {(order.status === "SHIPPED" ||
-            order.status === "PACKED" ||
-            order.status === "DELIVERED") && (
-            <TrackingMap
-              trackingNumber={order.trackingNumber}
-              status={order.status}
-            />
-          )}
+          {/* Realtime tracking removed */}
 
           {/* Status Timeline */}
           <Card variant="elevated" padding="lg">
@@ -585,34 +435,24 @@ export default function OrderTrackingScreen() {
         </View>
       </ScrollView>
 
-      {/* Bottom Action Buttons */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-200">
-        <LinearGradient
-          colors={["rgba(255,255,255,0.95)", "rgba(255,255,255,1)"]}
-          className="px-4 py-4"
-        >
-          <View className="flex-row space-x-3">
-            {order.status === "DELIVERED" && (
+      {/* Bottom Action Buttons - only show when delivered */}
+      {order.status === "DELIVERED" && (
+        <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-200">
+          <LinearGradient
+            colors={["rgba(255,255,255,0.95)", "rgba(255,255,255,1)"]}
+            className="px-4 py-4"
+          >
+            <View className="flex-row space-x-3">
               <TouchableOpacity
                 onPress={() => router.push("/(app)/(tabs)/catalog")}
                 className="flex-1 bg-white border border-primary-500 rounded-xl py-3 items-center"
               >
                 <Text className="text-primary-600 font-semibold">Mua lại</Text>
               </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              onPress={handleCallSupport}
-              className="flex-1 bg-primary-500 rounded-xl py-3 items-center"
-            >
-              <View className="flex-row items-center space-x-2">
-                <Ionicons name="headset-outline" size={18} color="white" />
-                <Text className="text-white font-semibold">Hỗ trợ</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-      </View>
+            </View>
+          </LinearGradient>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

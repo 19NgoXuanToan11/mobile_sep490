@@ -16,6 +16,7 @@ export default function AppLayout() {
           },
           headerShadowVisible: false,
           animation: "slide_from_right",
+          headerBackTitle: "Quay lại",
         }}
       >
         <Stack.Screen
@@ -28,6 +29,7 @@ export default function AppLayout() {
           name="checkout"
           options={{
             title: "Thanh toán",
+            headerBackTitle: "Quay lại",
             presentation: "modal",
           }}
         />
@@ -40,8 +42,25 @@ export default function AppLayout() {
         <Stack.Screen
           name="track/[orderId]"
           options={{
-            title: "Theo dõi đơn hàng",
-            headerBackTitle: "Đơn hàng",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="profile/edit"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="profile/personal-info"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="notifications/index"
+          options={{
+            headerShown: false,
           }}
         />
       </Stack>

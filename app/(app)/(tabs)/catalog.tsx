@@ -5,6 +5,9 @@ import {
   FlatList,
   TouchableOpacity,
   StatusBar,
+  Modal,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
@@ -118,62 +121,126 @@ export default function CatalogScreen() {
     </View>
   );
 
-  const FilterModal = () => (
-    <View className="bg-white rounded-t-3xl p-6 space-y-6">
-      <View className="flex-row items-center justify-between">
-        <Text className="text-xl font-bold text-neutral-900">
-          Bộ Lọc & Sắp Xếp
-        </Text>
-        <TouchableOpacity onPress={() => setShowFilters(false)}>
-          <Ionicons name="close" size={24} color="#6b7280" />
-        </TouchableOpacity>
-      </View>
+  const FilterModal = () => {
+    const screenWidth = Dimensions.get("window").width;
+    const modalWidth = Math.min(screenWidth - 32, 380);
 
-      {/* Sort Options */}
-      <View className="space-y-3">
-        <Text className="text-lg font-semibold text-neutral-900">
-          Sắp Xếp Theo
-        </Text>
-        {filterOptions.map((option) => (
-          <TouchableOpacity
-            key={option.id}
-            onPress={() => {
-              setSortBy(option.id as any);
-              setShowFilters(false);
-            }}
-            className={`flex-row items-center justify-between py-3 px-4 rounded-xl border ${
-              sortBy === option.id
-                ? "border-primary-500 bg-primary-50"
-                : "border-neutral-200 bg-white"
-            }`}
-          >
-            <Text
-              className={`font-medium ${
-                sortBy === option.id ? "text-primary-700" : "text-neutral-700"
-              }`}
-            >
-              {option.label}
-            </Text>
-            {sortBy === option.id && (
-              <Ionicons name="checkmark" size={20} color="#00623A" />
-            )}
-          </TouchableOpacity>
-        ))}
-      </View>
+    return (
+      <View className="flex-1 items-center justify-center px-4">
+        <View
+          style={{
+            width: modalWidth,
+            backgroundColor: "rgba(255, 255, 255, 0.98)",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 20 },
+            shadowOpacity: 0.25,
+            shadowRadius: 25,
+            elevation: 20,
+          }}
+          className="rounded-3xl overflow-hidden"
+        >
+          {/* Clean Header */}
+          <View className="px-6 pt-8 pb-2">
+            <View className="items-center mb-6">
+              <Text
+                className="text-2xl text-neutral-900 mb-2"
+                style={{
+                  fontWeight: "600",
+                  letterSpacing: -0.5,
+                }}
+              >
+                Sắp xếp
+              </Text>
+              <View className="w-12 h-1 bg-neutral-200 rounded-full" />
+            </View>
+          </View>
 
-      {/* Reset Filters */}
-      <Button
-        title="Đặt Lại Bộ Lọc"
-        variant="outline"
-        onPress={() => {
-          setSortBy("newest");
-          setSelectedCategory(null);
-          setShowFilters(false);
-        }}
-        fullWidth
-      />
-    </View>
-  );
+          {/* Sort Options - Clean List Style */}
+          <View className="px-6 pb-6">
+            {filterOptions.map((option, index) => (
+              <TouchableOpacity
+                key={option.id}
+                onPress={() => {
+                  setSortBy(option.id as any);
+                  setShowFilters(false);
+                }}
+                className="py-4 border-b border-neutral-100"
+                style={{
+                  borderBottomWidth:
+                    index === filterOptions.length - 1 ? 0 : 0.5,
+                }}
+                activeOpacity={0.6}
+              >
+                <View className="flex-row items-center justify-between">
+                  <Text
+                    className="text-neutral-900 text-lg"
+                    style={{
+                      fontWeight: sortBy === option.id ? "600" : "400",
+                      letterSpacing: -0.3,
+                    }}
+                  >
+                    {option.label}
+                  </Text>
+                  {sortBy === option.id && (
+                    <Ionicons
+                      name="checkmark"
+                      size={22}
+                      color="#007AFF"
+                      style={{ fontWeight: "600" }}
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Bottom Actions */}
+          <View className="px-6 pb-8 pt-4 border-t border-neutral-100">
+            <View className="space-y-3">
+              <TouchableOpacity
+                onPress={() => setShowFilters(false)}
+                className="w-full py-4 rounded-2xl"
+                style={{
+                  backgroundColor: "#16a34a",
+                }}
+                activeOpacity={0.8}
+              >
+                <Text
+                  className="text-center text-white text-lg"
+                  style={{
+                    fontWeight: "600",
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  Xong
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSortBy("newest");
+                  setSelectedCategory(null);
+                  setShowFilters(false);
+                }}
+                className="w-full py-3"
+                activeOpacity={0.6}
+              >
+                <Text
+                  className="text-center text-neutral-600 text-base"
+                  style={{
+                    fontWeight: "400",
+                    letterSpacing: -0.2,
+                  }}
+                >
+                  Đặt lại
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View className="flex-1 bg-neutral-50">
@@ -268,16 +335,28 @@ export default function CatalogScreen() {
         )}
       </View>
 
-      {/* Filter Modal */}
-      {showFilters && (
-        <View className="absolute inset-0 bg-black/50 justify-end">
+      {/* Filter Modal - Apple Style */}
+      <Modal
+        visible={showFilters}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFilters(false)}
+        presentationStyle="overFullScreen"
+      >
+        <View
+          className="flex-1"
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
+          }}
+        >
           <TouchableOpacity
-            className="flex-1"
+            className="absolute inset-0"
             onPress={() => setShowFilters(false)}
+            activeOpacity={1}
           />
           <FilterModal />
         </View>
-      )}
+      </Modal>
     </View>
   );
 }

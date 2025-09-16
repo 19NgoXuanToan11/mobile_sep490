@@ -49,11 +49,13 @@ const textVariants = cva("font-semibold", {
 export interface BadgeProps
   extends ViewProps,
     VariantProps<typeof badgeVariants> {
-  text: string;
+  text?: string; // Prefer children, keep for backward compatibility
+  children?: React.ReactNode;
 }
 
 export const Badge: React.FC<BadgeProps> = ({
   text,
+  children,
   variant,
   size,
   className,
@@ -64,7 +66,9 @@ export const Badge: React.FC<BadgeProps> = ({
       className={cn(badgeVariants({ variant, size }), className)}
       {...props}
     >
-      <Text className={cn(textVariants({ variant, size }))}>{text}</Text>
+      <Text className={cn(textVariants({ variant, size }))}>
+        {text ?? children}
+      </Text>
     </View>
   );
 };

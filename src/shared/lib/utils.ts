@@ -115,7 +115,7 @@ export function getStockStatus(stock: number): {
   if (stock === 0) {
     return {
       status: "out_of_stock",
-      text: "Out of Stock",
+      text: "Hết hàng",
       color: "text-error-500",
     };
   }
@@ -123,14 +123,14 @@ export function getStockStatus(stock: number): {
   if (stock < 10) {
     return {
       status: "low_stock",
-      text: "Low Stock",
+      text: "Sắp hết hàng",
       color: "text-warning-500",
     };
   }
 
   return {
     status: "in_stock",
-    text: "In Stock",
+    text: "Còn hàng",
     color: "text-success-500",
   };
 }
