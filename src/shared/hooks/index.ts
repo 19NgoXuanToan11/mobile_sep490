@@ -7,6 +7,18 @@ import { User, CartItem, Cart } from "../../types";
 import { authStorage, storage, STORAGE_KEYS } from "../lib/storage";
 import { authApi, cartApi } from "../data/api";
 
+// Notification types
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: "order" | "promotion" | "system" | "payment" | "delivery";
+  isRead: boolean;
+  timestamp: string;
+  actionUrl?: string;
+  metadata?: Record<string, any>;
+}
+
 // Authentication hook
 interface AuthStore {
   user: User | null;
@@ -215,6 +227,158 @@ export const useCart = () => {
     ...store,
     cart,
   };
+};
+
+// Notifications hook
+interface NotificationStore {
+  notifications: Notification[];
+  unreadCount: number;
+  isLoading: boolean;
+  loadNotifications: () => Promise<void>;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  addNotification: (notification: Omit<Notification, "id">) => void;
+}
+
+export const useNotificationStore = create<NotificationStore>()(
+  persist(
+    (set, get) => ({
+      notifications: [],
+      unreadCount: 0,
+      isLoading: false,
+
+      loadNotifications: async () => {
+        try {
+          set({ isLoading: true });
+          // TODO: Replace with actual API call
+          // const response = await notificationApi.getNotifications();
+          // if (response.success) {
+          //   const notifications = response.data;
+          //   const unreadCount = notifications.filter(n => !n.isRead).length;
+          //   set({ notifications, unreadCount });
+          // }
+
+          // Mock data for now
+          const mockNotifications: Notification[] = [
+            {
+              id: "1",
+              title: "Đơn hàng",
+              message:
+                "Đơn hàng #12345 đã được xác nhận\nĐơn hàng của bạn đã được xác nhận và đang được chuẩn bị. Dự kiến giao hàng trong 2-3 ngày.",
+              type: "order",
+              isRead: false,
+              timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+            },
+            {
+              id: "2",
+              title: "Khuyến mãi",
+              message:
+                "🎉 Khuyến mãi đặc biệt 20%\nGiảm giá 20% cho tất cả sản phẩm rau củ quả tươi. Áp dụng từ hôm nay đến hết tuần!",
+              type: "promotion",
+              isRead: false,
+              timestamp: new Date(
+                Date.now() - 2 * 60 * 60 * 1000
+              ).toISOString(),
+            },
+            {
+              id: "3",
+              title: "Thanh toán",
+              message:
+                "Thanh toán thành công\nThanh toán đơn hàng #12344 đã được xử lý thành công qua VNPay.",
+              type: "payment",
+              isRead: true,
+              timestamp: new Date(
+                Date.now() - 24 * 60 * 60 * 1000
+              ).toISOString(),
+            },
+            {
+              id: "4",
+              title: "Giao hàng",
+              message:
+                "Đơn hàng đang được giao\nĐơn hàng #12343 đang trên đường giao đến bạn. Mã vận đơn: GH123456789",
+              type: "delivery",
+              isRead: true,
+              timestamp: new Date(
+                Date.now() - 2 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            },
+          ];
+
+          const unreadCount = mockNotifications.filter((n) => !n.isRead).length;
+          set({ notifications: mockNotifications, unreadCount });
+        } catch (error) {
+          console.error("Load notifications error:", error);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      markAsRead: async (id: string) => {
+        try {
+          // TODO: Replace with actual API call
+          // await notificationApi.markAsRead(id);
+
+          const { notifications } = get();
+          const updatedNotifications = notifications.map((notification) =>
+            notification.id === id
+              ? { ...notification, isRead: true }
+              : notification
+          );
+          const unreadCount = updatedNotifications.filter(
+            (n) => !n.isRead
+          ).length;
+
+          set({ notifications: updatedNotifications, unreadCount });
+        } catch (error) {
+          console.error("Mark as read error:", error);
+        }
+      },
+
+      markAllAsRead: async () => {
+        try {
+          // TODO: Replace with actual API call
+          // await notificationApi.markAllAsRead();
+
+          const { notifications } = get();
+          const updatedNotifications = notifications.map((notification) => ({
+            ...notification,
+            isRead: true,
+          }));
+
+          set({ notifications: updatedNotifications, unreadCount: 0 });
+        } catch (error) {
+          console.error("Mark all as read error:", error);
+        }
+      },
+
+      addNotification: (notification: Omit<Notification, "id">) => {
+        const { notifications, unreadCount } = get();
+        const newNotification: Notification = {
+          ...notification,
+          id: Date.now().toString(),
+        };
+
+        set({
+          notifications: [newNotification, ...notifications],
+          unreadCount: notification.isRead ? unreadCount : unreadCount + 1,
+        });
+      },
+    }),
+    {
+      name: "notifications-storage",
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);
+
+export const useNotifications = () => {
+  const store = useNotificationStore();
+
+  useEffect(() => {
+    store.loadNotifications();
+  }, []);
+
+  return store;
 };
 
 // Debounce hook

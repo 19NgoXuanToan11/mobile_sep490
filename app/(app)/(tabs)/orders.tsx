@@ -172,21 +172,28 @@ export default function OrdersScreen() {
           <View className="flex-row items-center justify-between">
             {/* Product Images */}
             <View className="flex-row items-center space-x-2 flex-1">
-              {order.items.slice(0, 3).map((item, index) => (
-                <View key={item.id} className="relative">
-                  <Image
-                    source={{ uri: item.product.images[0] }}
-                    style={{ width: 52, height: 52 }}
-                    className="rounded-xl"
-                    contentFit="cover"
-                  />
-                  {item.product.tags?.includes("organic") && (
-                    <View className="absolute -top-1 -right-1 w-5 h-5 bg-success-500 rounded-full items-center justify-center">
-                      <Ionicons name="leaf" size={10} color="white" />
-                    </View>
-                  )}
-                </View>
-              ))}
+              {order.items.slice(0, 3).map((item, index) => {
+                const imageUri = item.product?.images?.[0];
+                return (
+                  <View key={item.id} className="relative">
+                    <Image
+                      source={{
+                        uri:
+                          imageUri ||
+                          "https://via.placeholder.com/52x52/f3f4f6/9ca3af?text=No+Image",
+                      }}
+                      style={{ width: 52, height: 52 }}
+                      className="rounded-xl"
+                      contentFit="cover"
+                    />
+                    {item.product?.tags?.includes("organic") && (
+                      <View className="absolute -top-1 -right-1 w-5 h-5 bg-success-500 rounded-full items-center justify-center">
+                        <Ionicons name="leaf" size={10} color="white" />
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
               {order.items.length > 3 && (
                 <View className="w-[52px] h-[52px] bg-neutral-100 rounded-xl items-center justify-center">
                   <Text className="text-xs font-semibold text-neutral-600">

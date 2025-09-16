@@ -92,18 +92,17 @@ export const products: Product[] = [
   // Vegetables
   {
     id: "prod_001",
-    name: "Organic Cherry Tomatoes",
+    name: "Cà Chua Bi Hữu Cơ",
     slug: "organic-cherry-tomatoes",
     sku: "VEG-TOM-001",
     description:
-      "Sweet and juicy organic cherry tomatoes, perfect for salads, snacking, or cooking. Grown without pesticides in fertile soil with plenty of sunshine.",
-    shortDescription: "Sweet, juicy organic cherry tomatoes",
+      "Cà chua bi hữu cơ ngọt và mọng nước, hoàn hảo cho salad, ăn vặt hoặc nấu ăn. Trồng không thuốc trừ sâu trên đất màu mỡ nhiều nắng.",
+    shortDescription: "Cà chua bi hữu cơ ngọt mọng",
     price: 89000,
     originalPrice: 120000,
     categoryId: "cat_vegetables",
     images: [
-      "https://images.unsplash.com/photo-1592841200221-1ac6716e8cc8?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1558818498-28c1e002b655?w=400&h=400&fit=crop",
+      "https://ocopthubafood.com/wp-content/uploads/2022/08/Ca-chua-bi-huu-co.jpg",
     ],
     rating: 4.8,
     reviewCount: 156,
@@ -121,12 +120,12 @@ export const products: Product[] = [
   },
   {
     id: "prod_002",
-    name: "Fresh Spinach Leaves",
+    name: "Lá Rau Bina Tươi",
     slug: "fresh-spinach-leaves",
     sku: "VEG-SPI-001",
     description:
-      "Nutrient-rich organic spinach leaves, packed with iron, vitamins, and minerals. Perfect for salads, smoothies, or cooking.",
-    shortDescription: "Nutrient-rich organic spinach",
+      "Lá rau bina hữu cơ giàu dinh dưỡng, dồi dào sắt, vitamin và khoáng chất. Phù hợp cho salad, sinh tố hoặc nấu ăn.",
+    shortDescription: "Rau bina hữu cơ giàu dinh dưỡng",
     price: 65000,
     categoryId: "cat_vegetables",
     images: [
@@ -148,17 +147,17 @@ export const products: Product[] = [
   },
   {
     id: "prod_003",
-    name: "Rainbow Bell Peppers",
+    name: "Ớt Chuông Nhiều Màu",
     slug: "rainbow-bell-peppers",
     sku: "VEG-PEP-001",
     description:
-      "Colorful mix of red, yellow, and green bell peppers. Sweet, crunchy, and full of vitamin C. Great for stir-fries, salads, and stuffing.",
-    shortDescription: "Colorful sweet bell peppers",
+      "Hỗn hợp ớt chuông đỏ, vàng và xanh đầy màu sắc. Vị ngọt, giòn và giàu vitamin C. Tuyệt vời cho các món xào, salad và nhồi.",
+    shortDescription: "Ớt chuông ngọt nhiều màu",
     price: 95000,
     originalPrice: 110000,
     categoryId: "cat_vegetables",
     images: [
-      "https://images.unsplash.com/photo-1601401590463-e2d3e2320bbd?w=400&h=400&fit=crop",
+      "https://media.vov.vn/sites/default/files/styles/large/public/2025-09/ot_chuong.jpg",
     ],
     rating: 4.7,
     reviewCount: 112,
@@ -178,12 +177,12 @@ export const products: Product[] = [
   // Fruits
   {
     id: "prod_004",
-    name: "Dragon Fruit",
+    name: "Thanh Long",
     slug: "dragon-fruit",
     sku: "FRT-DRA-001",
     description:
-      "Exotic dragon fruit with sweet, mild flavor and unique appearance. Rich in antioxidants, vitamin C, and fiber.",
-    shortDescription: "Exotic dragon fruit, rich in antioxidants",
+      "Thanh long với vị ngọt dịu và vẻ ngoài độc đáo. Giàu chất chống oxy hóa, vitamin C và chất xơ.",
+    shortDescription: "Thanh long giàu chất chống oxy hóa",
     price: 145000,
     categoryId: "cat_fruits",
     images: [
@@ -203,12 +202,12 @@ export const products: Product[] = [
   },
   {
     id: "prod_005",
-    name: "Organic Bananas",
+    name: "Chuối Hữu Cơ",
     slug: "organic-bananas",
     sku: "FRT-BAN-001",
     description:
-      "Sweet, naturally ripened organic bananas. Perfect for snacking, smoothies, or baking. Rich in potassium and natural sugars.",
-    shortDescription: "Sweet organic bananas, rich in potassium",
+      "Chuối hữu cơ chín tự nhiên, vị ngọt. Phù hợp cho ăn vặt, làm sinh tố hoặc làm bánh. Giàu kali và đường tự nhiên.",
+    shortDescription: "Chuối hữu cơ ngọt, giàu kali",
     price: 45000,
     categoryId: "cat_fruits",
     images: [
@@ -230,12 +229,12 @@ export const products: Product[] = [
   // Grains
   {
     id: "prod_007",
-    name: "Premium Brown Rice",
+    name: "Gạo Lứt Cao Cấp",
     slug: "premium-brown-rice",
     sku: "GRN-RIC-001",
     description:
-      "High-quality brown rice, naturally processed to retain nutrients and fiber. Perfect for healthy meals and diet plans.",
-    shortDescription: "High-quality brown rice, nutrient-rich",
+      "Gạo lứt chất lượng cao, xay xát tự nhiên giúp giữ lại dưỡng chất và chất xơ. Phù hợp cho bữa ăn lành mạnh và chế độ ăn kiêng.",
+    shortDescription: "Gạo lứt chất lượng cao, giàu dinh dưỡng",
     price: 85000,
     categoryId: "cat_grains",
     images: [
@@ -257,12 +256,12 @@ export const products: Product[] = [
   // Dairy
   {
     id: "prod_008",
-    name: "Farm Fresh Milk",
+    name: "Sữa Tươi Trang Trại",
     slug: "farm-fresh-milk",
     sku: "DAI-MIL-001",
     description:
-      "Pure, fresh cow milk from grass-fed cows. Pasteurized for safety while maintaining natural taste and nutrients.",
-    shortDescription: "Pure fresh cow milk from grass-fed cows",
+      "Sữa bò tươi nguyên chất từ đàn bò ăn cỏ. Tiệt trùng an toàn nhưng vẫn giữ trọn hương vị tự nhiên và dưỡng chất.",
+    shortDescription: "Sữa bò tươi nguyên chất từ bò ăn cỏ",
     price: 55000,
     categoryId: "cat_dairy",
     images: [
@@ -284,11 +283,11 @@ export const products: Product[] = [
   // More products for variety...
   {
     id: "prod_009",
-    name: "Organic Carrots",
+    name: "Cà Rốt Hữu Cơ",
     slug: "organic-carrots",
     sku: "VEG-CAR-001",
     description:
-      "Sweet, crunchy organic carrots rich in beta-carotene and vitamins. Perfect for cooking, juicing, or eating raw.",
+      "Cà rốt hữu cơ ngọt, giòn, giàu beta-caroten và vitamin. Thích hợp nấu ăn, ép nước hoặc ăn sống.",
     price: 75000,
     categoryId: "cat_vegetables",
     images: [
@@ -308,11 +307,11 @@ export const products: Product[] = [
   },
   {
     id: "prod_010",
-    name: "Fresh Strawberries",
+    name: "Dâu Tây Tươi",
     slug: "fresh-strawberries",
     sku: "FRT-STR-001",
     description:
-      "Juicy, sweet strawberries grown in the cool climate of Đà Lạt. Perfect for desserts, smoothies, or eating fresh.",
+      "Dâu tây mọng nước, ngọt, được trồng trong khí hậu mát mẻ của Đà Lạt. Phù hợp cho tráng miệng, sinh tố hoặc ăn tươi.",
     price: 165000,
     originalPrice: 200000,
     categoryId: "cat_fruits",

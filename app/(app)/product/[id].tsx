@@ -65,7 +65,7 @@ const ImageGallery = ({ images }: { images: string[] }) => {
       </ScrollView>
 
       {/* Header Controls */}
-      <View className="absolute top-4 left-4 right-4 flex-row items-center justify-between">
+      <View className="absolute top-12 left-4 right-4 flex-row items-center justify-between">
         <TouchableOpacity
           onPress={() => router.back()}
           className="w-10 h-10 bg-white/90 rounded-full items-center justify-center"
@@ -151,10 +151,6 @@ const ProductInfo = ({ product }: { product: any }) => {
             reviewCount={product.reviewCount}
             size="md"
           />
-          <View className="flex-row items-center space-x-1">
-            <Ionicons name="eye-outline" size={16} color="#6b7280" />
-            <Text className="text-sm text-neutral-600">1.2k lượt xem</Text>
-          </View>
         </View>
       </View>
 
@@ -162,9 +158,12 @@ const ProductInfo = ({ product }: { product: any }) => {
       <Card variant="fresh" padding="lg">
         <View className="space-y-3">
           <View className="flex-row items-center space-x-3">
-            <Text className="text-3xl font-bold text-primary-600">
-              {formatCurrency(product.price)}
-            </Text>
+            <View className="flex-row items-baseline space-x-1">
+              <Text className="text-3xl font-bold text-primary-600">
+                {formatCurrency(product.price)}
+              </Text>
+              <Text className="text-lg text-neutral-600 font-medium">/bó</Text>
+            </View>
             {hasDiscount && (
               <View className="flex-row items-center space-x-2">
                 <Text className="text-lg text-neutral-500 line-through">
@@ -177,16 +176,6 @@ const ProductInfo = ({ product }: { product: any }) => {
                 />
               </View>
             )}
-          </View>
-          <View className="flex-row items-center space-x-2">
-            {product.unit && !product.unit.startsWith("/") && (
-              <Text className="text-sm text-neutral-600">
-                Đơn vị: {product.unit}
-              </Text>
-            )}
-            <Text className="text-sm text-primary-600 font-medium">
-              • Miễn phí giao hàng
-            </Text>
           </View>
         </View>
       </Card>
@@ -205,14 +194,7 @@ const ProductInfo = ({ product }: { product: any }) => {
             }
             size="sm"
           />
-          <Text className="text-sm text-neutral-600">
-            Còn {product.stock} sản phẩm
-          </Text>
-        </View>
-
-        <View className="flex-row items-center space-x-1">
-          <Ionicons name="time-outline" size={16} color="#6b7280" />
-          <Text className="text-sm text-neutral-600">Giao trong 2-4h</Text>
+          <Badge text="Miễn phí giao hàng" variant="secondary" size="sm" />
         </View>
       </View>
 
@@ -516,13 +498,13 @@ export default function ProductDetailsScreen() {
 
           {/* Quantity Selector */}
           <Card variant="elevated" padding="lg">
-            <View className="space-y-4">
+            <View className="space-y-6">
               <Text className="text-lg font-semibold text-neutral-900">
                 Chọn Số Lượng
               </Text>
 
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center space-x-4">
+              <View className="space-y-4">
+                <View className="flex-row items-center justify-center">
                   <QuantityStepper
                     value={quantity}
                     onValueChange={setQuantity}
@@ -530,22 +512,27 @@ export default function ProductDetailsScreen() {
                     max={Math.min(product.stock, 99)}
                     size="md"
                   />
+                </View>
+
+                <View className="flex-row items-center justify-between pt-2 border-t border-neutral-100">
                   <Text className="text-sm text-neutral-600">
                     Tối đa {Math.min(product.stock, 99)} sản phẩm
                   </Text>
-                </View>
 
-                <View className="items-end">
-                  <Text className="text-sm text-neutral-600">Tổng tiền</Text>
-                  <Text className="text-xl font-bold text-primary-600">
-                    {formatCurrency(product.price * quantity)}
-                  </Text>
+                  <View className="items-end">
+                    <Text className="text-sm text-neutral-600">Tổng tiền</Text>
+                    <Text className="text-xl font-bold text-primary-600">
+                      {formatCurrency(product.price * quantity)}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
           </Card>
 
-          <ProductDetails product={product} />
+          <View className="mt-2">
+            <ProductDetails product={product} />
+          </View>
 
           <View className="h-24" />
         </View>

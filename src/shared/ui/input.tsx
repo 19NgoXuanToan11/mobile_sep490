@@ -115,10 +115,12 @@ export const Input = forwardRef<TextInput, InputProps>(
         <View className="relative">
           {leftIcon && (
             <View
-              className="absolute left-3 items-center justify-center w-6 h-6"
+              className="absolute left-3 items-center justify-center"
               style={{
-                top: "50%",
-                transform: [{ translateY: -12 }],
+                top: 0,
+                bottom: 0,
+                width: 24,
+                height: size === "lg" ? 56 : size === "sm" ? 36 : 44,
                 zIndex: 10,
               }}
             >
@@ -154,19 +156,37 @@ export const Input = forwardRef<TextInput, InputProps>(
                 lineHeight:
                   Platform.OS === "ios"
                     ? size === "lg"
-                      ? 22
+                      ? 20
                       : size === "sm"
-                      ? 18
-                      : 20
+                      ? 16
+                      : 18
                     : size === "lg"
-                    ? 24
+                    ? 22
                     : size === "sm"
-                    ? 20
-                    : 22,
+                    ? 18
+                    : 20,
                 paddingVertical: 0,
+                paddingTop:
+                  Platform.OS === "android"
+                    ? size === "lg"
+                      ? 16
+                      : size === "sm"
+                      ? 8
+                      : 12
+                    : 0,
+                paddingBottom:
+                  Platform.OS === "android"
+                    ? size === "lg"
+                      ? 16
+                      : size === "sm"
+                      ? 8
+                      : 12
+                    : 0,
                 includeFontPadding: false,
                 textAlignVertical: "center",
                 height: size === "lg" ? 56 : size === "sm" ? 36 : 44,
+                margin: 0,
+                verticalAlign: "middle",
               },
               props.style,
             ]}
@@ -174,10 +194,12 @@ export const Input = forwardRef<TextInput, InputProps>(
 
           {(finalRightIcon || showPasswordIcon) && (
             <TouchableOpacity
-              className="absolute right-3"
+              className="absolute right-3 items-center justify-center"
               style={{
-                top: "50%",
-                transform: [{ translateY: -10 }],
+                top: 0,
+                bottom: 0,
+                width: 24,
+                height: size === "lg" ? 56 : size === "sm" ? 36 : 44,
                 zIndex: 10,
               }}
               onPress={handleRightIconPress}

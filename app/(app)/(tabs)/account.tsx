@@ -78,7 +78,10 @@ export default function AccountScreen() {
               </Text>
             </View>
 
-            <TouchableOpacity className="bg-primary-50 px-4 py-2 rounded-lg">
+            <TouchableOpacity
+              className="bg-primary-50 px-4 py-2 rounded-lg"
+              onPress={() => router.push("/profile/edit")}
+            >
               <Text className="text-primary-600 font-medium">
                 Chỉnh sửa thông tin
               </Text>
@@ -96,7 +99,7 @@ export default function AccountScreen() {
             <SettingItem
               icon="person-outline"
               title="Thông tin cá nhân"
-              onPress={() => {}}
+              onPress={() => router.push("/profile/personal-info")}
             />
 
             <SettingItem
@@ -108,32 +111,8 @@ export default function AccountScreen() {
             <SettingItem
               icon="notifications-outline"
               title="Thông báo"
-              onPress={() => {}}
+              onPress={() => router.push("../notifications/")}
             />
-          </View>
-        </Card>
-
-        {/* Statistics */}
-        <Card className="mx-4 mt-6" padding="lg" variant="fresh">
-          <Text className="text-lg font-semibold text-neutral-900 mb-4">
-            Thống kê mua sắm
-          </Text>
-
-          <View className="flex-row justify-between">
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-primary-600">12</Text>
-              <Text className="text-sm text-neutral-600">Đơn hàng</Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-primary-600">8</Text>
-              <Text className="text-sm text-neutral-600">
-                Sản phẩm yêu thích
-              </Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-primary-600">95%</Text>
-              <Text className="text-sm text-neutral-600">Hài lòng</Text>
-            </View>
           </View>
         </Card>
 

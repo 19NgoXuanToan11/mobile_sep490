@@ -16,6 +16,7 @@ export default function PublicLayout() {
           },
           headerShadowVisible: false,
           animation: "slide_from_right",
+          headerBackTitle: "Quay lại",
         }}
       >
         <Stack.Screen

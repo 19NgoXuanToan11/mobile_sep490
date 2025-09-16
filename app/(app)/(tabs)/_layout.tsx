@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useCart } from "../../../src/shared/hooks";
+import { useCart, useNotifications } from "../../../src/shared/hooks";
 import { View, Text } from "react-native";
 
 // Cart badge component
@@ -43,6 +43,7 @@ const TabIcon: React.FC<TabIconProps> = ({ name, focused, count }) => {
 
 export default function TabLayout() {
   const { cart } = useCart();
+  const { unreadCount } = useNotifications();
 
   return (
     <Tabs
@@ -122,7 +123,7 @@ export default function TabLayout() {
         options={{
           title: "Tài khoản",
           tabBarIcon: ({ focused }) => (
-            <TabIcon name="person" focused={focused} />
+            <TabIcon name="person" focused={focused} count={unreadCount} />
           ),
         }}
       />

@@ -39,22 +39,25 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
 
   const sizeStyles = {
     sm: {
-      container: "h-8",
+      container: "h-8 min-w-24",
       button: "w-8 h-8",
-      text: "text-sm",
+      text: "text-sm font-semibold",
       icon: 16,
+      quantityContainer: "min-w-8 px-3",
     },
     md: {
-      container: "h-10",
+      container: "h-10 min-w-32",
       button: "w-10 h-10",
-      text: "text-base",
+      text: "text-base font-semibold",
       icon: 18,
+      quantityContainer: "min-w-12 px-4",
     },
     lg: {
-      container: "h-12",
+      container: "h-12 min-w-36",
       button: "w-12 h-12",
-      text: "text-lg",
+      text: "text-lg font-semibold",
       icon: 20,
+      quantityContainer: "min-w-16 px-5",
     },
   };
 
@@ -63,7 +66,7 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
   return (
     <View
       className={cn(
-        "flex-row items-center border border-neutral-200 rounded-lg bg-white",
+        "flex-row items-center border border-neutral-200 rounded-lg bg-white shadow-sm",
         styles.container,
         disabled && "opacity-50",
         className
@@ -74,7 +77,7 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
         onPress={handleDecrement}
         disabled={!canDecrement}
         className={cn(
-          "items-center justify-center border-r border-neutral-200",
+          "items-center justify-center border-r border-neutral-200 rounded-l-lg",
           styles.button,
           !canDecrement && "opacity-50"
         )}
@@ -86,8 +89,10 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
         />
       </TouchableOpacity>
 
-      <View className="flex-1 items-center justify-center px-2">
-        <Text className={cn("font-medium text-neutral-900", styles.text)}>
+      <View
+        className={cn("items-center justify-center", styles.quantityContainer)}
+      >
+        <Text className={cn("text-neutral-900 text-center", styles.text)}>
           {value}
         </Text>
       </View>
@@ -96,7 +101,7 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
         onPress={handleIncrement}
         disabled={!canIncrement}
         className={cn(
-          "items-center justify-center border-l border-neutral-200",
+          "items-center justify-center border-l border-neutral-200 rounded-r-lg",
           styles.button,
           !canIncrement && "opacity-50"
         )}
