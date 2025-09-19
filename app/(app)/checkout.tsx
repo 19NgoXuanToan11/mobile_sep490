@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   View,
   Text,
+  TextInput,
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -30,8 +31,8 @@ import { formatCurrency } from "../../src/shared/lib/utils";
 import { Address, PaymentMethod, CheckoutFormData } from "../../src/types";
 
 const checkoutSchema = z.object({
-  addressId: z.string().min(1, "Please select a delivery address"),
-  paymentMethodId: z.string().min(1, "Please select a payment method"),
+  addressId: z.string().min(1, "Vui lòng chọn địa chỉ giao hàng"),
+  paymentMethodId: z.string().min(1, "Vui lòng chọn phương thức thanh toán"),
   notes: z.string().optional(),
 });
 
@@ -55,80 +56,82 @@ const AddressSelector: React.FC<{
           </TouchableOpacity>
         </View>
 
-        {addresses.map((address) => (
-          <TouchableOpacity
-            key={address.id}
-            onPress={() => onSelect(address.id)}
-            className={`border-2 rounded-xl p-4 ${
-              selectedId === address.id
-                ? "border-primary-500 bg-primary-50"
-                : "border-neutral-200 bg-white"
-            }`}
-            style={{
-              shadowColor: selectedId === address.id ? "#00623A" : "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: selectedId === address.id ? 0.15 : 0.05,
-              shadowRadius: 4,
-              elevation: selectedId === address.id ? 4 : 2,
-            }}
-          >
-            <View className="flex-row items-start justify-between">
-              <View className="flex-1 space-y-2">
-                <View className="flex-row items-center space-x-2">
-                  <Text className="font-semibold text-neutral-900 text-base">
-                    {address.name}
-                  </Text>
-                  {address.isDefault && (
-                    <Badge text="Mặc định" size="sm" variant="success" />
-                  )}
-                  <Badge
-                    text={
-                      address.type === "HOME"
-                        ? "Nhà"
-                        : address.type === "OFFICE"
-                        ? "Văn phòng"
-                        : "Khác"
-                    }
-                    size="sm"
-                    variant="outline"
-                  />
+        <View className="space-y-3">
+          {addresses.map((address) => (
+            <TouchableOpacity
+              key={address.id}
+              onPress={() => onSelect(address.id)}
+              className={`border-2 rounded-xl p-4 ${
+                selectedId === address.id
+                  ? "border-primary-500 bg-primary-50"
+                  : "border-neutral-200 bg-white"
+              }`}
+              style={{
+                shadowColor: selectedId === address.id ? "#00623A" : "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: selectedId === address.id ? 0.15 : 0.05,
+                shadowRadius: 4,
+                elevation: selectedId === address.id ? 4 : 2,
+              }}
+            >
+              <View className="flex-row items-start justify-between">
+                <View className="flex-1 pr-3 space-y-2">
+                  <View className="flex-row items-center flex-wrap gap-2">
+                    <Text className="font-semibold text-neutral-900 text-base">
+                      {address.name}
+                    </Text>
+                    {address.isDefault && (
+                      <Badge text="Mặc định" size="sm" variant="success" />
+                    )}
+                    <Badge
+                      text={
+                        address.type === "HOME"
+                          ? "Nhà"
+                          : address.type === "OFFICE"
+                          ? "Văn phòng"
+                          : "Khác"
+                      }
+                      size="sm"
+                      variant="outline"
+                    />
+                  </View>
+
+                  <View className="flex-row items-center space-x-1">
+                    <Ionicons name="call-outline" size={14} color="#6b7280" />
+                    <Text className="text-sm text-neutral-600">
+                      {address.phone}
+                    </Text>
+                  </View>
+
+                  <View className="flex-row items-start space-x-1">
+                    <Ionicons
+                      name="location-outline"
+                      size={14}
+                      color="#6b7280"
+                      className="mt-0.5"
+                    />
+                    <Text className="text-sm text-neutral-700 leading-5 flex-1">
+                      {address.street}, {address.ward}, {address.district},{" "}
+                      {address.city}
+                    </Text>
+                  </View>
                 </View>
 
-                <View className="flex-row items-center space-x-1">
-                  <Ionicons name="call-outline" size={14} color="#6b7280" />
-                  <Text className="text-sm text-neutral-600">
-                    {address.phone}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-start space-x-1">
+                <View className="ml-2">
                   <Ionicons
-                    name="location-outline"
-                    size={14}
-                    color="#6b7280"
-                    className="mt-0.5"
+                    name={
+                      selectedId === address.id
+                        ? "radio-button-on"
+                        : "radio-button-off"
+                    }
+                    size={24}
+                    color={selectedId === address.id ? "#00623A" : "#d1d5db"}
                   />
-                  <Text className="text-sm text-neutral-700 leading-5 flex-1">
-                    {address.street}, {address.ward}, {address.district},{" "}
-                    {address.city}
-                  </Text>
                 </View>
               </View>
-
-              <View className="ml-3">
-                <Ionicons
-                  name={
-                    selectedId === address.id
-                      ? "radio-button-on"
-                      : "radio-button-off"
-                  }
-                  size={24}
-                  color={selectedId === address.id ? "#00623A" : "#d1d5db"}
-                />
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
     </Card>
   );
@@ -179,72 +182,74 @@ const PaymentMethodSelector: React.FC<{
           </Text>
         </View>
 
-        {paymentMethods.map((method) => (
-          <TouchableOpacity
-            key={method.id}
-            onPress={() => onSelect(method.id)}
-            className={`border-2 rounded-xl p-4 ${
-              selectedId === method.id
-                ? "border-primary-500 bg-primary-50"
-                : "border-neutral-200 bg-white"
-            }`}
-            style={{
-              shadowColor: selectedId === method.id ? "#00623A" : "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: selectedId === method.id ? 0.15 : 0.05,
-              shadowRadius: 4,
-              elevation: selectedId === method.id ? 4 : 2,
-            }}
-          >
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center space-x-3">
-                <View
-                  className="w-12 h-12 rounded-xl items-center justify-center"
-                  style={{
-                    backgroundColor: `${getPaymentColor(method.type)}15`,
-                  }}
-                >
-                  <Ionicons
-                    name={getPaymentIcon(method.type)}
-                    size={24}
-                    color={getPaymentColor(method.type)}
-                  />
+        <View className="space-y-3">
+          {paymentMethods.map((method) => (
+            <TouchableOpacity
+              key={method.id}
+              onPress={() => onSelect(method.id)}
+              className={`border-2 rounded-xl p-4 ${
+                selectedId === method.id
+                  ? "border-primary-500 bg-primary-50"
+                  : "border-neutral-200 bg-white"
+              }`}
+              style={{
+                shadowColor: selectedId === method.id ? "#00623A" : "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: selectedId === method.id ? 0.15 : 0.05,
+                shadowRadius: 4,
+                elevation: selectedId === method.id ? 4 : 2,
+              }}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center space-x-3 flex-1">
+                  <View
+                    className="w-10 h-10 rounded-lg items-center justify-center"
+                    style={{
+                      backgroundColor: `${getPaymentColor(method.type)}15`,
+                    }}
+                  >
+                    <Ionicons
+                      name={getPaymentIcon(method.type)}
+                      size={20}
+                      color={getPaymentColor(method.type)}
+                    />
+                  </View>
+
+                  <View className="flex-1 pr-3">
+                    <Text className="font-semibold text-neutral-900 text-base">
+                      {method.name}
+                    </Text>
+                    <Text className="text-sm text-neutral-600 leading-5 mt-0.5">
+                      {method.description}
+                    </Text>
+                    {method.type === "COD" && (
+                      <View className="flex-row items-center space-x-1 mt-1.5">
+                        <Ionicons
+                          name="shield-checkmark-outline"
+                          size={12}
+                          color="#22c55e"
+                        />
+                        <Text className="text-xs text-success-600">
+                          Thanh toán an toàn
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
 
-                <View className="flex-1">
-                  <Text className="font-semibold text-neutral-900 text-base">
-                    {method.name}
-                  </Text>
-                  <Text className="text-sm text-neutral-600 leading-5">
-                    {method.description}
-                  </Text>
-                  {method.type === "COD" && (
-                    <View className="flex-row items-center space-x-1 mt-1">
-                      <Ionicons
-                        name="shield-checkmark-outline"
-                        size={12}
-                        color="#22c55e"
-                      />
-                      <Text className="text-xs text-success-600">
-                        Thanh toán an toàn
-                      </Text>
-                    </View>
-                  )}
-                </View>
+                <Ionicons
+                  name={
+                    selectedId === method.id
+                      ? "radio-button-on"
+                      : "radio-button-off"
+                  }
+                  size={24}
+                  color={selectedId === method.id ? "#00623A" : "#d1d5db"}
+                />
               </View>
-
-              <Ionicons
-                name={
-                  selectedId === method.id
-                    ? "radio-button-on"
-                    : "radio-button-off"
-                }
-                size={24}
-                color={selectedId === method.id ? "#00623A" : "#d1d5db"}
-              />
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
     </Card>
   );
@@ -291,7 +296,7 @@ export default function CheckoutScreen() {
       }
     },
     onError: () => {
-      toast.error("Order failed", "Please try again");
+      toast.error("Đặt hàng thất bại", "Vui lòng thử lại");
     },
   });
 
@@ -404,23 +409,26 @@ export default function CheckoutScreen() {
                   </Text>
                 </View>
 
-                <View className="space-y-3">
+                <View className="space-y-4">
                   {cart.items.map((item) => (
-                    <View key={item.id} className="flex-row space-x-3">
+                    <View
+                      key={item.id}
+                      className="flex-row space-x-3 items-start"
+                    >
                       <Image
                         source={{ uri: item.product.images[0] }}
-                        style={{ width: 60, height: 60 }}
-                        className="rounded-xl"
+                        style={{ width: 50, height: 50 }}
+                        className="rounded-lg"
                       />
 
-                      <View className="flex-1 space-y-1">
+                      <View className="flex-1 space-y-1 pr-2">
                         <Text
-                          className="font-semibold text-neutral-900"
+                          className="font-semibold text-neutral-900 text-sm leading-5"
                           numberOfLines={2}
                         >
                           {item.product.name}
                         </Text>
-                        <View className="flex-row items-center space-x-2">
+                        <View className="flex-row items-center space-x-2 flex-wrap">
                           <Text className="text-sm text-neutral-600">
                             {item.quantity} × {formatCurrency(item.price)}
                           </Text>
@@ -430,34 +438,44 @@ export default function CheckoutScreen() {
                         </View>
                       </View>
 
-                      <Text className="font-bold text-neutral-900 text-lg">
-                        {formatCurrency(item.subtotal)}
-                      </Text>
+                      <View className="items-end">
+                        <Text className="font-bold text-neutral-900 text-base">
+                          {formatCurrency(item.subtotal)}
+                        </Text>
+                      </View>
                     </View>
                   ))}
 
-                  <View className="border-t border-neutral-200 pt-3 space-y-2">
-                    <View className="flex-row justify-between">
-                      <Text className="text-neutral-600">Tạm tính</Text>
-                      <Text className="font-medium">
+                  <View className="border-t border-neutral-200 pt-4 space-y-3">
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-neutral-600 text-base">
+                        Tạm tính
+                      </Text>
+                      <Text className="font-medium text-neutral-900 text-base">
                         {formatCurrency(cart.subtotal)}
                       </Text>
                     </View>
-                    <View className="flex-row justify-between">
-                      <Text className="text-neutral-600">Phí giao hàng</Text>
-                      <Text className="font-medium">
-                        {cart.shippingFee === 0 ? (
-                          <Text className="text-success-600">Miễn phí</Text>
-                        ) : (
-                          formatCurrency(cart.shippingFee)
-                        )}
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-neutral-600 text-base">
+                        Phí giao hàng
                       </Text>
+                      <View className="items-end">
+                        {cart.shippingFee === 0 ? (
+                          <Text className="text-success-600 font-medium text-base">
+                            Miễn phí
+                          </Text>
+                        ) : (
+                          <Text className="font-medium text-neutral-900 text-base">
+                            {formatCurrency(cart.shippingFee)}
+                          </Text>
+                        )}
+                      </View>
                     </View>
-                    <View className="flex-row justify-between pt-2 border-t border-neutral-100">
+                    <View className="flex-row justify-between items-center pt-3 border-t border-neutral-200">
                       <Text className="text-lg font-semibold text-neutral-900">
                         Tổng cộng
                       </Text>
-                      <Text className="text-lg font-bold text-primary-600">
+                      <Text className="text-xl font-bold text-primary-600">
                         {formatCurrency(cart.total)}
                       </Text>
                     </View>
@@ -476,47 +494,64 @@ export default function CheckoutScreen() {
                   </Text>
                 </View>
 
-                {deliveryTimeOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option.id}
-                    onPress={() => setSelectedDeliveryTime(option.id)}
-                    className={`border-2 rounded-xl p-4 ${
-                      selectedDeliveryTime === option.id
-                        ? "border-primary-500 bg-primary-50"
-                        : "border-neutral-200 bg-white"
-                    }`}
-                  >
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-1">
-                        <Text className="font-semibold text-neutral-900">
-                          {option.label}
-                        </Text>
-                        <Text className="text-sm text-neutral-600">
-                          Dự kiến: {option.time}
-                        </Text>
-                      </View>
+                <View className="space-y-3">
+                  {deliveryTimeOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option.id}
+                      onPress={() => setSelectedDeliveryTime(option.id)}
+                      className={`border-2 rounded-xl p-4 ${
+                        selectedDeliveryTime === option.id
+                          ? "border-primary-500 bg-primary-50"
+                          : "border-neutral-200 bg-white"
+                      }`}
+                      style={{
+                        shadowColor:
+                          selectedDeliveryTime === option.id
+                            ? "#00623A"
+                            : "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity:
+                          selectedDeliveryTime === option.id ? 0.15 : 0.05,
+                        shadowRadius: 4,
+                        elevation: selectedDeliveryTime === option.id ? 4 : 2,
+                      }}
+                    >
+                      <View className="flex-row items-center justify-between">
+                        <View className="flex-1 pr-3">
+                          <Text className="font-semibold text-neutral-900 text-base">
+                            {option.label}
+                          </Text>
+                          <Text className="text-sm text-neutral-600 mt-0.5">
+                            Dự kiến: {option.time}
+                          </Text>
+                        </View>
 
-                      <View className="flex-row items-center space-x-2">
-                        {option.price === 0 && (
-                          <Badge text="Miễn phí" variant="success" size="sm" />
-                        )}
-                        <Ionicons
-                          name={
-                            selectedDeliveryTime === option.id
-                              ? "radio-button-on"
-                              : "radio-button-off"
-                          }
-                          size={24}
-                          color={
-                            selectedDeliveryTime === option.id
-                              ? "#00623A"
-                              : "#d1d5db"
-                          }
-                        />
+                        <View className="flex-row items-center space-x-2">
+                          {option.price === 0 && (
+                            <Badge
+                              text="Miễn phí"
+                              variant="success"
+                              size="sm"
+                            />
+                          )}
+                          <Ionicons
+                            name={
+                              selectedDeliveryTime === option.id
+                                ? "radio-button-on"
+                                : "radio-button-off"
+                            }
+                            size={24}
+                            color={
+                              selectedDeliveryTime === option.id
+                                ? "#00623A"
+                                : "#d1d5db"
+                            }
+                          />
+                        </View>
                       </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
             </Card>
 
@@ -555,27 +590,67 @@ export default function CheckoutScreen() {
                 <Controller
                   control={control}
                   name="notes"
-                  render={({ field: { onChange, value } }) => (
-                    <Input
-                      placeholder="Ghi chú cho người giao hàng (không bắt buộc)"
-                      value={value}
-                      onChangeText={onChange}
-                      multiline
-                      numberOfLines={3}
-                      className="min-h-[80px]"
-                    />
-                  )}
+                  render={({ field: { onChange, value } }) => {
+                    const [isFocused, setIsFocused] = useState(false);
+
+                    return (
+                      <View
+                        className={`border-2 rounded-xl p-4 bg-white ${
+                          isFocused
+                            ? "border-primary-500"
+                            : "border-neutral-200"
+                        }`}
+                        style={{
+                          shadowColor: isFocused ? "#00623A" : "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: isFocused ? 0.15 : 0.05,
+                          shadowRadius: 4,
+                          elevation: isFocused ? 4 : 2,
+                        }}
+                      >
+                        <TextInput
+                          placeholder="Ghi chú cho người giao hàng (không bắt buộc)"
+                          placeholderTextColor="#9CA3AF"
+                          value={value || ""}
+                          onChangeText={onChange}
+                          multiline
+                          numberOfLines={4}
+                          textAlignVertical="top"
+                          className="text-neutral-900 text-base leading-6 min-h-[100px]"
+                          style={{
+                            fontSize: 16,
+                            lineHeight: 24,
+                          }}
+                          onFocus={() => setIsFocused(true)}
+                          onBlur={() => setIsFocused(false)}
+                        />
+                      </View>
+                    );
+                  }}
                 />
+
+                <View className="flex-row items-start mt-2">
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={16}
+                    color="#6B7280"
+                    className="mt-0.5"
+                  />
+                  <Text className="text-sm text-neutral-500 flex-1 leading-5 ml-2">
+                    Bạn có thể ghi chú về địa chỉ cụ thể, thời gian mong muốn,
+                    hoặc yêu cầu đặc biệt
+                  </Text>
+                </View>
               </View>
             </Card>
           </View>
         </ScrollView>
 
         {/* Bottom Order Button */}
-        <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-200">
+        <View className="absolute bottom-0 left-0 right-0">
           <LinearGradient
             colors={["rgba(255,255,255,0.95)", "rgba(255,255,255,1)"]}
-            className="px-4 py-4"
+            className="px-4 py-3 border-t border-neutral-100"
           >
             <TouchableOpacity
               onPress={handleSubmit(onSubmit)}
@@ -594,16 +669,18 @@ export default function CheckoutScreen() {
               }}
               activeOpacity={0.8}
             >
-              <View className="flex-row items-center space-x-2">
+              <View className="flex-row items-center justify-center space-x-2">
                 {createOrderMutation.isPending ? (
-                  <Text className="text-neutral-500 font-semibold text-lg">
-                    Đang xử lý...
-                  </Text>
+                  <>
+                    <View className="w-5 h-5 border-2 border-neutral-400 border-t-neutral-600 rounded-full animate-spin" />
+                    <Text className="text-neutral-500 font-semibold text-lg">
+                      Đang xử lý...
+                    </Text>
+                  </>
                 ) : (
                   <>
-                    <Ionicons name="card-outline" size={20} color="white" />
                     <Text className="text-white font-semibold text-lg">
-                      Đặt hàng • {formatCurrency(cart.total)}
+                      Đặt hàng
                     </Text>
                   </>
                 )}

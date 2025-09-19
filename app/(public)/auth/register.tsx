@@ -42,7 +42,7 @@ const Logo = () => {
         opacity: opacityAnim,
         transform: [{ scale: scaleAnim }],
       }}
-      className="items-center mb-8"
+      className="items-center mb-4"
     >
       <View
         className="w-20 h-20 rounded-full bg-primary-500 items-center justify-center mb-4"
@@ -112,11 +112,11 @@ export default function RegisterScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View className="flex-1 px-6 py-4">
+            <View className="flex-1 px-6">
               {/* Logo */}
               <View
                 className="items-center"
-                style={{ marginTop: 40, marginBottom: 20 }}
+                style={{ marginTop: 80, marginBottom: 15 }}
               >
                 <Logo />
               </View>
@@ -127,12 +127,12 @@ export default function RegisterScreen() {
                   opacity: fadeAnim,
                   transform: [{ translateY: slideAnim }],
                 }}
-                className="mb-6"
+                className="mb-12"
               >
-                <Text className="text-3xl font-light text-neutral-900 text-center mb-2 tracking-tight">
+                <Text className="text-3xl font-light text-neutral-900 text-center mb-3 tracking-tight">
                   Tạo Tài Khoản
                 </Text>
-                <Text className="text-base text-neutral-600 text-center font-light">
+                <Text className="text-base text-neutral-600 text-center font-light leading-6">
                   Tham gia và bắt đầu mua sắm
                 </Text>
               </Animated.View>

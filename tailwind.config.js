@@ -109,10 +109,10 @@ module.exports = {
         "4xl": "32px",
       },
       elevation: {
-        sm: "2px 2px 4px rgba(0, 0, 0, 0.1)",
-        md: "4px 4px 8px rgba(0, 0, 0, 0.12)",
-        lg: "8px 8px 16px rgba(0, 0, 0, 0.15)",
-        xl: "12px 12px 24px rgba(0, 0, 0, 0.18)",
+        sm: 2,
+        md: 4,
+        lg: 8,
+        xl: 12,
       },
       animation: {
         "fade-in": "fadeIn 0.3s ease-in-out",

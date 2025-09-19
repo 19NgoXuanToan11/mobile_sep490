@@ -13,6 +13,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { Button, Card, Badge, EmptyState } from "../../../src/shared/ui";
 import { useNotifications, Notification } from "../../../src/shared/hooks";
 
+// Notification badge component - matches bottom navigation style
+const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
+  if (count === 0) return null;
+
+  return (
+    <View className="bg-error-500 rounded-full min-w-[20px] h-[20px] items-center justify-center px-1">
+      <Text className="text-white text-xs font-bold">
+        {count > 99 ? "99+" : count}
+      </Text>
+    </View>
+  );
+};
+
 interface NotificationItemProps {
   notification: Notification;
   onPress: (notification: Notification) => void;
@@ -215,12 +228,15 @@ export default function NotificationsScreen() {
           </TouchableOpacity>
 
           <View className="absolute left-0 right-0 items-center">
-            <Text className="text-lg font-semibold text-neutral-900">
-              Thông báo
-            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-lg font-semibold text-neutral-900">
+                Thông báo
+              </Text>
+              <View className="ml-2">
+                <NotificationBadge count={unreadCount} />
+              </View>
+            </View>
           </View>
-
-          {/* Removed unread badge per requirement */}
         </View>
 
         {/* Filter Tabs */}
@@ -240,16 +256,22 @@ export default function NotificationsScreen() {
                   : "bg-white border-neutral-300"
               }`}
             >
-              <Text
-                className={`font-medium ${
-                  activeFilter === tab.key ? "text-white" : "text-neutral-700"
-                }`}
-              >
-                {tab.label}
+              <View className="flex-row items-center space-x-2">
+                <Text
+                  className={`font-medium ${
+                    activeFilter === tab.key ? "text-white" : "text-neutral-700"
+                  }`}
+                >
+                  {tab.label}
+                </Text>
                 {tab.key === "unread" && unreadCount > 0 && (
-                  <Text className="ml-1">({unreadCount})</Text>
+                  <View className="bg-error-500 rounded-full min-w-[18px] h-[18px] items-center justify-center px-1">
+                    <Text className="text-white text-xs font-bold">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </Text>
+                  </View>
                 )}
-              </Text>
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>

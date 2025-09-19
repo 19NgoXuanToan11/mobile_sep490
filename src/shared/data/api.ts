@@ -26,6 +26,8 @@ import {
 } from "./fixtures";
 import { sleep, getRandomDelay, generateId } from "../lib/utils";
 import { storage, authStorage, STORAGE_KEYS } from "../lib/storage";
+import { apiClient } from "../config/api";
+import API_CONFIG from "../config/api";
 
 // Simulate network delay
 const withDelay = async <T>(data: T, delay?: number): Promise<T> => {
@@ -70,27 +72,38 @@ export const authApi = {
   async register(
     userData: RegisterFormData
   ): Promise<ApiResponse<{ user: User; token: string }>> {
-    await sleep(getRandomDelay());
+    try {
+      const response = await apiClient.post<{
+        user: User;
+        token: string;
+      }>(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
+        email: userData.email,
+        password: userData.password,
+        confirmPassword: userData.confirmPassword,
+      });
 
-    const user: User = {
-      id: generateId("user"),
-      name: userData.name,
-      email: userData.email,
-      role: "CUSTOMER",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+      // Store the token
+      if (response.token) {
+        await authStorage.setTokens(response.token);
+      }
 
-    const token = `fake_token_${generateId()}`;
-    await authStorage.setTokens(token);
-
-    return {
-      success: true,
-      data: {
-        user,
-        token,
-      },
-    };
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      console.error("Register error:", error);
+      return {
+        success: false,
+        data: null as any,
+        message: error instanceof Error ? error.message : "Registration failed",
+        errors: {
+          general: [
+            error instanceof Error ? error.message : "Registration failed",
+          ],
+        },
+      };
+    }
   },
 
   async logout(): Promise<ApiResponse<null>> {

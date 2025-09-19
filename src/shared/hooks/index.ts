@@ -25,7 +25,11 @@ interface AuthStore {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
+  register: (
+    email: string,
+    password: string,
+    confirmPassword: string
+  ) => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -53,13 +57,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 
-  register: async (name, email, password) => {
+  register: async (email, password, confirmPassword) => {
     try {
       const response = await authApi.register({
-        name,
         email,
         password,
-        confirmPassword: password,
+        confirmPassword,
       });
       if (response.success) {
         set({
