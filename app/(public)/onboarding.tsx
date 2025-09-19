@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   Animated,
   Pressable,
+  Easing,
 } from "react-native";
+import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -56,24 +58,54 @@ export default function OnboardingScreen() {
   const scrollX = useRef(new Animated.Value(0)).current;
   const slides = ONBOARDING_SLIDES;
 
-  // Entrance animations
+  // Premium entrance animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
+  const titleAnim = useRef(new Animated.Value(0)).current;
+  const subtitleAnim = useRef(new Animated.Value(0)).current;
+  const imageAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Entrance animation when component mounts
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    // Staggered entrance animations for premium feel
+    const createStaggeredAnimation = () => {
+      return Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.stagger(150, [
+          Animated.spring(slideAnim, {
+            toValue: 0,
+            tension: 80,
+            friction: 8,
+            useNativeDriver: true,
+          }),
+          Animated.spring(imageAnim, {
+            toValue: 1,
+            tension: 60,
+            friction: 8,
+            useNativeDriver: true,
+          }),
+          Animated.spring(titleAnim, {
+            toValue: 1,
+            tension: 70,
+            friction: 9,
+            useNativeDriver: true,
+          }),
+          Animated.spring(subtitleAnim, {
+            toValue: 1,
+            tension: 70,
+            friction: 9,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]);
+    };
+
+    const entranceSequence = createStaggeredAnimation();
+    entranceSequence.start();
   }, []);
 
   const handleScroll = Animated.event(
@@ -82,20 +114,38 @@ export default function OnboardingScreen() {
       useNativeDriver: false,
       listener: (event: any) => {
         const slideSize = event.nativeEvent.layoutMeasurement.width;
-        const currentIndex = event.nativeEvent.contentOffset.x / slideSize;
-        setCurrentIndex(Math.round(currentIndex));
+        const newIndex = Math.round(
+          event.nativeEvent.contentOffset.x / slideSize
+        );
+
+        if (
+          newIndex !== currentIndex &&
+          newIndex >= 0 &&
+          newIndex < slides.length
+        ) {
+          setCurrentIndex(newIndex);
+          // Subtle haptic feedback on slide change
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
       },
     }
   );
 
   const handleNext = () => {
+    // Haptic feedback for premium feel
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
     if (currentIndex < slides.length - 1) {
       const nextIndex = currentIndex + 1;
+
+      // Update state immediately for smooth UX
+      setCurrentIndex(nextIndex);
+
+      // Use ScrollView's native smooth scrolling
       scrollViewRef.current?.scrollTo({
         x: nextIndex * screenWidth,
         animated: true,
       });
-      setCurrentIndex(nextIndex);
     } else {
       // Navigate directly after slides
       handleGetStarted();
@@ -103,29 +153,50 @@ export default function OnboardingScreen() {
   };
 
   const handleSkip = () => {
+    // Haptic feedback
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     handleGetStarted();
   };
 
   const handleGetStarted = () => {
-    // Navigate based on authentication status
-    if (isAuthenticated) {
-      router.replace("/(app)/(tabs)/home");
-    } else {
-      router.replace("/(public)/auth/login");
-    }
+    // Success haptic feedback
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    // Smooth exit animation before navigation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: -30,
+        duration: 300,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Navigate based on authentication status
+      if (isAuthenticated) {
+        router.replace("/(app)/(tabs)/home");
+      } else {
+        router.replace("/(public)/auth/login");
+      }
+    });
   };
 
   const renderDots = () => {
     return (
-      <View className="flex-row items-center justify-center space-x-3">
+      <View className="flex-row items-center justify-center">
         {slides.map((_, index) => {
-          const width = scrollX.interpolate({
+          const scaleX = scrollX.interpolate({
             inputRange: [
               (index - 1) * screenWidth,
               index * screenWidth,
               (index + 1) * screenWidth,
             ],
-            outputRange: [8, 32, 8],
+            outputRange: [1, 4, 1], // Scale from 8px to 32px (32/8 = 4)
             extrapolate: "clamp",
           });
 
@@ -139,12 +210,43 @@ export default function OnboardingScreen() {
             extrapolate: "clamp",
           });
 
+          const scale = scrollX.interpolate({
+            inputRange: [
+              (index - 1) * screenWidth,
+              index * screenWidth,
+              (index + 1) * screenWidth,
+            ],
+            outputRange: [0.8, 1.2, 0.8],
+            extrapolate: "clamp",
+          });
+
           return (
-            <Animated.View
+            <View
               key={index}
-              className="h-1 rounded-full bg-primary-500"
-              style={{ width, opacity }}
-            />
+              className="items-center justify-center"
+              style={{
+                width: 40, // Fixed container width to prevent overlap
+                height: 8,
+                marginHorizontal: 2, // Extra spacing between containers
+              }}
+            >
+              <Animated.View
+                className="h-1 rounded-full bg-primary-500"
+                style={{
+                  width: 8, // Base dot width
+                  opacity,
+                  transform: [{ scaleX }, { scale }],
+                  shadowColor: "#22C55E",
+                  shadowOffset: {
+                    width: 0,
+                    height: 1,
+                  },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 2,
+                  elevation: 2,
+                }}
+              />
+            </View>
           );
         })}
       </View>
@@ -209,11 +311,35 @@ export default function OnboardingScreen() {
           className="flex-1 items-center justify-center space-y-12"
           style={{
             opacity: contentOpacity,
-            transform: [{ scale: contentScale }],
+            transform: [
+              { scale: contentScale },
+              {
+                translateY:
+                  index === currentIndex
+                    ? Animated.multiply(slideAnim, 0.5)
+                    : 0,
+              },
+            ],
           }}
         >
-          {/* Image Container with Parallax */}
-          <View className="w-72 h-72 rounded-3xl overflow-hidden bg-white shadow-2xl">
+          {/* Image Container with Premium Parallax */}
+          <Animated.View
+            className="w-72 h-72 rounded-3xl overflow-hidden bg-white shadow-2xl"
+            style={{
+              opacity: index === currentIndex ? imageAnim : contentOpacity,
+              transform: [
+                {
+                  scale:
+                    index === currentIndex
+                      ? Animated.multiply(imageAnim, 0.1).interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.9, 1],
+                        })
+                      : contentScale,
+                },
+              ],
+            }}
+          >
             <Animated.View
               style={{
                 transform: [
@@ -242,23 +368,55 @@ export default function OnboardingScreen() {
               colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.1)"]}
               className="absolute inset-0"
             />
-          </View>
+          </Animated.View>
 
-          {/* Content */}
+          {/* Content with Staggered Animations */}
           <View className="space-y-6 items-center max-w-sm">
-            <Text className="text-3xl font-light text-neutral-900 text-center tracking-tight">
+            <Animated.Text
+              className="text-3xl font-light text-neutral-900 text-center tracking-tight"
+              style={{
+                opacity: index === currentIndex ? titleAnim : contentOpacity,
+                transform: [
+                  {
+                    translateY:
+                      index === currentIndex
+                        ? titleAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [20, 0],
+                          })
+                        : 0,
+                  },
+                ],
+              }}
+            >
               {slide.title}
-            </Text>
-            <Text className="text-lg text-neutral-600 text-center leading-8 font-light">
+            </Animated.Text>
+            <Animated.Text
+              className="text-lg text-neutral-600 text-center leading-8 font-light"
+              style={{
+                opacity: index === currentIndex ? subtitleAnim : contentOpacity,
+                transform: [
+                  {
+                    translateY:
+                      index === currentIndex
+                        ? subtitleAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [15, 0],
+                          })
+                        : 0,
+                  },
+                ],
+              }}
+            >
               {slide.subtitle}
-            </Text>
+            </Animated.Text>
           </View>
         </Animated.View>
       </View>
     );
   };
 
-  // Premium button component with micro-animations
+  // Premium button component with premium micro-animations
   const ActionButton = ({
     title,
     onPress,
@@ -272,62 +430,144 @@ export default function OnboardingScreen() {
   }) => {
     const [isPressed, setIsPressed] = useState(false);
     const scaleAnim = useRef(new Animated.Value(1)).current;
+    const shadowAnim = useRef(new Animated.Value(1)).current;
+    const opacityAnim = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
       setIsPressed(true);
-      Animated.spring(scaleAnim, {
-        toValue: 0.96,
-        tension: 200,
-        friction: 7,
-        useNativeDriver: true,
-      }).start();
+      // Gentle haptic feedback
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 0.95,
+          tension: 300,
+          friction: 10,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shadowAnim, {
+          toValue: 0.4,
+          duration: 150,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0.8,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]).start();
     };
 
     const handlePressOut = () => {
       setIsPressed(false);
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 200,
-        friction: 7,
-        useNativeDriver: true,
-      }).start();
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 300,
+          friction: 10,
+          useNativeDriver: true,
+        }),
+        Animated.spring(shadowAnim, {
+          toValue: 1,
+          tension: 200,
+          friction: 8,
+          useNativeDriver: false,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 200,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    };
+
+    const handlePress = () => {
+      // Success haptic for primary, light for secondary
+      if (variant === "primary") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+      onPress();
     };
 
     const isPrimary = variant === "primary";
 
     return (
-      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-        <Pressable
-          onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          className={`flex-row items-center justify-center rounded-2xl py-4 px-8 ${
-            isPrimary ? "bg-primary-500" : "bg-neutral-100"
-          }`}
+      <Animated.View
+        style={{
+          transform: [{ scale: scaleAnim }],
+          opacity: opacityAnim,
+        }}
+      >
+        <Animated.View
           style={{
             shadowColor: isPrimary ? "#00623A" : "#000",
-            shadowOffset: { width: 0, height: isPressed ? 2 : 6 },
-            shadowOpacity: isPressed ? 0.1 : isPrimary ? 0.3 : 0.1,
-            shadowRadius: isPressed ? 4 : 12,
-            elevation: isPressed ? 2 : 8,
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: shadowAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.1, isPrimary ? 0.3 : 0.15],
+            }),
+            shadowRadius: shadowAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [4, 12],
+            }),
+            elevation: shadowAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [2, 8],
+            }),
           }}
         >
-          <Text
-            className={`text-lg font-medium tracking-wide ${
-              isPrimary ? "text-white" : "text-neutral-600"
+          <Pressable
+            onPress={handlePress}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            className={`flex-row items-center justify-center rounded-2xl py-4 px-8 ${
+              isPrimary ? "bg-primary-500" : "bg-neutral-100"
             }`}
           >
-            {title}
-          </Text>
-          {icon && (
-            <Ionicons
-              name={icon}
-              size={20}
-              color={isPrimary ? "white" : "#666"}
-              style={{ marginLeft: 8 }}
-            />
-          )}
-        </Pressable>
+            <Animated.Text
+              className={`text-lg font-medium tracking-wide ${
+                isPrimary ? "text-white" : "text-neutral-600"
+              }`}
+              style={{
+                transform: [
+                  {
+                    scale: scaleAnim.interpolate({
+                      inputRange: [0.95, 1],
+                      outputRange: [0.98, 1],
+                      extrapolate: "clamp",
+                    }),
+                  },
+                ],
+              }}
+            >
+              {title}
+            </Animated.Text>
+            {icon && (
+              <Animated.View
+                style={{
+                  marginLeft: 8,
+                  transform: [
+                    {
+                      translateX: scaleAnim.interpolate({
+                        inputRange: [0.95, 1],
+                        outputRange: [-2, 0],
+                        extrapolate: "clamp",
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <Ionicons
+                  name={icon}
+                  size={20}
+                  color={isPrimary ? "white" : "#666"}
+                />
+              </Animated.View>
+            )}
+          </Pressable>
+        </Animated.View>
       </Animated.View>
     );
   };
@@ -362,6 +602,10 @@ export default function OnboardingScreen() {
           scrollEventThrottle={16}
           className="flex-1"
           decelerationRate="fast"
+          bounces={false}
+          overScrollMode="never"
+          removeClippedSubviews={true}
+          keyboardShouldPersistTaps="handled"
         >
           {slides.map(renderSlide)}
         </ScrollView>
@@ -385,9 +629,7 @@ export default function OnboardingScreen() {
             onPress={handleNext}
             variant="primary"
             icon={
-              currentIndex === slides.length - 1
-                ? "rocket-outline"
-                : "chevron-forward"
+              currentIndex === slides.length - 1 ? undefined : "chevron-forward"
             }
           />
 

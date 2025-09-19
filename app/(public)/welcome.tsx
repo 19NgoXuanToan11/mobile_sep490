@@ -1,12 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  Animated,
-  Dimensions,
-  TouchableOpacity,
-  Pressable,
-} from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, Text, Animated, Dimensions } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -162,92 +155,14 @@ const WelcomeText = () => {
         transform: [{ translateY: slideAnim }],
       }}
       className="items-center space-y-4"
-    >
-      <Text className="text-4xl font-light text-neutral-900 text-center">
-        Welcome
-      </Text>
-      <Text className="text-lg text-neutral-600 text-center max-w-xs leading-7">
-        Farm fresh, delivered with care
-      </Text>
-    </Animated.View>
-  );
-};
-
-// Continue button component with enhanced interactions
-const ContinueButton = () => {
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const [isPressed, setIsPressed] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }).start();
-    }, 1200);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handlePressIn = () => {
-    setIsPressed(true);
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
-      tension: 150,
-      friction: 4,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    setIsPressed(false);
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      tension: 150,
-      friction: 4,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePress = () => {
-    // Add a slight delay for the press animation to complete
-    setTimeout(() => {
-      router.replace("/(public)/onboarding");
-    }, 100);
-  };
-
-  return (
-    <Animated.View
-      style={{
-        transform: [{ scale: scaleAnim }],
-      }}
-    >
-      <Pressable
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        className="bg-primary-500 rounded-full px-10 py-4"
-        style={{
-          shadowColor: "#00623A",
-          shadowOffset: { width: 0, height: isPressed ? 2 : 6 },
-          shadowOpacity: isPressed ? 0.2 : 0.4,
-          shadowRadius: isPressed ? 4 : 12,
-          elevation: isPressed ? 4 : 10,
-        }}
-      >
-        <Text className="text-white text-lg font-medium tracking-wide">
-          Continue
-        </Text>
-      </Pressable>
-    </Animated.View>
+    ></Animated.View>
   );
 };
 
 export default function WelcomeScreen() {
   const logoScale = useRef(new Animated.Value(0.8)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
+  const screenFadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     // Logo entrance animation
@@ -264,50 +179,63 @@ export default function WelcomeScreen() {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Auto-navigation after 2 seconds with smooth fade-out
+    const navigationTimer = setTimeout(() => {
+      // Start fade-out animation
+      Animated.timing(screenFadeAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }).start(() => {
+        // Navigate to onboarding after fade-out completes
+        router.replace("/(public)/onboarding");
+      });
+    }, 2000);
+
+    return () => clearTimeout(navigationTimer);
   }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Subtle gradient background */}
-      <LinearGradient
-        colors={["#f0f9f5", "#ffffff", "#ffffff"]}
-        className="absolute inset-0"
-      />
+      <Animated.View
+        className="flex-1"
+        style={{
+          opacity: screenFadeAnim,
+        }}
+      >
+        {/* Subtle gradient background */}
+        <LinearGradient
+          colors={["#f0f9f5", "#ffffff", "#ffffff"]}
+          className="absolute inset-0"
+        />
 
-      {/* Floating particles */}
-      <FloatingParticles />
+        {/* Floating particles */}
+        <FloatingParticles />
 
-      <View className="flex-1 items-center justify-center px-8">
-        {/* Logo section */}
-        <Animated.View
-          style={{
-            opacity: logoOpacity,
-            transform: [{ scale: logoScale }],
-          }}
-          className="mb-16"
-        >
-          <Logo size={120} />
-        </Animated.View>
-
-        {/* Welcome text */}
-        <View className="mb-20">
-          <WelcomeText />
+        <View className="flex-1 items-center justify-center px-8">
+          {/* Logo section - perfectly centered */}
+          <Animated.View
+            style={{
+              opacity: logoOpacity,
+              transform: [{ scale: logoScale }],
+            }}
+          >
+            <Logo size={120} />
+          </Animated.View>
         </View>
 
-        {/* Continue button */}
-        <ContinueButton />
-      </View>
-
-      {/* Subtle decorative elements */}
-      <View className="absolute top-20 right-8 opacity-5">
-        <Ionicons name="leaf-outline" size={24} color="#00623A" />
-      </View>
-      <View className="absolute bottom-32 left-8 opacity-5">
-        <Ionicons name="leaf-outline" size={16} color="#00623A" />
-      </View>
-      <View className="absolute top-40 left-12 opacity-5">
-        <Ionicons name="leaf-outline" size={12} color="#00623A" />
-      </View>
+        {/* Subtle decorative elements */}
+        <View className="absolute top-20 right-8 opacity-5">
+          <Ionicons name="leaf-outline" size={24} color="#00623A" />
+        </View>
+        <View className="absolute bottom-32 left-8 opacity-5">
+          <Ionicons name="leaf-outline" size={16} color="#00623A" />
+        </View>
+        <View className="absolute top-40 left-12 opacity-5">
+          <Ionicons name="leaf-outline" size={12} color="#00623A" />
+        </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }

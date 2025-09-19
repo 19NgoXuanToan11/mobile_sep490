@@ -442,7 +442,7 @@ export default function ProductDetailsScreen() {
       await addItem(product.id, quantity);
       toast.success(
         t("product.addedToCart"),
-        `${quantity}x ${product.name} added to cart`
+        `${quantity}x ${product.name} đã được thêm vào giỏ hàng`
       );
     } catch (error) {
       toast.error("Lỗi", "Thêm sản phẩm vào giỏ thất bại");

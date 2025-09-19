@@ -76,9 +76,9 @@ export default function CartScreen() {
   const finalTotal = cart.total - discountAmount;
 
   const renderCartItem = ({ item }: { item: CartItem }) => (
-    <Card className="mx-4 mb-4" padding="none" variant="elevated">
-      <View className="p-4 space-y-4">
-        {/* Top Row: Badge + Total Price */}
+    <Card className="mx-4 mb-3" padding="none" variant="elevated">
+      {/* Header Section - Badges and Total Price */}
+      <View className="px-5 pt-5 pb-3 border-b border-neutral-100">
         <View className="flex-row items-center justify-between">
           <View className="flex-row space-x-2">
             {item.product.tags?.includes("organic") && (
@@ -88,112 +88,102 @@ export default function CartScreen() {
               <Badge text="VietGAP" variant="secondary" size="sm" />
             )}
           </View>
-
-          <Text className="font-bold text-primary-600 text-lg">
+          <Text className="font-bold text-primary-600 text-xl">
             {formatCurrency(item.subtotal)}
           </Text>
         </View>
+      </View>
 
-        {/* Main Content Row */}
+      {/* Main Product Section */}
+      <View className="px-5 py-4">
         <View className="flex-row space-x-4">
-          {/* Product Image with Quantity Badge */}
+          {/* Product Image */}
           <View className="relative">
             <Image
               source={{ uri: item.product.images[0] }}
-              style={{ width: 80, height: 80 }}
-              className="rounded-xl"
+              style={{ width: 90, height: 90 }}
+              className="rounded-2xl bg-neutral-100"
               contentFit="cover"
             />
-            <View className="absolute -top-2 -right-2 bg-primary-500 rounded-full w-6 h-6 items-center justify-center">
+            {/* Quantity Badge */}
+            <View className="absolute -top-2 -right-2 bg-primary-500 rounded-full w-7 h-7 items-center justify-center shadow-sm">
               <Text className="text-white text-xs font-bold">
                 {item.quantity}
               </Text>
             </View>
           </View>
 
-          {/* Product Info */}
-          <View className="flex-1 space-y-3">
-            <View className="space-y-1">
+          {/* Product Details */}
+          <View className="flex-1 justify-between">
+            {/* Product Name and Price */}
+            <View className="space-y-2">
               <Text
-                className="font-semibold text-neutral-900 text-base leading-5"
+                className="font-semibold text-neutral-900 text-lg leading-6"
                 numberOfLines={2}
               >
                 {item.product.name}
               </Text>
 
-              <View className="flex-row items-center space-x-2 flex-wrap">
-                <Text className="text-sm text-neutral-600">
-                  {formatCurrency(item.price)}
-                  {item.product.unit && !item.product.unit.startsWith("/")
-                    ? ` / ${item.product.unit}`
-                    : ""}
-                </Text>
-                {item.product.origin && (
-                  <>
-                    <Text className="text-neutral-400">•</Text>
-                    <View className="flex-row items-center space-x-1">
-                      <Ionicons
-                        name="location-outline"
-                        size={12}
-                        color="#6b7280"
-                      />
-                      <Text
-                        className="text-xs text-neutral-600"
-                        numberOfLines={1}
-                      >
-                        {item.product.origin}
-                      </Text>
-                    </View>
-                  </>
-                )}
-              </View>
-            </View>
-
-            {/* Quantity Controls + Stock */}
-            <View className="flex-row items-center justify-between">
-              <QuantityStepper
-                value={item.quantity}
-                onValueChange={(quantity) => updateQuantity(item.id, quantity)}
-                min={1}
-                max={item.product.stock}
-                size="sm"
-              />
-
-              <Text className="text-xs text-neutral-500">
-                Còn {item.product.stock} {item.product.unit}
+              <Text className="font-medium text-neutral-700 text-base">
+                {formatCurrency(item.price)}
+                {item.product.unit && !item.product.unit.startsWith("/")
+                  ? ` / ${item.product.unit}`
+                  : ""}
               </Text>
             </View>
 
-            {/* Action Buttons */}
-            <View className="flex-row items-center space-x-4">
-              <TouchableOpacity
-                onPress={() => handleSaveForLater(item.id)}
-                className="flex-row items-center space-x-1"
-                activeOpacity={0.7}
-              >
-                <Ionicons name="heart-outline" size={16} color="#6b7280" />
-                <Text className="text-sm text-neutral-600">Lưu sau</Text>
-              </TouchableOpacity>
+            {/* Location and Stock Info */}
+            <View className="space-y-2 mt-2">
+              {item.product.origin && (
+                <View className="flex-row items-center space-x-1">
+                  <Ionicons name="location-outline" size={14} color="#6b7280" />
+                  <Text className="text-sm text-neutral-600" numberOfLines={1}>
+                    {item.product.origin}
+                  </Text>
+                </View>
+              )}
 
-              <TouchableOpacity
-                onPress={() => handleRemoveItem(item.id, item.product.name)}
-                className="flex-row items-center space-x-1"
-                activeOpacity={0.7}
-              >
-                <Ionicons name="trash-outline" size={16} color="#ef4444" />
-                <Text className="text-sm text-red-500">Xóa</Text>
-              </TouchableOpacity>
+              <Text className="text-sm text-neutral-500">
+                Còn {item.product.stock} {item.product.unit}
+              </Text>
             </View>
           </View>
         </View>
+      </View>
 
-        {/* Delivery Info */}
-        <View className="bg-primary-50 p-3 rounded-xl">
-          <View className="flex-row items-center space-x-2">
-            <Ionicons name="time-outline" size={16} color="#00623A" />
-            <Text className="text-sm text-primary-700 font-medium">
-              Giao trong 2-4 giờ (nông sản tươi)
-            </Text>
+      {/* Controls Section */}
+      <View className="px-5 py-4 border-t border-neutral-100 bg-neutral-50/30">
+        <View className="flex-row items-center justify-between">
+          {/* Quantity Controls */}
+          <QuantityStepper
+            value={item.quantity}
+            onValueChange={(quantity) => updateQuantity(item.id, quantity)}
+            min={1}
+            max={item.product.stock}
+            size="md"
+          />
+
+          {/* Action Buttons */}
+          <View className="flex-row items-center space-x-3">
+            <TouchableOpacity
+              onPress={() => handleSaveForLater(item.id)}
+              className="flex-row items-center space-x-1.5 px-3 py-2 rounded-full bg-white/80"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="heart-outline" size={16} color="#6b7280" />
+              <Text className="text-sm text-neutral-600 font-medium">
+                Lưu sau
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleRemoveItem(item.id, item.product.name)}
+              className="flex-row items-center space-x-1.5 px-3 py-2 rounded-full bg-red-50"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="trash-outline" size={16} color="#ef4444" />
+              <Text className="text-sm text-red-500 font-medium">Xóa</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -202,14 +192,14 @@ export default function CartScreen() {
 
   if (cart.items.length === 0) {
     return (
-      <View className="flex-1 bg-neutral-50">
+      <SafeAreaView className="flex-1 bg-neutral-50">
+        r
         <StatusBar
           barStyle="dark-content"
           backgroundColor="transparent"
           translucent
         />
-
-        <View className="flex-1 justify-center pt-12">
+        <View className="flex-1 justify-center">
           <EmptyState
             icon="basket-outline"
             title="Giỏ hàng trống"
@@ -218,12 +208,12 @@ export default function CartScreen() {
             onActionPress={() => router.push("/(app)/(tabs)/catalog")}
           />
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View className="flex-1 bg-neutral-50">
+    <SafeAreaView className="flex-1 bg-neutral-50">
       <StatusBar
         barStyle="dark-content"
         backgroundColor="transparent"
@@ -232,14 +222,15 @@ export default function CartScreen() {
 
       {/* Quick Add Items - Edge to Edge */}
       {cart.items.length > 0 && (
-        <View className="bg-white border-b border-neutral-100 pt-12">
-          <View className="px-4 pb-3 flex-row items-center justify-between">
+        <View className="bg-white border-b border-neutral-100">
+          <View className="px-4 py-3 flex-row items-center justify-between">
             <Text className="text-lg font-bold text-neutral-900">
               {cart.itemCount} món trong giỏ
             </Text>
             <TouchableOpacity
               onPress={() => router.push("/(app)/(tabs)/catalog")}
               className="flex-row items-center space-x-1"
+              activeOpacity={0.7}
             >
               <Ionicons name="add-circle-outline" size={20} color="#00623A" />
               <Text className="text-primary-600 font-medium">Thêm món</Text>
@@ -253,11 +244,11 @@ export default function CartScreen() {
         renderItem={renderCartItem}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingVertical: 16, paddingBottom: 120 }}
+        contentContainerStyle={{ paddingVertical: 20, paddingBottom: 240 }}
         ListFooterComponent={() => (
-          <View className="px-4 space-y-4">
+          <View className="px-4 space-y-4 pb-8">
             {/* Promo Code Section */}
-            <Card variant="elevated" padding="lg">
+            <Card variant="elevated" padding="lg" className="mb-4">
               <View className="space-y-4">
                 <View className="flex-row items-center space-x-2">
                   <Ionicons name="pricetag-outline" size={20} color="#00623A" />
@@ -325,38 +316,18 @@ export default function CartScreen() {
                 )}
               </View>
             </Card>
-
-            {/* Delivery Info */}
-            <Card variant="fresh" padding="lg">
-              <View className="flex-row items-center space-x-3">
-                <View className="w-12 h-12 bg-primary-500 rounded-xl items-center justify-center">
-                  <Ionicons name="bicycle" size={24} color="white" />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-semibold text-neutral-900">
-                    Giao hàng tận nơi
-                  </Text>
-                  <Text className="text-sm text-neutral-600">
-                    Miễn phí giao hàng cho đơn từ 200.000đ
-                  </Text>
-                </View>
-                <View className="items-end">
-                  <Text className="text-lg font-bold text-primary-600">
-                    2-4h
-                  </Text>
-                  <Text className="text-xs text-neutral-600">dự kiến</Text>
-                </View>
-              </View>
-            </Card>
           </View>
         )}
       />
 
       {/* Bottom Cart Summary */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-200">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-200"
+        style={{ paddingBottom: 90 }}
+      >
         <LinearGradient
-          colors={["rgba(255,255,255,0.95)", "rgba(255,255,255,1)"]}
-          className="px-4 py-4"
+          colors={["rgba(255,255,255,0.96)", "rgba(255,255,255,1)"]}
+          className="px-4 py-3"
         >
           <View className="space-y-4">
             {/* Price Breakdown */}
@@ -383,13 +354,13 @@ export default function CartScreen() {
 
               <View className="flex-row justify-between">
                 <Text className="text-neutral-600">Phí giao hàng</Text>
-                <Text className="font-medium">
-                  {cart.shippingFee === 0 ? (
-                    <Text className="text-success-600">Miễn phí</Text>
-                  ) : (
-                    formatCurrency(cart.shippingFee)
-                  )}
-                </Text>
+                {cart.shippingFee === 0 ? (
+                  <Text className="font-medium text-success-600">Miễn phí</Text>
+                ) : (
+                  <Text className="font-medium">
+                    {formatCurrency(cart.shippingFee)}
+                  </Text>
+                )}
               </View>
 
               <View className="flex-row justify-between pt-2 border-t border-neutral-200">
@@ -403,7 +374,7 @@ export default function CartScreen() {
             {/* Checkout Button */}
             <TouchableOpacity
               onPress={() => router.push("/(app)/checkout")}
-              className="bg-primary-500 rounded-xl py-4 items-center justify-center"
+              className="bg-primary-500 rounded-xl py-4 items-center justify-center mb-1"
               style={{
                 shadowColor: "#00623A",
                 shadowOffset: { width: 0, height: 4 },
@@ -415,14 +386,13 @@ export default function CartScreen() {
             >
               <View className="flex-row items-center space-x-2">
                 <Text className="text-white font-semibold text-lg">
-                  Đặt hàng • {formatCurrency(finalTotal)}
+                  Đặt hàng
                 </Text>
-                <Ionicons name="arrow-forward" size={20} color="white" />
               </View>
             </TouchableOpacity>
           </View>
         </LinearGradient>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

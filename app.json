@@ -32,7 +32,7 @@
       [
         "expo-secure-store",
         {
-          "faceIDPermission": "Allow $(PRODUCT_NAME) to access Face ID biometric data."
+          "faceIDPermission": "Cho phép $(PRODUCT_NAME) truy cập dữ liệu sinh trắc học Face ID."
         }
       ]
     ],
