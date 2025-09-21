@@ -153,7 +153,6 @@ export default function EditProfileScreen() {
           <Text className="text-lg font-semibold text-neutral-900">
             Chỉnh sửa thông tin
           </Text>
-
           <View className="w-8" />
         </View>
       </SafeAreaView>
@@ -245,6 +244,7 @@ export default function EditProfileScreen() {
               value={formData.phone}
               onChangeText={(text) => updateField("phone", text)}
               error={errors.phone}
+              required
               leftIcon="call-outline"
               keyboardType="phone-pad"
               autoComplete="tel"

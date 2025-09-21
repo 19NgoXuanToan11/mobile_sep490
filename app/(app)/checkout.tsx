@@ -43,7 +43,7 @@ const AddressSelector: React.FC<{
 }> = ({ addresses, selectedId, onSelect }) => {
   return (
     <Card variant="elevated" padding="lg">
-      <View className="space-y-4">
+      <View className="space-y-5">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center space-x-2">
             <Ionicons name="location-outline" size={20} color="#00623A" />
@@ -51,7 +51,7 @@ const AddressSelector: React.FC<{
               Địa Chỉ Giao Hàng
             </Text>
           </View>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/(app)/address/add")}>
             <Text className="text-primary-600 font-medium">Thêm mới</Text>
           </TouchableOpacity>
         </View>
@@ -174,7 +174,7 @@ const PaymentMethodSelector: React.FC<{
 
   return (
     <Card variant="elevated" padding="lg">
-      <View className="space-y-4">
+      <View className="space-y-5">
         <View className="flex-row items-center space-x-2">
           <Ionicons name="wallet-outline" size={20} color="#00623A" />
           <Text className="text-lg font-semibold text-neutral-900">
@@ -352,7 +352,7 @@ export default function CheckoutScreen() {
   if (cart.items.length === 0) {
     return (
       <SafeAreaView className="flex-1 bg-neutral-50 items-center justify-center">
-        <View className="items-center space-y-4 px-8">
+        <View className="items-center space-y-6 px-8">
           <View className="w-24 h-24 bg-neutral-200 rounded-full items-center justify-center">
             <Ionicons name="basket-outline" size={48} color="#9ca3af" />
           </View>
@@ -375,19 +375,7 @@ export default function CheckoutScreen() {
   return (
     <SafeAreaView className="flex-1 bg-neutral-50">
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
-
-      {/* Header */}
-      <View className="bg-white shadow-sm border-b border-neutral-100">
-        <View className="px-4 py-3 flex-row items-center space-x-4">
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={24} color="#374151" />
-          </TouchableOpacity>
-          <Text className="text-xl font-bold text-neutral-900 flex-1">
-            Thanh Toán
-          </Text>
-        </View>
-      </View>
-
+      
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -396,253 +384,118 @@ export default function CheckoutScreen() {
           className="flex-1"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{ paddingBottom: 90 }}
         >
-          <View className="p-4 space-y-6">
+          <View className="p-4">
             {/* Order Summary */}
-            <Card variant="elevated" padding="lg">
-              <View className="space-y-4">
-                <View className="flex-row items-center space-x-2">
-                  <Ionicons name="receipt-outline" size={20} color="#00623A" />
-                  <Text className="text-lg font-semibold text-neutral-900">
-                    Đơn Hàng ({cart.itemCount} món)
-                  </Text>
-                </View>
+            <View style={{ marginBottom: 10 }}>
+              <Card variant="elevated" padding="lg">
+                <View className="space-y-5">
+                  <View className="flex-row items-center space-x-2">
+                    <Ionicons
+                      name="receipt-outline"
+                      size={20}
+                      color="#00623A"
+                    />
+                    <Text className="text-lg font-semibold text-neutral-900">
+                      Đơn Hàng
+                    </Text>
+                  </View>
 
-                <View className="space-y-4">
-                  {cart.items.map((item) => (
-                    <View
-                      key={item.id}
-                      className="flex-row space-x-3 items-start"
-                    >
-                      <Image
-                        source={{ uri: item.product.images[0] }}
-                        style={{ width: 50, height: 50 }}
-                        className="rounded-lg"
-                      />
+                  <View className="space-y-5">
+                    {cart.items.map((item) => (
+                      <View
+                        key={item.id}
+                        className="flex-row space-x-3 items-start"
+                      >
+                        <Image
+                          source={{ uri: item.product.images[0] }}
+                          style={{ width: 50, height: 50 }}
+                          className="rounded-lg"
+                        />
 
-                      <View className="flex-1 space-y-1 pr-2">
-                        <Text
-                          className="font-semibold text-neutral-900 text-sm leading-5"
-                          numberOfLines={2}
-                        >
-                          {item.product.name}
-                        </Text>
-                        <View className="flex-row items-center space-x-2 flex-wrap">
-                          <Text className="text-sm text-neutral-600">
-                            {item.quantity} × {formatCurrency(item.price)}
+                        <View className="flex-1 space-y-1 pr-2">
+                          <Text
+                            className="font-semibold text-neutral-900 text-sm leading-5"
+                            numberOfLines={2}
+                          >
+                            {item.product.name}
                           </Text>
-                          {item.product.tags?.includes("organic") && (
-                            <Badge text="Hữu cơ" variant="success" size="sm" />
+                          <View className="flex-row items-center space-x-2 flex-wrap">
+                            <Text className="text-sm text-neutral-600">
+                              {item.quantity} × {formatCurrency(item.price)}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View className="items-end">
+                          <Text className="font-bold text-neutral-900 text-base">
+                            {formatCurrency(item.subtotal)}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+
+                    <View className="border-t border-neutral-200 pt-5 space-y-4">
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-neutral-600 text-base">
+                          Tạm tính
+                        </Text>
+                        <Text className="font-medium text-neutral-900 text-base">
+                          {formatCurrency(cart.subtotal)}
+                        </Text>
+                      </View>
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-neutral-600 text-base">
+                          Phí giao hàng
+                        </Text>
+                        <View className="items-end">
+                          {cart.shippingFee === 0 ? (
+                            <Text className="text-success-600 font-medium text-base">
+                              Miễn phí
+                            </Text>
+                          ) : (
+                            <Text className="font-medium text-neutral-900 text-base">
+                              {formatCurrency(cart.shippingFee)}
+                            </Text>
                           )}
                         </View>
                       </View>
-
-                      <View className="items-end">
-                        <Text className="font-bold text-neutral-900 text-base">
-                          {formatCurrency(item.subtotal)}
+                      <View className="flex-row justify-between items-center pt-3 border-t border-neutral-200">
+                        <Text className="text-lg font-semibold text-neutral-900">
+                          Tổng cộng
+                        </Text>
+                        <Text className="text-xl font-bold text-primary-600">
+                          {formatCurrency(cart.total)}
                         </Text>
                       </View>
-                    </View>
-                  ))}
-
-                  <View className="border-t border-neutral-200 pt-4 space-y-3">
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-neutral-600 text-base">
-                        Tạm tính
-                      </Text>
-                      <Text className="font-medium text-neutral-900 text-base">
-                        {formatCurrency(cart.subtotal)}
-                      </Text>
-                    </View>
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-neutral-600 text-base">
-                        Phí giao hàng
-                      </Text>
-                      <View className="items-end">
-                        {cart.shippingFee === 0 ? (
-                          <Text className="text-success-600 font-medium text-base">
-                            Miễn phí
-                          </Text>
-                        ) : (
-                          <Text className="font-medium text-neutral-900 text-base">
-                            {formatCurrency(cart.shippingFee)}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                    <View className="flex-row justify-between items-center pt-3 border-t border-neutral-200">
-                      <Text className="text-lg font-semibold text-neutral-900">
-                        Tổng cộng
-                      </Text>
-                      <Text className="text-xl font-bold text-primary-600">
-                        {formatCurrency(cart.total)}
-                      </Text>
                     </View>
                   </View>
                 </View>
-              </View>
-            </Card>
-
-            {/* Delivery Time Selection */}
-            <Card variant="elevated" padding="lg">
-              <View className="space-y-4">
-                <View className="flex-row items-center space-x-2">
-                  <Ionicons name="time-outline" size={20} color="#00623A" />
-                  <Text className="text-lg font-semibold text-neutral-900">
-                    Thời Gian Giao Hàng
-                  </Text>
-                </View>
-
-                <View className="space-y-3">
-                  {deliveryTimeOptions.map((option) => (
-                    <TouchableOpacity
-                      key={option.id}
-                      onPress={() => setSelectedDeliveryTime(option.id)}
-                      className={`border-2 rounded-xl p-4 ${
-                        selectedDeliveryTime === option.id
-                          ? "border-primary-500 bg-primary-50"
-                          : "border-neutral-200 bg-white"
-                      }`}
-                      style={{
-                        shadowColor:
-                          selectedDeliveryTime === option.id
-                            ? "#00623A"
-                            : "#000",
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity:
-                          selectedDeliveryTime === option.id ? 0.15 : 0.05,
-                        shadowRadius: 4,
-                        elevation: selectedDeliveryTime === option.id ? 4 : 2,
-                      }}
-                    >
-                      <View className="flex-row items-center justify-between">
-                        <View className="flex-1 pr-3">
-                          <Text className="font-semibold text-neutral-900 text-base">
-                            {option.label}
-                          </Text>
-                          <Text className="text-sm text-neutral-600 mt-0.5">
-                            Dự kiến: {option.time}
-                          </Text>
-                        </View>
-
-                        <View className="flex-row items-center space-x-2">
-                          {option.price === 0 && (
-                            <Badge
-                              text="Miễn phí"
-                              variant="success"
-                              size="sm"
-                            />
-                          )}
-                          <Ionicons
-                            name={
-                              selectedDeliveryTime === option.id
-                                ? "radio-button-on"
-                                : "radio-button-off"
-                            }
-                            size={24}
-                            color={
-                              selectedDeliveryTime === option.id
-                                ? "#00623A"
-                                : "#d1d5db"
-                            }
-                          />
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            </Card>
+              </Card>
+            </View>
 
             {/* Address Selection */}
             {addresses.length > 0 && (
-              <AddressSelector
-                addresses={addresses}
-                selectedId={watchedAddressId}
-                onSelect={(id) => setValue("addressId", id)}
-              />
+              <View style={{ marginBottom: 10 }}>
+                <AddressSelector
+                  addresses={addresses}
+                  selectedId={watchedAddressId}
+                  onSelect={(id) => setValue("addressId", id)}
+                />
+              </View>
             )}
 
             {/* Payment Method Selection */}
             {paymentMethods.length > 0 && (
-              <PaymentMethodSelector
-                paymentMethods={paymentMethods}
-                selectedId={watchedPaymentMethodId}
-                onSelect={(id) => setValue("paymentMethodId", id)}
-              />
-            )}
-
-            {/* Order Notes */}
-            <Card variant="elevated" padding="lg">
-              <View className="space-y-4">
-                <View className="flex-row items-center space-x-2">
-                  <Ionicons
-                    name="chatbubble-outline"
-                    size={20}
-                    color="#00623A"
-                  />
-                  <Text className="text-lg font-semibold text-neutral-900">
-                    Ghi Chú Đơn Hàng
-                  </Text>
-                </View>
-
-                <Controller
-                  control={control}
-                  name="notes"
-                  render={({ field: { onChange, value } }) => {
-                    const [isFocused, setIsFocused] = useState(false);
-
-                    return (
-                      <View
-                        className={`border-2 rounded-xl p-4 bg-white ${
-                          isFocused
-                            ? "border-primary-500"
-                            : "border-neutral-200"
-                        }`}
-                        style={{
-                          shadowColor: isFocused ? "#00623A" : "#000",
-                          shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: isFocused ? 0.15 : 0.05,
-                          shadowRadius: 4,
-                          elevation: isFocused ? 4 : 2,
-                        }}
-                      >
-                        <TextInput
-                          placeholder="Ghi chú cho người giao hàng (không bắt buộc)"
-                          placeholderTextColor="#9CA3AF"
-                          value={value || ""}
-                          onChangeText={onChange}
-                          multiline
-                          numberOfLines={4}
-                          textAlignVertical="top"
-                          className="text-neutral-900 text-base leading-6 min-h-[100px]"
-                          style={{
-                            fontSize: 16,
-                            lineHeight: 24,
-                          }}
-                          onFocus={() => setIsFocused(true)}
-                          onBlur={() => setIsFocused(false)}
-                        />
-                      </View>
-                    );
-                  }}
+              <View style={{ marginBottom: 10 }}>
+                <PaymentMethodSelector
+                  paymentMethods={paymentMethods}
+                  selectedId={watchedPaymentMethodId}
+                  onSelect={(id) => setValue("paymentMethodId", id)}
                 />
-
-                <View className="flex-row items-start mt-2">
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={16}
-                    color="#6B7280"
-                    className="mt-0.5"
-                  />
-                  <Text className="text-sm text-neutral-500 flex-1 leading-5 ml-2">
-                    Bạn có thể ghi chú về địa chỉ cụ thể, thời gian mong muốn,
-                    hoặc yêu cầu đặc biệt
-                  </Text>
-                </View>
               </View>
-            </Card>
+            )}
           </View>
         </ScrollView>
 

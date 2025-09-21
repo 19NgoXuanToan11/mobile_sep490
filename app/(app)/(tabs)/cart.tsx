@@ -78,7 +78,7 @@ export default function CartScreen() {
   const renderCartItem = ({ item }: { item: CartItem }) => (
     <Card className="mx-4 mb-3" padding="none" variant="elevated">
       {/* Header Section - Badges and Total Price */}
-      <View className="px-5 pt-5 pb-3 border-b border-neutral-100">
+      <View className="px-5 pt-5 pb-4 border-b border-neutral-100">
         <View className="flex-row items-center justify-between">
           <View className="flex-row space-x-2">
             {item.product.tags?.includes("organic") && (
@@ -95,7 +95,7 @@ export default function CartScreen() {
       </View>
 
       {/* Main Product Section */}
-      <View className="px-5 py-4">
+      <View className="px-5 py-5">
         <View className="flex-row space-x-4">
           {/* Product Image */}
           <View className="relative">
@@ -116,7 +116,7 @@ export default function CartScreen() {
           {/* Product Details */}
           <View className="flex-1 justify-between">
             {/* Product Name and Price */}
-            <View className="space-y-2">
+            <View className="space-y-3">
               <Text
                 className="font-semibold text-neutral-900 text-lg leading-6"
                 numberOfLines={2}
@@ -133,7 +133,7 @@ export default function CartScreen() {
             </View>
 
             {/* Location and Stock Info */}
-            <View className="space-y-2 mt-2">
+            <View className="space-y-3 mt-3">
               {item.product.origin && (
                 <View className="flex-row items-center space-x-1">
                   <Ionicons name="location-outline" size={14} color="#6b7280" />
@@ -152,7 +152,7 @@ export default function CartScreen() {
       </View>
 
       {/* Controls Section */}
-      <View className="px-5 py-4 border-t border-neutral-100 bg-neutral-50/30">
+      <View className="px-5 py-5 border-t border-neutral-100 bg-neutral-50/30">
         <View className="flex-row items-center justify-between">
           {/* Quantity Controls */}
           <QuantityStepper
@@ -193,7 +193,6 @@ export default function CartScreen() {
   if (cart.items.length === 0) {
     return (
       <SafeAreaView className="flex-1 bg-neutral-50">
-        r
         <StatusBar
           barStyle="dark-content"
           backgroundColor="transparent"
@@ -246,10 +245,10 @@ export default function CartScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingVertical: 20, paddingBottom: 240 }}
         ListFooterComponent={() => (
-          <View className="px-4 space-y-4 pb-8">
+          <View className="px-4 space-y-5 pb-8">
             {/* Promo Code Section */}
             <Card variant="elevated" padding="lg" className="mb-4">
-              <View className="space-y-4">
+              <View className="space-y-5">
                 <View className="flex-row items-center space-x-2">
                   <Ionicons name="pricetag-outline" size={20} color="#00623A" />
                   <Text className="text-lg font-semibold text-neutral-900">
@@ -323,15 +322,15 @@ export default function CartScreen() {
       {/* Bottom Cart Summary */}
       <View
         className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-200"
-        style={{ paddingBottom: 90 }}
+        style={{ paddingBottom: 80 }}
       >
         <LinearGradient
           colors={["rgba(255,255,255,0.96)", "rgba(255,255,255,1)"]}
           className="px-4 py-3"
         >
-          <View className="space-y-4">
+          <View className="space-y-5">
             {/* Price Breakdown */}
-            <View className="space-y-2">
+            <View className="space-y-3">
               <View className="flex-row justify-between">
                 <Text className="text-neutral-600">
                   Tạm tính ({cart.itemCount} món)

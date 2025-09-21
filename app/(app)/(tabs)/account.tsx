@@ -103,6 +103,12 @@ export default function AccountScreen() {
             />
 
             <SettingItem
+              icon="location-outline"
+              title="Địa chỉ của tôi"
+              onPress={() => router.push("/(app)/address" as any)}
+            />
+
+            <SettingItem
               icon="receipt-outline"
               title="Lịch sử đơn hàng"
               onPress={() => router.push("/(app)/(tabs)/orders")}

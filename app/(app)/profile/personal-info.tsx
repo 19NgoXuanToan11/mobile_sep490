@@ -112,7 +112,7 @@ export default function PersonalInfoScreen() {
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{ paddingBottom: 0 }}
       >
         {/* Profile Overview */}
         <Card className="mx-4 mt-6" padding="lg" variant="elevated">
@@ -171,12 +171,6 @@ export default function PersonalInfoScreen() {
         <Section title="Thông tin tài khoản">
           <View className="space-y-1">
             <InfoItem
-              icon="shield-checkmark-outline"
-              label="Vai trò"
-              value={getRoleText(user?.role)}
-            />
-
-            <InfoItem
               icon="calendar-outline"
               label="Ngày tạo tài khoản"
               value={formatDate(user?.createdAt)}
@@ -186,13 +180,6 @@ export default function PersonalInfoScreen() {
               icon="time-outline"
               label="Cập nhật lần cuối"
               value={formatDate(user?.updatedAt)}
-            />
-
-            <InfoItem
-              icon="key-outline"
-              label="ID tài khoản"
-              value={user?.id || "N/A"}
-              subtitle="ID duy nhất của tài khoản"
             />
           </View>
         </Section>
@@ -238,27 +225,6 @@ export default function PersonalInfoScreen() {
                 </Text>
                 <Text className="text-sm text-neutral-500">
                   Thay đổi mật khẩu đăng nhập
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                // Navigate to privacy settings
-                // router.push("/(app)/profile/privacy");
-              }}
-              className="flex-row items-center space-x-3 py-3 px-1"
-            >
-              <View className="w-10 h-10 bg-purple-100 rounded-full items-center justify-center">
-                <Ionicons name="settings" size={20} color="#7c3aed" />
-              </View>
-              <View className="flex-1">
-                <Text className="font-medium text-neutral-900">
-                  Cài đặt riêng tư
-                </Text>
-                <Text className="text-sm text-neutral-500">
-                  Quản lý quyền riêng tư
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#9ca3af" />

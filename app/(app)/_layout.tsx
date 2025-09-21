@@ -63,6 +63,24 @@ export default function AppLayout() {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="address/index"
+          options={{
+            title: "Địa Chỉ Của Tôi",
+          }}
+        />
+        <Stack.Screen
+          name="address/add"
+          options={{
+            title: "Thêm Địa Chỉ",
+          }}
+        />
+        <Stack.Screen
+          name="address/edit/[id]"
+          options={{
+            title: "Chỉnh Sửa Địa Chỉ",
+          }}
+        />
       </Stack>
     </AuthGuard>
   );
