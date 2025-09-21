@@ -515,6 +515,102 @@ export const addressesApi = {
       data: await withDelay([...addresses]),
     };
   },
+
+  async getById(id: string): Promise<ApiResponse<Address>> {
+    const address = addresses.find((a) => a.id === id);
+
+    if (!address) {
+      return {
+        success: false,
+        data: null as any,
+        message: "Address not found",
+      };
+    }
+
+    return {
+      success: true,
+      data: await withDelay(address),
+    };
+  },
+
+  async create(
+    addressData: Omit<Address, "id">
+  ): Promise<ApiResponse<Address>> {
+    await sleep(getRandomDelay());
+
+    // Create new address
+    const newAddress: Address = {
+      id: generateId("address"),
+      ...addressData,
+    };
+
+    // If this is set as default, update other addresses
+    if (addressData.isDefault) {
+      addresses.forEach((addr) => {
+        addr.isDefault = false;
+      });
+    }
+
+    // Add to addresses list (in real app, this would be persisted on server)
+    addresses.push(newAddress);
+
+    return {
+      success: true,
+      data: newAddress,
+    };
+  },
+
+  async update(
+    id: string,
+    addressData: Partial<Address>
+  ): Promise<ApiResponse<Address>> {
+    await sleep(getRandomDelay());
+
+    const addressIndex = addresses.findIndex((addr) => addr.id === id);
+    if (addressIndex === -1) {
+      return {
+        success: false,
+        data: null as any,
+        message: "Address not found",
+      };
+    }
+
+    // If this is set as default, update other addresses
+    if (addressData.isDefault) {
+      addresses.forEach((addr) => {
+        addr.isDefault = false;
+      });
+    }
+
+    // Update address
+    addresses[addressIndex] = { ...addresses[addressIndex], ...addressData };
+
+    return {
+      success: true,
+      data: addresses[addressIndex],
+    };
+  },
+
+  async delete(id: string): Promise<ApiResponse<null>> {
+    await sleep(getRandomDelay());
+
+    const addressIndex = addresses.findIndex((addr) => addr.id === id);
+    if (addressIndex === -1) {
+      return {
+        success: false,
+        data: null,
+        message: "Address not found",
+      };
+    }
+
+    // Remove address
+    addresses.splice(addressIndex, 1);
+
+    return {
+      success: true,
+      data: null,
+    };
+  },
 };
 
 // Payment Methods API
@@ -525,6 +621,148 @@ export const paymentMethodsApi = {
       success: true,
       data: await withDelay(activeMethods),
     };
+  },
+};
+
+// Profile API
+export interface ProfileData {
+  accountProfileId: number;
+  gender?: string;
+  phone?: string;
+  fullname?: string;
+  address?: string;
+  images?: string;
+  createdAt: string;
+  updatedAt: string;
+  role: string;
+  email: string;
+}
+
+export interface UpdateProfileRequest {
+  gender?: number;
+  phone?: string;
+  fullname: string;
+  address?: string;
+  images?: string;
+}
+
+export const profileApi = {
+  async getProfile(): Promise<ApiResponse<ProfileData>> {
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: null as any,
+          message: "Not authenticated",
+        };
+      }
+
+      const response = await apiClient.get<ProfileData>(
+        API_CONFIG.ENDPOINTS.PROFILE.GET,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      console.error("Get profile error:", error);
+      return {
+        success: false,
+        data: null as any,
+        message: error instanceof Error ? error.message : "Failed to get profile",
+      };
+    }
+  },
+
+  async updateProfile(profileData: UpdateProfileRequest): Promise<ApiResponse<ProfileData>> {
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: null as any,
+          message: "Not authenticated",
+        };
+      }
+
+      const response = await apiClient.put<ProfileData>(
+        API_CONFIG.ENDPOINTS.PROFILE.UPDATE,
+        profileData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return {
+        success: true,
+        data: response,
+      };
+    } catch (error) {
+      console.error("Update profile error:", error);
+      return {
+        success: false,
+        data: null as any,
+        message: error instanceof Error ? error.message : "Failed to update profile",
+      };
+    }
+  },
+
+  async uploadProfileImage(imageUri: string): Promise<ApiResponse<{ imageUrl: string }>> {
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: null as any,
+          message: "Not authenticated",
+        };
+      }
+
+      // Create form data for image upload
+      const formData = new FormData();
+      formData.append("image", {
+        uri: imageUri,
+        type: "image/jpeg",
+        name: "profile-image.jpg",
+      } as any);
+
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/upload/profile-image`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      const result = await response.json();
+
+      return {
+        success: true,
+        data: { imageUrl: result.imageUrl },
+      };
+    } catch (error) {
+      console.error("Upload image error:", error);
+      return {
+        success: false,
+        data: null as any,
+        message: error instanceof Error ? error.message : "Failed to upload image",
+      };
+    }
   },
 };
 

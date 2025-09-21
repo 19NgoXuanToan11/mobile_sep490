@@ -9,6 +9,10 @@ const API_CONFIG = {
       LOGOUT: "/api/v1/account/logout",
       CURRENT_USER: "/api/v1/account/me",
     },
+    PROFILE: {
+      GET: "/api/v1/account-profile/profile",
+      UPDATE: "/api/v1/account-profile/update",
+    },
   },
 };
 
@@ -93,24 +97,24 @@ export class ApiClient {
   }
 
   // Convenience methods
-  async get<T>(endpoint: string, requiresAuth = false): Promise<T> {
-    return this.request<T>(endpoint, { method: "GET", requiresAuth });
+  async get<T>(endpoint: string, options?: { headers?: Record<string, string>; requiresAuth?: boolean }): Promise<T> {
+    return this.request<T>(endpoint, { method: "GET", ...options });
   }
 
   async post<T>(
     endpoint: string,
     body?: any,
-    requiresAuth = false
+    options?: { headers?: Record<string, string>; requiresAuth?: boolean }
   ): Promise<T> {
-    return this.request<T>(endpoint, { method: "POST", body, requiresAuth });
+    return this.request<T>(endpoint, { method: "POST", body, ...options });
   }
 
-  async put<T>(endpoint: string, body?: any, requiresAuth = false): Promise<T> {
-    return this.request<T>(endpoint, { method: "PUT", body, requiresAuth });
+  async put<T>(endpoint: string, body?: any, options?: { headers?: Record<string, string>; requiresAuth?: boolean }): Promise<T> {
+    return this.request<T>(endpoint, { method: "PUT", body, ...options });
   }
 
-  async delete<T>(endpoint: string, requiresAuth = false): Promise<T> {
-    return this.request<T>(endpoint, { method: "DELETE", requiresAuth });
+  async delete<T>(endpoint: string, options?: { headers?: Record<string, string>; requiresAuth?: boolean }): Promise<T> {
+    return this.request<T>(endpoint, { method: "DELETE", ...options });
   }
 }
 

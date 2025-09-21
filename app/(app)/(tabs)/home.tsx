@@ -127,7 +127,7 @@ export default function HomeScreen() {
 
       {/* Header with Search - Edge to Edge */}
       <View className="bg-white shadow-sm border-b border-neutral-100 pt-12">
-        <View className="px-4 pb-3 space-y-4">
+        <View className="px-4 pb-4 space-y-5">
           {/* Personalized Greeting */}
           <Animated.View
             className="flex-row items-center justify-between"
@@ -193,7 +193,7 @@ export default function HomeScreen() {
                         )}
 
                         {/* Bottom: Title & CTA */}
-                        <View className="space-y-3">
+                        <View className="space-y-4">
                           <View>
                             <Text
                               className="text-white text-lg font-bold"
@@ -237,7 +237,7 @@ export default function HomeScreen() {
 
         {/* Categories */}
         <View className="mb-6">
-          <View className="px-4 mb-5 flex-row items-center justify-between">
+          <View className="px-4 mb-6 flex-row items-center justify-between">
             <Text className="text-xl font-bold text-neutral-900 tracking-tight">
               Danh Mục Sản Phẩm
             </Text>
@@ -279,7 +279,7 @@ export default function HomeScreen() {
 
         {/* Featured Products with Filters */}
         <View className="mb-6">
-          <View className="px-4 mb-4">
+          <View className="px-4 mb-5">
             <View className="flex-row items-center justify-between mb-3">
               <Text className="text-lg font-bold text-neutral-900">
                 Sản Phẩm Nổi Bật Hôm Nay

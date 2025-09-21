@@ -465,9 +465,9 @@ const initI18n = async () => {
   let savedLanguage = await storage.getItem<string>(STORAGE_KEYS.LANGUAGE);
 
   if (!savedLanguage) {
-    // Get device language (default to Vietnamese)
-    const deviceLanguage = Localization.getLocales()[0]?.languageCode;
-    savedLanguage = deviceLanguage === "en" ? "en" : "vi";
+    // Default to Vietnamese on first run regardless of device locale
+    // Users can change language later in settings
+    savedLanguage = "vi";
     await storage.setItem(STORAGE_KEYS.LANGUAGE, savedLanguage);
   }
 

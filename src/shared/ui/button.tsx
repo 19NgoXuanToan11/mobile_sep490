@@ -73,6 +73,10 @@ const textVariants = cva("font-semibold", {
       xl: "text-xl",
     },
   },
+  defaultVariants: {
+    variant: "primary",
+    size: "md",
+  },
 });
 
 export interface ButtonProps
