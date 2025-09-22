@@ -14,20 +14,19 @@ import {
   FilterState,
   CartItem,
 } from "../../types";
-import {
-  onboardingSlides,
-  categories,
-  products,
-  banners,
-  sampleUser,
-  addresses,
-  paymentMethods,
-  orders,
-} from "./fixtures";
 import { sleep, getRandomDelay, generateId } from "../lib/utils";
 import { storage, authStorage, STORAGE_KEYS } from "../lib/storage";
-import { apiClient } from "../config/api";
-import API_CONFIG from "../config/api";
+import {
+  OpenAPI,
+  AccountService,
+  AccountProfileService,
+  ProductService,
+  CategoryService,
+  OrderService,
+  FeedbackService,
+  CreateFeedbackDTO,
+} from "../../api";
+import env from "../../config/env";
 
 // Simulate network delay
 const withDelay = async <T>(data: T, delay?: number): Promise<T> => {
@@ -40,59 +39,87 @@ export const authApi = {
   async login(
     credentials: LoginFormData
   ): Promise<ApiResponse<{ user: User; token: string }>> {
-    await sleep(getRandomDelay());
-
-    // Simple validation for demo
-    if (
-      credentials.email === "demo@ifms.com" &&
-      credentials.password === "password"
-    ) {
-      const token = `fake_token_${generateId()}`;
-      await authStorage.setTokens(token);
-
-      return {
-        success: true,
-        data: {
-          user: sampleUser,
-          token,
+    try {
+      OpenAPI.BASE = env.API_URL;
+      const result = await AccountService.postApiV1AccountLogin({
+        requestBody: {
+          email: credentials.email,
+          password: credentials.password,
         },
+      });
+      const token = result?.data?.token ?? result?.token ?? result?.accessToken;
+      if (!token) {
+        return {
+          success: false,
+          data: null as any,
+          message: "No token returned",
+        };
+      }
+      await authStorage.setTokens(token);
+      // Optionally fetch current profile
+      const profileResp =
+        await AccountProfileService.getApiV1AccountProfileProfile();
+      const user: User = {
+        id: String(
+          profileResp?.data?.accountProfileId ??
+            profileResp?.accountProfileId ??
+            "0"
+        ),
+        name:
+          profileResp?.data?.fullname ??
+          profileResp?.fullname ??
+          credentials.email.split("@")[0],
+        email:
+          profileResp?.data?.email ?? profileResp?.email ?? credentials.email,
+        role: "CUSTOMER",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      return { success: true, data: { user, token } };
+    } catch (error) {
+      return {
+        success: false,
+        data: null as any,
+        message: error instanceof Error ? error.message : "Login failed",
       };
     }
-
-    return {
-      success: false,
-      data: null as any,
-      message: "Invalid email or password",
-      errors: {
-        email: ["Invalid credentials"],
-      },
-    };
   },
 
   async register(
     userData: RegisterFormData
   ): Promise<ApiResponse<{ user: User; token: string }>> {
     try {
-      const response = await apiClient.post<{
-        user: User;
-        token: string;
-      }>(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
-        email: userData.email,
-        password: userData.password,
-        confirmPassword: userData.confirmPassword,
+      OpenAPI.BASE = env.API_URL;
+      const result = await AccountService.postApiV1AccountRegister({
+        requestBody: {
+          email: userData.email,
+          password: userData.password,
+          confirmPassword: userData.confirmPassword,
+        } as any,
       });
-
-      // Store the token
-      if (response.token) {
-        await authStorage.setTokens(response.token);
+      const token = result?.data?.token ?? result?.token ?? result?.accessToken;
+      if (token) {
+        await authStorage.setTokens(token);
       }
-
-      return {
-        success: true,
-        data: response,
+      const profileResp =
+        await AccountProfileService.getApiV1AccountProfileProfile();
+      const user: User = {
+        id: String(
+          profileResp?.data?.accountProfileId ??
+            profileResp?.accountProfileId ??
+            "0"
+        ),
+        name:
+          profileResp?.data?.fullname ??
+          profileResp?.fullname ??
+          userData.email.split("@")[0],
+        email: profileResp?.data?.email ?? profileResp?.email ?? userData.email,
+        role: "CUSTOMER",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
+      return { success: true, data: { user, token: token ?? "" } };
     } catch (error) {
-      console.error("Register error:", error);
       return {
         success: false,
         data: null as any,
@@ -116,9 +143,7 @@ export const authApi = {
   },
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
-    await sleep(300);
     const token = await authStorage.getAccessToken();
-
     if (!token) {
       return {
         success: false,
@@ -126,41 +151,77 @@ export const authApi = {
         message: "Not authenticated",
       };
     }
-
-    return {
-      success: true,
-      data: sampleUser,
-    };
+    try {
+      OpenAPI.BASE = env.API_URL;
+      const profileResp =
+        await AccountProfileService.getApiV1AccountProfileProfile();
+      const user: User = {
+        id: String(
+          profileResp?.data?.accountProfileId ??
+            profileResp?.accountProfileId ??
+            "0"
+        ),
+        name: profileResp?.data?.fullname ?? profileResp?.fullname ?? "User",
+        email: profileResp?.data?.email ?? profileResp?.email ?? "",
+        role: "CUSTOMER",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      return { success: true, data: user };
+    } catch (error) {
+      return {
+        success: false,
+        data: null as any,
+        message:
+          error instanceof Error ? error.message : "Failed to get current user",
+      };
+    }
   },
 };
 
 // Categories API
 export const categoriesApi = {
   async getAll(): Promise<ApiResponse<Category[]>> {
-    const data = await withDelay(
-      [...categories].sort((a, b) => a.sortOrder - b.sortOrder)
-    );
-    return {
-      success: true,
-      data,
-    };
+    try {
+      const res = await CategoryService.getApiV1CategoryGetAll();
+      const items: Category[] = (res?.data ?? res ?? []).map((c: any) => ({
+        id: String(c.categoryId ?? c.id),
+        name: c.categoryName ?? c.name,
+        slug: (c.categoryName ?? c.name ?? "")
+          .toLowerCase()
+          .replace(/\s+/g, "-"),
+        image: c.image || "",
+        description: c.description ?? "",
+        sortOrder: c.sortOrder ?? 0,
+      }));
+      return { success: true, data: items };
+    } catch (error) {
+      return { success: true, data: [], message: "Failed to fetch categories" };
+    }
   },
 
   async getById(id: string): Promise<ApiResponse<Category>> {
-    const category = categories.find((c) => c.id === id);
-
-    if (!category) {
+    try {
+      const res = await CategoryService.getApiV1Category({ id: Number(id) });
+      const c: any = res?.data ?? res;
+      const category: Category = {
+        id: String(c.categoryId ?? c.id),
+        name: c.categoryName ?? c.name,
+        slug: (c.categoryName ?? c.name ?? "")
+          .toLowerCase()
+          .replace(/\s+/g, "-"),
+        image: c.image || "",
+        description: c.description ?? "",
+        sortOrder: c.sortOrder ?? 0,
+      };
+      return { success: true, data: category };
+    } catch (error) {
       return {
         success: false,
         data: null as any,
         message: "Category not found",
       };
     }
-
-    return {
-      success: true,
-      data: await withDelay(category),
-    };
   },
 };
 
@@ -171,133 +232,332 @@ export const productsApi = {
     page = 1,
     limit = 20
   ): Promise<ApiResponse<PaginatedResponse<Product>>> {
-    await sleep(getRandomDelay());
-
-    let filteredProducts = [...products];
-
-    // Apply filters
-    if (filters) {
-      if (filters.categories && filters.categories.length > 0) {
-        filteredProducts = filteredProducts.filter((p) =>
-          filters.categories!.includes(p.categoryId)
-        );
-      }
-
-      if (filters.priceRange) {
-        const [minPrice, maxPrice] = filters.priceRange;
-        filteredProducts = filteredProducts.filter(
-          (p) => p.price >= minPrice && p.price <= maxPrice
-        );
-      }
-
-      if (filters.inStockOnly) {
-        filteredProducts = filteredProducts.filter((p) => p.isInStock);
-      }
-    }
-
-    // Apply sorting
-    if (filters?.sortBy) {
-      switch (filters.sortBy) {
-        case "name":
-          filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
-          break;
-        case "price_asc":
-          filteredProducts.sort((a, b) => a.price - b.price);
-          break;
-        case "price_desc":
-          filteredProducts.sort((a, b) => b.price - a.price);
-          break;
-        case "rating":
-          filteredProducts.sort((a, b) => b.rating - a.rating);
-          break;
-        case "newest":
-          filteredProducts.sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-          break;
-      }
-    }
-
-    // Pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
-
-    return {
-      success: true,
-      data: {
-        data: paginatedProducts,
-        pagination: {
-          page,
-          limit,
-          total: filteredProducts.length,
-          totalPages: Math.ceil(filteredProducts.length / limit),
-          hasNext: endIndex < filteredProducts.length,
-          hasPrev: page > 1,
+    try {
+      const res = await ProductService.getApiV1ProductsProductsList({
+        pageIndex: page,
+        pageSize: limit,
+      });
+      const payload = res?.data ?? res;
+      const items: Product[] = (payload?.items ?? payload?.data ?? []).map(
+        (p: any) => ({
+          id: String(p.productId ?? p.id),
+          name: p.productName ?? p.name ?? "",
+          slug: (p.productName ?? p.name ?? "")
+            .toLowerCase()
+            .replace(/\s+/g, "-"),
+          sku: String(p.productId ?? p.id ?? ""),
+          description: p.description ?? "",
+          price: Number(p.price ?? 0),
+          originalPrice: Number(p.originalPrice ?? p.price ?? 0),
+          categoryId: String(p.categoryId ?? ""),
+          images: p.images
+            ? Array.isArray(p.images)
+              ? p.images
+              : [p.images]
+            : [],
+          rating: Number(p.rating ?? 0),
+          reviewCount: Number(p.reviewCount ?? 0),
+          soldCount: Number(p.soldCount ?? 0),
+          stock: Number(p.stockQuantity ?? p.stock ?? 0),
+          isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
+          isFeatured: Boolean(p.isFeatured ?? false),
+          tags: Array.isArray(p.tags) ? p.tags : [],
+          unit: p.unit ?? "kg",
+          origin: p.origin ?? undefined,
+          harvestDate: p.harvestDate ?? undefined,
+          createdAt: p.createdAt ?? new Date().toISOString(),
+          updatedAt: p.updatedAt ?? new Date().toISOString(),
+        })
+      );
+      const pagination = payload?.pagination ?? {
+        page,
+        limit,
+        total: Number(payload?.totalItemCount ?? items.length),
+        totalPages: Math.ceil(
+          Number(payload?.totalItemCount ?? items.length) / limit
+        ),
+        hasNext: page * limit < Number(payload?.totalItemCount ?? items.length),
+        hasPrev: page > 1,
+      };
+      return { success: true, data: { data: items, pagination } };
+    } catch (error) {
+      return {
+        success: true,
+        data: {
+          data: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: page > 1,
+          },
         },
-      },
-    };
+        message: "Failed to fetch products",
+      };
+    }
   },
 
   async getById(id: string): Promise<ApiResponse<Product>> {
-    const product = products.find((p) => p.id === id);
-
-    if (!product) {
+    try {
+      const res = await ProductService.getApiV1ProductsGetProduct({
+        productId: Number(id),
+      });
+      const p: any = res?.data ?? res;
+      const product: Product = {
+        id: String(p.productId ?? p.id),
+        name: p.productName ?? p.name ?? "",
+        slug: (p.productName ?? p.name ?? "")
+          .toLowerCase()
+          .replace(/\s+/g, "-"),
+        sku: String(p.productId ?? p.id ?? ""),
+        description: p.description ?? "",
+        price: Number(p.price ?? 0),
+        originalPrice: Number(p.originalPrice ?? p.price ?? 0),
+        categoryId: String(p.categoryId ?? ""),
+        images: p.images
+          ? Array.isArray(p.images)
+            ? p.images
+            : [p.images]
+          : [],
+        rating: Number(p.rating ?? 0),
+        reviewCount: Number(p.reviewCount ?? 0),
+        soldCount: Number(p.soldCount ?? 0),
+        stock: Number(p.stockQuantity ?? p.stock ?? 0),
+        isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
+        isFeatured: Boolean(p.isFeatured ?? false),
+        tags: Array.isArray(p.tags) ? p.tags : [],
+        unit: p.unit ?? "kg",
+        origin: p.origin ?? undefined,
+        harvestDate: p.harvestDate ?? undefined,
+        createdAt: p.createdAt ?? new Date().toISOString(),
+        updatedAt: p.updatedAt ?? new Date().toISOString(),
+      };
+      return { success: true, data: product };
+    } catch (error) {
       return {
         success: false,
         data: null as any,
         message: "Product not found",
       };
     }
-
-    return {
-      success: true,
-      data: await withDelay(product),
-    };
   },
 
   async getFeatured(limit = 6): Promise<ApiResponse<Product[]>> {
-    const featuredProducts = products
-      .filter((p) => p.isFeatured && p.isInStock)
-      .slice(0, limit);
-
-    return {
-      success: true,
-      data: await withDelay(featuredProducts),
-    };
+    const res = await ProductService.getApiV1ProductsProductFilter({
+      pageIndex: 1,
+      pageSize: limit,
+      sortByStockAsc: false,
+    });
+    const payload = res?.data ?? res;
+    const items: Product[] = (payload?.items ?? payload?.data ?? []).map(
+      (p: any) => ({
+        id: String(p.productId ?? p.id),
+        name: p.productName ?? p.name ?? "",
+        slug: (p.productName ?? p.name ?? "")
+          .toLowerCase()
+          .replace(/\s+/g, "-"),
+        sku: String(p.productId ?? p.id ?? ""),
+        description: p.description ?? "",
+        price: Number(p.price ?? 0),
+        originalPrice: Number(p.originalPrice ?? p.price ?? 0),
+        categoryId: String(p.categoryId ?? ""),
+        images: p.images
+          ? Array.isArray(p.images)
+            ? p.images
+            : [p.images]
+          : [],
+        rating: Number(p.rating ?? 0),
+        reviewCount: Number(p.reviewCount ?? 0),
+        soldCount: Number(p.soldCount ?? 0),
+        stock: Number(p.stockQuantity ?? p.stock ?? 0),
+        isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
+        isFeatured: Boolean(p.isFeatured ?? false),
+        tags: Array.isArray(p.tags) ? p.tags : [],
+        unit: p.unit ?? "kg",
+        origin: p.origin ?? undefined,
+        harvestDate: p.harvestDate ?? undefined,
+        createdAt: p.createdAt ?? new Date().toISOString(),
+        updatedAt: p.updatedAt ?? new Date().toISOString(),
+      })
+    );
+    return { success: true, data: items };
   },
 
   async search(query: string, limit = 20): Promise<ApiResponse<Product[]>> {
-    await sleep(getRandomDelay());
+    const res = await ProductService.getApiV1ProductsSearchProduct({
+      productName: query,
+      pageIndex: 1,
+      pageSize: limit,
+    });
+    const payload = res?.data ?? res;
+    const items: Product[] = (payload?.items ?? payload?.data ?? []).map(
+      (p: any) => ({
+        id: String(p.productId ?? p.id),
+        name: p.productName ?? p.name ?? "",
+        slug: (p.productName ?? p.name ?? "")
+          .toLowerCase()
+          .replace(/\s+/g, "-"),
+        sku: String(p.productId ?? p.id ?? ""),
+        description: p.description ?? "",
+        price: Number(p.price ?? 0),
+        originalPrice: Number(p.originalPrice ?? p.price ?? 0),
+        categoryId: String(p.categoryId ?? ""),
+        images: p.images
+          ? Array.isArray(p.images)
+            ? p.images
+            : [p.images]
+          : [],
+        rating: Number(p.rating ?? 0),
+        reviewCount: Number(p.reviewCount ?? 0),
+        soldCount: Number(p.soldCount ?? 0),
+        stock: Number(p.stockQuantity ?? p.stock ?? 0),
+        isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
+        isFeatured: Boolean(p.isFeatured ?? false),
+        tags: Array.isArray(p.tags) ? p.tags : [],
+        unit: p.unit ?? "kg",
+        origin: p.origin ?? undefined,
+        harvestDate: p.harvestDate ?? undefined,
+        createdAt: p.createdAt ?? new Date().toISOString(),
+        updatedAt: p.updatedAt ?? new Date().toISOString(),
+      })
+    );
+    return { success: true, data: items };
+  },
+};
 
-    const searchResults = products
-      .filter(
-        (p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.description.toLowerCase().includes(query.toLowerCase()) ||
-          p.tags.some((tag) => tag.toLowerCase().includes(query.toLowerCase()))
-      )
-      .slice(0, limit);
+// Feedback API
+export interface FeedbackItem {
+  id?: string;
+  comment: string;
+  rating?: number | null;
+  createdAt?: string;
+  phone?: string;
+  customerId?: number;
+}
 
-    return {
-      success: true,
-      data: searchResults,
-    };
+export const feedbackApi = {
+  async list(page = 1, limit = 10) {
+    try {
+      OpenAPI.BASE = env.API_URL;
+      const res = await FeedbackService.getApiV1FeedbackFeedBackList({
+        pageIndex: page,
+        pageSize: limit,
+      });
+      const payload: any = (res as any)?.data ?? (res as any);
+      const list: any[] = payload?.items ?? payload?.data ?? [];
+      const items: FeedbackItem[] = list.map((f: any, idx: number) => ({
+        id: String(f.feedbackId ?? f.id ?? idx),
+        comment: f.comment ?? "",
+        rating: f.rating ?? null,
+        createdAt:
+          typeof f.createdAt === "string"
+            ? f.createdAt
+            : f.createdAt?.toString?.() ?? new Date().toISOString(),
+        phone: f.phone ?? f.customer?.accountProfile?.phone,
+        customerId: Number(f.customerId ?? f.customer?.accountId ?? 0),
+      }));
+      return {
+        success: true,
+        data: {
+          data: items,
+          pagination: {
+            page,
+            limit,
+            total: Number(payload?.totalItemCount ?? items.length),
+            totalPages: Math.ceil(
+              Number(payload?.totalItemCount ?? items.length) / limit
+            ),
+            hasNext:
+              page * limit < Number(payload?.totalItemCount ?? items.length),
+            hasPrev: page > 1,
+          },
+        },
+      } as const;
+    } catch (error) {
+      return {
+        success: true,
+        data: {
+          data: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: page > 1,
+          },
+        },
+        message: "Failed to fetch feedback",
+      } as const;
+    }
+  },
+
+  async create(input: {
+    comment: string;
+    rating?: number | null;
+    customerId: number;
+  }) {
+    try {
+      OpenAPI.BASE = env.API_URL;
+      const body: CreateFeedbackDTO = {
+        comment: input.comment,
+        rating: input.rating ?? null,
+        customerId: input.customerId,
+      } as any;
+      const res = await FeedbackService.postApiV1FeedbackCreateFeedback({
+        requestBody: body,
+      });
+      return {
+        success: true,
+        data: (res as any)?.data ?? (res as any),
+      } as const;
+    } catch (error) {
+      return {
+        success: false,
+        data: null as any,
+        message:
+          error instanceof Error ? error.message : "Failed to create feedback",
+      } as const;
+    }
+  },
+
+  async update(
+    id: number,
+    input: { comment: string; rating?: number | null; customerId: number }
+  ) {
+    try {
+      OpenAPI.BASE = env.API_URL;
+      const body: CreateFeedbackDTO = {
+        comment: input.comment,
+        rating: input.rating ?? null,
+        customerId: input.customerId,
+      } as any;
+      const res = await FeedbackService.postApiV1FeedbackUpdateFeedback({
+        id,
+        requestBody: body,
+      });
+      return {
+        success: true,
+        data: (res as any)?.data ?? (res as any),
+      } as const;
+    } catch (error) {
+      return {
+        success: false,
+        data: null as any,
+        message:
+          error instanceof Error ? error.message : "Failed to update feedback",
+      } as const;
+    }
   },
 };
 
 // Banners API
 export const bannersApi = {
   async getActive(): Promise<ApiResponse<Banner[]>> {
-    const activebanners = banners
-      .filter((b) => b.isActive)
-      .sort((a, b) => a.sortOrder - b.sortOrder);
-
-    return {
-      success: true,
-      data: await withDelay(activebanners),
-    };
+    // No backend banners endpoint: return empty list (no mock data)
+    return { success: true, data: [] };
   },
 };
 
@@ -318,7 +578,50 @@ export const cartApi = {
   ): Promise<ApiResponse<CartItem[]>> {
     await sleep(300);
 
-    const product = products.find((p) => p.id === productId);
+    // Fetch product from backend instead of using fixtures
+    let product: Product | null = null;
+    try {
+      const res = await ProductService.getApiV1ProductsGetProduct({
+        productId: Number(productId),
+      });
+      const p: any = (res as any)?.data ?? (res as any);
+      product = {
+        id: String(p.productId ?? p.id),
+        name: p.productName ?? p.name ?? "",
+        slug: (p.productName ?? p.name ?? "")
+          .toLowerCase()
+          .replace(/\s+/g, "-"),
+        sku: String(p.productId ?? p.id ?? ""),
+        description: p.description ?? "",
+        price: Number(p.price ?? 0),
+        originalPrice: Number(p.originalPrice ?? p.price ?? 0),
+        categoryId: String(p.categoryId ?? ""),
+        images: p.images
+          ? Array.isArray(p.images)
+            ? p.images
+            : [p.images]
+          : [],
+        rating: Number(p.rating ?? 0),
+        reviewCount: Number(p.reviewCount ?? 0),
+        soldCount: Number(p.soldCount ?? 0),
+        stock: Number(p.stockQuantity ?? p.stock ?? 0),
+        isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
+        isFeatured: Boolean(p.isFeatured ?? false),
+        tags: Array.isArray(p.tags) ? p.tags : [],
+        unit: p.unit ?? "kg",
+        origin: p.origin ?? undefined,
+        harvestDate: p.harvestDate ?? undefined,
+        createdAt: p.createdAt ?? new Date().toISOString(),
+        updatedAt: p.updatedAt ?? new Date().toISOString(),
+      };
+    } catch (e) {
+      return {
+        success: false,
+        data: null as any,
+        message: "Product not found",
+      };
+    }
+
     if (!product) {
       return {
         success: false,
@@ -413,214 +716,223 @@ export const cartApi = {
 // Orders API
 export const ordersApi = {
   async getAll(): Promise<ApiResponse<Order[]>> {
-    const userOrders = [...orders].sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-
-    return {
-      success: true,
-      data: await withDelay(userOrders),
-    };
+    try {
+      const res = await OrderService.getApiV1OrderOrderListByCurrentAccount({
+        pageIndex: 1,
+        pageSize: 50,
+      });
+      const payload = res?.data ?? res;
+      const list: any[] = payload?.items ?? payload?.data ?? [];
+      const mapped: Order[] = list.map((o: any, idx: number) => ({
+        id: String(o.orderId ?? o.id ?? idx),
+        orderNumber: o.orderNumber ?? `ORD-${String(o.orderId ?? idx)}`,
+        userId: String(o.userId ?? ""),
+        items: [],
+        status: String(o.status ?? "PLACED") as any,
+        statusHistory: [],
+        shippingAddress: {
+          id: "",
+          name: "",
+          phone: "",
+          street: String(o.shippingAddress ?? ""),
+          ward: "",
+          district: "",
+          city: "",
+          isDefault: false,
+          type: "OTHER",
+        },
+        paymentMethod: {
+          id: "cod",
+          type: "COD",
+          name: "Thanh toán khi nhận hàng",
+          description: "",
+          isActive: true,
+        },
+        itemCount: Number(o.itemCount ?? 0),
+        subtotal: Number(o.subtotal ?? 0),
+        shippingFee: Number(o.shippingFee ?? 0),
+        discount: Number(o.discount ?? 0),
+        total: Number(o.total ?? 0),
+        notes: o.notes ?? undefined,
+        estimatedDelivery: o.estimatedDelivery ?? undefined,
+        trackingNumber: o.trackingNumber ?? undefined,
+        createdAt: o.createdAt ?? new Date().toISOString(),
+        updatedAt: o.updatedAt ?? new Date().toISOString(),
+      }));
+      return { success: true, data: mapped };
+    } catch (error) {
+      return { success: true, data: [], message: "Failed to fetch orders" };
+    }
   },
 
   async getById(id: string): Promise<ApiResponse<Order>> {
-    const order = orders.find((o) => o.id === id);
-
-    if (!order) {
-      return {
-        success: false,
-        data: null as any,
-        message: "Order not found",
+    try {
+      const res = await OrderService.getApiV1OrderOrder({
+        orderId: Number(id),
+      });
+      const o: any = res?.data ?? res;
+      const order: Order = {
+        id: String(o.orderId ?? o.id),
+        orderNumber: o.orderNumber ?? `ORD-${id}`,
+        userId: String(o.userId ?? ""),
+        items: [],
+        status: String(o.status ?? "PLACED") as any,
+        statusHistory: [],
+        shippingAddress: {
+          id: "",
+          name: "",
+          phone: "",
+          street: String(o.shippingAddress ?? ""),
+          ward: "",
+          district: "",
+          city: "",
+          isDefault: false,
+          type: "OTHER",
+        },
+        paymentMethod: {
+          id: "cod",
+          type: "COD",
+          name: "Thanh toán khi nhận hàng",
+          description: "",
+          isActive: true,
+        },
+        itemCount: Number(o.itemCount ?? 0),
+        subtotal: Number(o.subtotal ?? 0),
+        shippingFee: Number(o.shippingFee ?? 0),
+        discount: Number(o.discount ?? 0),
+        total: Number(o.total ?? 0),
+        notes: o.notes ?? undefined,
+        estimatedDelivery: o.estimatedDelivery ?? undefined,
+        trackingNumber: o.trackingNumber ?? undefined,
+        createdAt: o.createdAt ?? new Date().toISOString(),
+        updatedAt: o.updatedAt ?? new Date().toISOString(),
       };
+      return { success: true, data: order };
+    } catch (error) {
+      return { success: false, data: null as any, message: "Order not found" };
     }
-
-    return {
-      success: true,
-      data: await withDelay(order),
-    };
   },
 
-  async create(checkoutData: CheckoutFormData): Promise<ApiResponse<Order>> {
-    await sleep(getRandomDelay());
+  async create(
+    checkoutData: CheckoutFormData & { manualAddress?: string }
+  ): Promise<ApiResponse<Order>> {
+    try {
+      const cartItems =
+        (await storage.getItem<CartItem[]>(STORAGE_KEYS.CART_ITEMS)) || [];
+      if (!cartItems.length) {
+        return { success: false, data: null as any, message: "Cart is empty" };
+      }
 
-    const cartItems =
-      (await storage.getItem<CartItem[]>(STORAGE_KEYS.CART_ITEMS)) || [];
-    const address = addresses.find((a) => a.id === checkoutData.addressId);
-    const paymentMethod = paymentMethods.find(
-      (p) => p.id === checkoutData.paymentMethodId
-    );
+      OpenAPI.BASE = env.API_URL;
+      const requestBody: any = {
+        orderItems: cartItems.map((ci) => ({
+          productId: Number(ci.productId),
+          stockQuantity: ci.quantity,
+        })),
+        shippingAddress: checkoutData.manualAddress || "",
+      };
 
-    if (!address || !paymentMethod) {
+      const result = await OrderService.postApiV1OrderCreate({
+        requestBody,
+      });
+
+      // Clear cart on success
+      await storage.removeItem(STORAGE_KEYS.CART_ITEMS);
+
+      const o: any = (result as any)?.data ?? (result as any);
+      const order: Order = {
+        id: String(o.orderId ?? o.id ?? generateId("order")),
+        orderNumber: o.orderNumber ?? `ORD-${String(Date.now()).slice(-6)}`,
+        userId: String(o.userId ?? ""),
+        items: cartItems,
+        status: String(o.status ?? "PLACED") as any,
+        statusHistory: [],
+        shippingAddress: {
+          id: "",
+          name: "",
+          phone: "",
+          street: String(
+            o.shippingAddress ?? requestBody.shippingAddress ?? ""
+          ),
+          ward: "",
+          district: "",
+          city: "",
+          isDefault: false,
+          type: "OTHER",
+        },
+        paymentMethod: {
+          id: "cod",
+          type: "COD",
+          name: "Thanh toán khi nhận hàng",
+          description: "",
+          isActive: true,
+        },
+        itemCount: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+        subtotal: cartItems.reduce((sum, item) => sum + item.subtotal, 0),
+        shippingFee: Number(o.shippingFee ?? 0),
+        discount: Number(o.discount ?? 0),
+        total: Number(o.total ?? 0),
+        notes: checkoutData.notes,
+        estimatedDelivery: o.estimatedDelivery ?? undefined,
+        trackingNumber: o.trackingNumber ?? undefined,
+        createdAt: o.createdAt ?? new Date().toISOString(),
+        updatedAt: o.updatedAt ?? new Date().toISOString(),
+      };
+
+      return { success: true, data: order };
+    } catch (error) {
       return {
         success: false,
         data: null as any,
-        message: "Invalid address or payment method",
+        message:
+          error instanceof Error ? error.message : "Failed to create order",
       };
     }
-
-    const subtotal = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
-    const shippingFee = 25000;
-    const discount = 0;
-    const total = subtotal + shippingFee - discount;
-
-    const newOrder: Order = {
-      id: generateId("order"),
-      orderNumber: `ORD-2024-${String(orders.length + 1).padStart(3, "0")}`,
-      userId: sampleUser.id,
-      items: cartItems,
-      status: "PLACED",
-      statusHistory: [
-        {
-          id: generateId("status"),
-          status: "PLACED",
-          timestamp: new Date().toISOString(),
-          description: "Đơn hàng đã được đặt thành công",
-        },
-      ],
-      shippingAddress: address,
-      paymentMethod,
-      itemCount: cartItems.reduce((sum, item) => sum + item.quantity, 0),
-      subtotal,
-      shippingFee,
-      discount,
-      total,
-      notes: checkoutData.notes,
-      estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
-      trackingNumber: `TRK2024${String(orders.length + 1).padStart(3, "0")}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Add to orders list (in real app, this would be persisted on server)
-    orders.unshift(newOrder);
-
-    // Clear cart
-    await storage.removeItem(STORAGE_KEYS.CART_ITEMS);
-
-    return {
-      success: true,
-      data: newOrder,
-    };
   },
 };
 
 // Addresses API
 export const addressesApi = {
   async getAll(): Promise<ApiResponse<Address[]>> {
-    return {
-      success: true,
-      data: await withDelay([...addresses]),
-    };
+    // No backend endpoint → return empty list
+    return { success: true, data: [] };
   },
 
   async getById(id: string): Promise<ApiResponse<Address>> {
-    const address = addresses.find((a) => a.id === id);
-
-    if (!address) {
-      return {
-        success: false,
-        data: null as any,
-        message: "Address not found",
-      };
-    }
-
-    return {
-      success: true,
-      data: await withDelay(address),
-    };
+    return { success: false, data: null as any, message: "Address not found" };
   },
 
   async create(
     addressData: Omit<Address, "id">
   ): Promise<ApiResponse<Address>> {
-    await sleep(getRandomDelay());
-
-    // Create new address
-    const newAddress: Address = {
-      id: generateId("address"),
-      ...addressData,
-    };
-
-    // If this is set as default, update other addresses
-    if (addressData.isDefault) {
-      addresses.forEach((addr) => {
-        addr.isDefault = false;
-      });
-    }
-
-    // Add to addresses list (in real app, this would be persisted on server)
-    addresses.push(newAddress);
-
-    return {
-      success: true,
-      data: newAddress,
-    };
+    return { success: false, data: null as any, message: "Not supported" };
   },
 
   async update(
     id: string,
     addressData: Partial<Address>
   ): Promise<ApiResponse<Address>> {
-    await sleep(getRandomDelay());
-
-    const addressIndex = addresses.findIndex((addr) => addr.id === id);
-    if (addressIndex === -1) {
-      return {
-        success: false,
-        data: null as any,
-        message: "Address not found",
-      };
-    }
-
-    // If this is set as default, update other addresses
-    if (addressData.isDefault) {
-      addresses.forEach((addr) => {
-        addr.isDefault = false;
-      });
-    }
-
-    // Update address
-    addresses[addressIndex] = { ...addresses[addressIndex], ...addressData };
-
-    return {
-      success: true,
-      data: addresses[addressIndex],
-    };
+    return { success: false, data: null as any, message: "Not supported" };
   },
 
   async delete(id: string): Promise<ApiResponse<null>> {
-    await sleep(getRandomDelay());
-
-    const addressIndex = addresses.findIndex((addr) => addr.id === id);
-    if (addressIndex === -1) {
-      return {
-        success: false,
-        data: null,
-        message: "Address not found",
-      };
-    }
-
-    // Remove address
-    addresses.splice(addressIndex, 1);
-
-    return {
-      success: true,
-      data: null,
-    };
+    return { success: false, data: null, message: "Not supported" };
   },
 };
 
 // Payment Methods API
 export const paymentMethodsApi = {
   async getAll(): Promise<ApiResponse<PaymentMethod[]>> {
-    const activeMethods = paymentMethods.filter((pm) => pm.isActive);
-    return {
-      success: true,
-      data: await withDelay(activeMethods),
-    };
+    const methods: PaymentMethod[] = [
+      {
+        id: "cod",
+        type: "COD",
+        name: "Thanh toán khi nhận hàng",
+        description: "",
+        isActive: true,
+      },
+    ];
+    return { success: true, data: methods };
   },
 };
 
@@ -658,30 +970,28 @@ export const profileApi = {
         };
       }
 
-      const response = await apiClient.get<ProfileData>(
-        API_CONFIG.ENDPOINTS.PROFILE.GET,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      OpenAPI.BASE = env.API_URL;
+      const response =
+        await AccountProfileService.getApiV1AccountProfileProfile();
 
       return {
         success: true,
-        data: response,
+        data: (response as any)?.data ?? (response as any),
       };
     } catch (error) {
       console.error("Get profile error:", error);
       return {
         success: false,
         data: null as any,
-        message: error instanceof Error ? error.message : "Failed to get profile",
+        message:
+          error instanceof Error ? error.message : "Failed to get profile",
       };
     }
   },
 
-  async updateProfile(profileData: UpdateProfileRequest): Promise<ApiResponse<ProfileData>> {
+  async updateProfile(
+    profileData: UpdateProfileRequest
+  ): Promise<ApiResponse<ProfileData>> {
     try {
       const token = await authStorage.getAccessToken();
       if (!token) {
@@ -692,32 +1002,31 @@ export const profileApi = {
         };
       }
 
-      const response = await apiClient.put<ProfileData>(
-        API_CONFIG.ENDPOINTS.PROFILE.UPDATE,
-        profileData,
+      OpenAPI.BASE = env.API_URL;
+      const response = await AccountProfileService.putApiV1AccountProfileUpdate(
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          requestBody: profileData as any,
         }
       );
 
       return {
         success: true,
-        data: response,
+        data: (response as any)?.data ?? (response as any),
       };
     } catch (error) {
       console.error("Update profile error:", error);
       return {
         success: false,
         data: null as any,
-        message: error instanceof Error ? error.message : "Failed to update profile",
+        message:
+          error instanceof Error ? error.message : "Failed to update profile",
       };
     }
   },
 
-  async uploadProfileImage(imageUri: string): Promise<ApiResponse<{ imageUrl: string }>> {
+  async uploadProfileImage(
+    imageUri: string
+  ): Promise<ApiResponse<{ imageUrl: string }>> {
     try {
       const token = await authStorage.getAccessToken();
       if (!token) {
@@ -736,7 +1045,8 @@ export const profileApi = {
         name: "profile-image.jpg",
       } as any);
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/upload/profile-image`, {
+      const baseUrl = OpenAPI.BASE || env.API_URL;
+      const response = await fetch(`${baseUrl}/api/v1/upload/profile-image`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -760,13 +1070,16 @@ export const profileApi = {
       return {
         success: false,
         data: null as any,
-        message: error instanceof Error ? error.message : "Failed to upload image",
+        message:
+          error instanceof Error ? error.message : "Failed to upload image",
       };
     }
   },
 };
 
 // Onboarding API
+// Minimal fallback slides (no fixtures)
+const onboardingSlides: any[] = [];
 export const onboardingApi = {
   async getSlides(): Promise<ApiResponse<typeof onboardingSlides>> {
     return {

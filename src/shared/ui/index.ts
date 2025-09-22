@@ -37,6 +37,9 @@ export type { QuantityStepperProps } from "./quantity-stepper";
 export { RatingStars, RatingDisplay } from "./rating-stars";
 export type { RatingStarsProps, RatingDisplayProps } from "./rating-stars";
 
+export { default as FeedbackList } from "./feedback-list";
+export { default as FeedbackFormModal } from "./feedback-form-modal";
+
 export { ProductCard } from "./product-card";
 export type { ProductCardProps } from "./product-card";
 
