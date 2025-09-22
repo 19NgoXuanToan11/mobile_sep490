@@ -20,8 +20,11 @@ import {
   QuantityStepper,
   RatingDisplay,
   EmptyState,
+  FeedbackList,
+  FeedbackFormModal,
 } from "../../../src/shared/ui";
 import { productsApi } from "../../../src/shared/data/api";
+import { feedbackApi } from "../../../src/shared/data/api";
 import { useCart, useLocalization } from "../../../src/shared/hooks";
 import { useToast } from "../../../src/shared/ui/toast";
 import {
@@ -265,6 +268,61 @@ const ProductDetails = ({ product }: { product: any }) => {
   const [activeTab, setActiveTab] = useState<
     "description" | "nutrition" | "reviews"
   >("description");
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [currentPhone, setCurrentPhone] = useState<string | undefined>(
+    undefined
+  );
+  const [page, setPage] = useState(1);
+
+  React.useEffect(() => {
+    (async () => {
+      const res = await feedbackApi.list(1, 10);
+      setReviews([...res.data.data]);
+      setPage(1);
+      try {
+        const { profileApi } = await import("../../../src/shared/data/api");
+        const profile = await profileApi.getProfile();
+        setCurrentPhone((profile as any)?.data?.phone ?? undefined);
+      } catch {}
+    })();
+  }, []);
+
+  const loadMore = async () => {
+    const next = page + 1;
+    const res = await feedbackApi.list(next, 10);
+    const list = res.data.data;
+    if (list.length) {
+      setReviews((prev) => [...prev, ...list]);
+      setPage(next);
+    }
+  };
+
+  const handleSubmitReview = async ({
+    comment,
+    rating,
+  }: {
+    comment: string;
+    rating: number | null;
+  }) => {
+    try {
+      setSubmitting(true);
+      const { profileApi } = await import("../../../src/shared/data/api");
+      const profile = await profileApi.getProfile();
+      const customerId = Number((profile as any)?.data?.accountProfileId ?? 0);
+      if (!customerId) throw new Error("Không xác định được khách hàng");
+      const res = await feedbackApi.create({ comment, rating, customerId });
+      if (!(res as any).success)
+        throw new Error((res as any).message || "Tạo đánh giá thất bại");
+      const listRes = await feedbackApi.list(1, 10);
+      setReviews([...listRes.data.data]);
+      setPage(1);
+      setShowReviewModal(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const tabs = [
     { id: "description", label: "Mô Tả" },
@@ -390,7 +448,7 @@ const ProductDetails = ({ product }: { product: any }) => {
               <Text className="text-lg font-semibold text-neutral-900">
                 Đánh Giá Khách Hàng
               </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowReviewModal(true)}>
                 <Text className="text-primary-600 font-medium">
                   Viết đánh giá
                 </Text>
@@ -406,11 +464,28 @@ const ProductDetails = ({ product }: { product: any }) => {
                   </Text>
                   <RatingDisplay rating={product.rating || 4.5} size="sm" />
                   <Text className="text-sm text-neutral-600 mt-1">
-                    {product.reviewCount || 124} đánh giá
+                    {reviews.length} đánh giá
                   </Text>
                 </View>
               </View>
             </View>
+
+            <FeedbackList
+              data={reviews}
+              onEndReached={loadMore}
+              currentUserPhone={currentPhone}
+              onEditPress={() => {
+                setShowReviewModal(true);
+                // Prefill modal via initial props below
+              }}
+            />
+
+            <FeedbackFormModal
+              visible={showReviewModal}
+              onClose={() => setShowReviewModal(false)}
+              onSubmit={handleSubmitReview}
+              submitting={submitting}
+            />
           </View>
         )}
       </View>

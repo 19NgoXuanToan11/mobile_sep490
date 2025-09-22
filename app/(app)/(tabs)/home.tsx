@@ -50,7 +50,7 @@ export default function HomeScreen() {
     }).start();
   }, []);
 
-  // Get personalized greeting
+  // Get personalized greeting with emoji
   const getPersonalizedGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Chào buổi sáng";
@@ -125,26 +125,35 @@ export default function HomeScreen() {
         translucent
       />
 
-      {/* Header with Search - Edge to Edge */}
-      <View className="bg-white shadow-sm border-b border-neutral-100 pt-12">
-        <View className="px-4 pb-4 space-y-5">
-          {/* Personalized Greeting */}
+      {/* Minimal Header */}
+      <View className="bg-white pt-12">
+        <View className="px-5 pb-4">
           <Animated.View
             className="flex-row items-center justify-between"
             style={{ opacity: fadeAnim }}
           >
             <View>
-              <Text className="text-sm text-neutral-600">
-                {getPersonalizedGreeting()},
+              <Text className="text-[13px] text-neutral-500 font-normal tracking-tight">
+                {getPersonalizedGreeting()}
               </Text>
-              <Text className="text-xl font-bold text-neutral-900">
+              <Text className="text-[22px] font-medium text-neutral-900 mt-1">
                 {user?.name || "Khách hàng"}
               </Text>
             </View>
 
             <TouchableOpacity
-              className="w-10 h-10 bg-neutral-100 rounded-full items-center justify-center"
+              className="w-11 h-11 rounded-full items-center justify-center"
               onPress={() => router.push("/(app)/(tabs)/account")}
+              style={{
+                backgroundColor: "#ffffff",
+                shadowColor: "#000",
+                shadowOpacity: 0.08,
+                shadowRadius: 16,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 3,
+                borderWidth: 1,
+                borderColor: "rgba(0,0,0,0.06)",
+              }}
             >
               <Ionicons name="person-outline" size={20} color="#6b7280" />
             </TouchableOpacity>
@@ -162,12 +171,12 @@ export default function HomeScreen() {
       >
         {/* Featured Banners with CTAs */}
         {banners.length > 0 && (
-          <View className="px-4 mb-6">
+          <View className="px-5 mb-8">
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {banners.map((banner, index) => (
                 <TouchableOpacity key={banner.id} className="mr-4">
                   <Card className="w-80 h-40" padding="none" variant="elevated">
-                    <View className="flex-1 rounded-2xl overflow-hidden">
+                    <View className="flex-1 rounded-[20px] overflow-hidden">
                       <Image
                         source={{ uri: banner.image }}
                         style={{ width: "100%", height: "100%" }}
@@ -213,16 +222,16 @@ export default function HomeScreen() {
 
                           {/* Enhanced CTA Button */}
                           <TouchableOpacity
-                            className="bg-primary-500 px-4 py-2 rounded-xl flex-row items-center self-start space-x-2"
+                            className="bg-white/90 px-4 py-2 rounded-full flex-row items-center self-start space-x-2"
                             onPress={() => router.push("/(app)/(tabs)/catalog")}
                           >
-                            <Text className="text-white font-semibold text-sm">
+                            <Text className="text-primary-700 font-medium text-sm">
                               {index === 0 ? "Mua ngay" : "Khám phá"}
                             </Text>
                             <Ionicons
                               name="arrow-forward"
                               size={16}
-                              color="white"
+                              color="#065f46"
                             />
                           </TouchableOpacity>
                         </View>
@@ -236,16 +245,16 @@ export default function HomeScreen() {
         )}
 
         {/* Categories */}
-        <View className="mb-6">
-          <View className="px-4 mb-6 flex-row items-center justify-between">
-            <Text className="text-xl font-bold text-neutral-900 tracking-tight">
+        <View className="mb-10">
+          <View className="px-5 mb-4 flex-row items-center justify-between">
+            <Text className="text-[18px] font-medium text-neutral-900 tracking-tight">
               Danh Mục Sản Phẩm
             </Text>
             <TouchableOpacity
               onPress={() => router.push("/(app)/(tabs)/catalog")}
-              className="bg-primary-50 px-3 py-1.5 rounded-full"
+              className="px-3 py-1.5 rounded-full"
             >
-              <Text className="text-primary-700 font-semibold text-sm">
+              <Text className="text-primary-700 font-medium text-sm">
                 Xem tất cả
               </Text>
             </TouchableOpacity>
@@ -254,8 +263,8 @@ export default function HomeScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            className="px-4"
-            contentContainerStyle={{ paddingRight: 16 }}
+            className="px-5"
+            contentContainerStyle={{ paddingRight: 20 }}
           >
             <View className="flex-row space-x-5">
               {categories.map((category) => (
@@ -278,31 +287,36 @@ export default function HomeScreen() {
         </View>
 
         {/* Featured Products with Filters */}
-        <View className="mb-6">
-          <View className="px-4 mb-5">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-lg font-bold text-neutral-900">
+        <View className="mb-10">
+          <View className="px-5 mb-4">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-[18px] font-medium text-neutral-900">
                 Sản Phẩm Nổi Bật Hôm Nay
               </Text>
               <TouchableOpacity
                 onPress={() => router.push("/(app)/(tabs)/catalog")}
               >
-                <Text className="text-primary-600 font-medium">Xem tất cả</Text>
+                <Text className="text-primary-700 font-medium">Xem tất cả</Text>
               </TouchableOpacity>
             </View>
 
             {/* Product Filters */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row space-x-2">
+              <View className="flex-row space-x-8">
                 {[
                   { label: "🔥 Bán chạy", value: "bestseller" },
                   { label: "💰 Giá tốt", value: "price" },
-                  { label: "🌱 Organic", value: "organic" },
-                  { label: "🆕 Mới nhất", value: "newest" },
+                  { label: "💚 Organic", value: "organic" },
+                  { label: "⭐ Mới", value: "newest" },
                 ].map((filter) => (
                   <TouchableOpacity
                     key={filter.value}
-                    className="bg-neutral-100 px-3 py-1.5 rounded-lg"
+                    className="px-3 py-1.5 rounded-full"
+                    style={{
+                      backgroundColor: "#F3F6F5",
+                      borderWidth: 1,
+                      borderColor: "#E5E7EB",
+                    }}
                   >
                     <Text className="text-xs font-medium text-neutral-700">
                       {filter.label}
@@ -316,7 +330,7 @@ export default function HomeScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            className="px-4"
+            className="px-5"
           >
             <View className="flex-row space-x-4">
               {featuredProducts.map((product) => (
@@ -339,15 +353,15 @@ export default function HomeScreen() {
 
         {/* Trending Products Grid */}
         {trendingProducts.length > 0 && (
-          <View className="px-4 mb-6">
-            <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-lg font-bold text-neutral-900">
+          <View className="px-5 mb-12">
+            <View className="mb-3 flex-row items-center justify-between">
+              <Text className="text-[18px] font-medium text-neutral-900">
                 Xu Hướng Mua Sắm
               </Text>
               <TouchableOpacity
                 onPress={() => router.push("/(app)/(tabs)/catalog")}
               >
-                <Text className="text-primary-600 font-medium">Xem tất cả</Text>
+                <Text className="text-primary-700 font-medium">Xem tất cả</Text>
               </TouchableOpacity>
             </View>
 
