@@ -5,6 +5,6 @@
 export type CreateFeedbackDTO = {
     comment: string;
     rating?: number | null;
-    customerId: number;
+    orderDetailId: number;
 };
 

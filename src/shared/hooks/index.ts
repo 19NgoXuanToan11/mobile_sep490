@@ -48,6 +48,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           isAuthenticated: true,
           isLoading: false,
         });
+
+        // Sync guest cart to user cart after successful login
+        // 登录成功后同步访客购物车到用户购物车
+        setTimeout(() => {
+          useCartStore.getState().syncGuestCartToUser();
+        }, 500);
+
         return true;
       }
       return false;
@@ -87,6 +94,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         isAuthenticated: false,
         isLoading: false,
       });
+
+      // Clear cart when logging out
+      // 登出时清空购物车
+      useCartStore.getState().clearCart();
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -128,7 +139,7 @@ export const useAuth = () => {
   return store;
 };
 
-// Cart hook
+// Cart hook with Guest and User mode support
 interface CartStore {
   items: CartItem[];
   isLoading: boolean;
@@ -137,6 +148,7 @@ interface CartStore {
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   clearCart: () => Promise<void>;
+  syncGuestCartToUser: () => Promise<void>;
 }
 
 export const useCartStore = create<CartStore>((set, get) => ({
@@ -146,7 +158,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
   loadItems: async () => {
     try {
       set({ isLoading: true });
-      const response = await cartApi.getItems();
+      const { isAuthenticated } = useAuthStore.getState();
+      const response = await cartApi.getItems(isAuthenticated);
       if (response.success) {
         set({ items: response.data });
       }
@@ -159,7 +172,12 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   addItem: async (productId, quantity = 1) => {
     try {
-      const response = await cartApi.addItem(productId, quantity);
+      const { isAuthenticated } = useAuthStore.getState();
+      const response = await cartApi.addItem(
+        productId,
+        quantity,
+        isAuthenticated
+      );
       if (response.success) {
         set({ items: response.data });
       }
@@ -170,7 +188,12 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   updateQuantity: async (itemId, quantity) => {
     try {
-      const response = await cartApi.updateQuantity(itemId, quantity);
+      const { isAuthenticated } = useAuthStore.getState();
+      const response = await cartApi.updateQuantity(
+        itemId,
+        quantity,
+        isAuthenticated
+      );
       if (response.success) {
         set({ items: response.data });
       }
@@ -181,7 +204,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   removeItem: async (itemId) => {
     try {
-      const response = await cartApi.removeItem(itemId);
+      const { isAuthenticated } = useAuthStore.getState();
+      const response = await cartApi.removeItem(itemId, isAuthenticated);
       if (response.success) {
         set({ items: response.data });
       }
@@ -192,12 +216,52 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   clearCart: async () => {
     try {
-      const response = await cartApi.clear();
+      const { isAuthenticated } = useAuthStore.getState();
+      const response = await cartApi.clear(isAuthenticated);
       if (response.success) {
         set({ items: [] });
       }
     } catch (error) {
       console.error("Clear cart error:", error);
+    }
+  },
+
+  /**
+   * Sync guest cart (localStorage) to user cart (API) after login
+   * 登录后将访客购物车（localStorage）同步到用户购物车（API）
+   */
+  syncGuestCartToUser: async () => {
+    try {
+      const { isAuthenticated } = useAuthStore.getState();
+
+      if (!isAuthenticated) {
+        return;
+      }
+
+      // Get guest cart from localStorage
+      const guestCart =
+        (await storage.getItem<CartItem[]>(STORAGE_KEYS.CART_ITEMS)) || [];
+
+      if (guestCart.length === 0) {
+        return;
+      }
+
+      // Add each guest cart item to user cart via API
+      for (const item of guestCart) {
+        try {
+          await cartApi.addItem(item.productId, item.quantity, true);
+        } catch (error) {
+          console.error(`Failed to sync item ${item.productId}:`, error);
+        }
+      }
+
+      // Clear guest cart from localStorage
+      await storage.removeItem(STORAGE_KEYS.CART_ITEMS);
+
+      // Reload cart items from API
+      await get().loadItems();
+    } catch (error) {
+      console.error("Sync guest cart error:", error);
     }
   },
 }));

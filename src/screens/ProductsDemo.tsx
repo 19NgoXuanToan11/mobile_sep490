@@ -36,7 +36,6 @@ export default function ProductsDemo() {
   useEffect(() => {
     OpenAPI.BASE = env.API_URL;
     // eslint-disable-next-line no-console
-    console.log("[ProductsDemo] OpenAPI.BASE=", OpenAPI.BASE);
     (async () => {
       try {
         const res = (await ProductService.getApiV1ProductsProductsList({

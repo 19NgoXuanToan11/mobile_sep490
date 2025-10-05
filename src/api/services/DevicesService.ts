@@ -6,7 +6,7 @@ import type { IOTRequest } from '../models/IOTRequest';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
-export class IoTdeviceService {
+export class DevicesService {
     /**
      * @returns any OK
      * @throws ApiError

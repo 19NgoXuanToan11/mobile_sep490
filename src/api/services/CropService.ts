@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CropRequest } from '../models/CropRequest';
-import type { CropUpdate } from '../models/CropUpdate';
 import type { Status } from '../models/Status';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -61,14 +60,17 @@ export class CropService {
      */
     public static putApiV1CropChangStatus({
         cropId,
+        status,
     }: {
         cropId?: number,
+        status?: number,
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/crop/chang-status',
             query: {
                 'cropId': cropId,
+                'status': status,
             },
         });
     }
@@ -107,7 +109,7 @@ export class CropService {
         requestBody,
     }: {
         cropId: number,
-        requestBody?: CropUpdate,
+        requestBody?: CropRequest,
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PUT',
@@ -117,6 +119,16 @@ export class CropService {
             },
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiV1CropGetExcludingInactive(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/crop/get-excluding-inactive',
         });
     }
 }

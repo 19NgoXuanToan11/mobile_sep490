@@ -1,6 +1,17 @@
-// API Configuration
+/**
+ * Production API Base URL
+ * Can be overridden via EXPO_PUBLIC_API_URL environment variable
+ */
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL || "https://iotfarm.onrender.com";
+
+/**
+ * Centralized API Configuration
+ * Default: Production backend on Render
+ * Override via EXPO_PUBLIC_API_URL environment variable
+ */
 const API_CONFIG = {
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000",
+  BASE_URL: API_BASE_URL,
   TIMEOUT: 10000,
   ENDPOINTS: {
     AUTH: {
@@ -97,7 +108,10 @@ export class ApiClient {
   }
 
   // Convenience methods
-  async get<T>(endpoint: string, options?: { headers?: Record<string, string>; requiresAuth?: boolean }): Promise<T> {
+  async get<T>(
+    endpoint: string,
+    options?: { headers?: Record<string, string>; requiresAuth?: boolean }
+  ): Promise<T> {
     return this.request<T>(endpoint, { method: "GET", ...options });
   }
 
@@ -109,11 +123,18 @@ export class ApiClient {
     return this.request<T>(endpoint, { method: "POST", body, ...options });
   }
 
-  async put<T>(endpoint: string, body?: any, options?: { headers?: Record<string, string>; requiresAuth?: boolean }): Promise<T> {
+  async put<T>(
+    endpoint: string,
+    body?: any,
+    options?: { headers?: Record<string, string>; requiresAuth?: boolean }
+  ): Promise<T> {
     return this.request<T>(endpoint, { method: "PUT", body, ...options });
   }
 
-  async delete<T>(endpoint: string, options?: { headers?: Record<string, string>; requiresAuth?: boolean }): Promise<T> {
+  async delete<T>(
+    endpoint: string,
+    options?: { headers?: Record<string, string>; requiresAuth?: boolean }
+  ): Promise<T> {
     return this.request<T>(endpoint, { method: "DELETE", ...options });
   }
 }

@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CreateOrderDTO } from '../models/CreateOrderDTO';
-import type { Status } from '../models/Status';
+import type { PaymentStatus } from '../models/PaymentStatus';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -35,7 +35,7 @@ export class OrderService {
     }: {
         pageIndex?: number,
         pageSize?: number,
-        status?: Status,
+        status?: PaymentStatus,
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -60,7 +60,7 @@ export class OrderService {
         id: number,
         pageIndex?: number,
         pageSize?: number,
-        status?: Status,
+        status?: PaymentStatus,
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -86,7 +86,7 @@ export class OrderService {
     }: {
         pageIndex?: number,
         pageSize?: number,
-        status?: Status,
+        status?: PaymentStatus,
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -151,7 +151,7 @@ export class OrderService {
         pageSize = 10,
     }: {
         email: string,
-        status?: Status,
+        status?: PaymentStatus,
         pageIndex?: number,
         pageSize?: number,
     }): CancelablePromise<any> {

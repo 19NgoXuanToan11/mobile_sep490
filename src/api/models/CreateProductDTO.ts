@@ -6,7 +6,6 @@ export type CreateProductDTO = {
     productName: string;
     price: number;
     images?: string | null;
-    stockQuantity: number;
     description?: string | null;
     categoryId: number;
     cropId: number;

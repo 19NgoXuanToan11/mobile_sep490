@@ -20,7 +20,7 @@ export class FeedbackService {
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/feedback/feedBackList',
+            url: '/api/v1/feedback/feed-back-list',
             query: {
                 'pageIndex': pageIndex,
                 'pageSize': pageSize,
@@ -38,7 +38,7 @@ export class FeedbackService {
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/feedback/CreateFeedback',
+            url: '/api/v1/feedback/create-feedback',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -56,12 +56,80 @@ export class FeedbackService {
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/feedback/updateFeedback/{id}',
+            url: '/api/v1/feedback/update-feedback/{id}',
             path: {
                 'id': id,
             },
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiV1FeedbackUpdateFeedbackStatus({
+        id,
+    }: {
+        id: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/feedback/update-feedback-status/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiV1FeedbackFeedbackByProduct({
+        productId,
+    }: {
+        productId: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/feedback/feedback-by-product/{productId}',
+            path: {
+                'productId': productId,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiV1FeedbackFeedbackByOrder({
+        orderId,
+    }: {
+        orderId: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/feedback/feedback-by-order/{orderId}',
+            path: {
+                'orderId': orderId,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiV1FeedbackFeedbackByOrderDetail({
+        orderDetailId,
+    }: {
+        orderDetailId: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/feedback/feedback-by-order-detail/{orderDetailId}',
+            path: {
+                'orderDetailId': orderDetailId,
+            },
         });
     }
 }

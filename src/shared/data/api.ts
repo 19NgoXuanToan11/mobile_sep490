@@ -27,6 +27,7 @@ import {
   CreateFeedbackDTO,
 } from "../../api";
 import env from "../../config/env";
+import { realCartApi } from "./cartApiService";
 
 // Simulate network delay
 const withDelay = async <T>(data: T, delay?: number): Promise<T> => {
@@ -41,21 +42,29 @@ export const authApi = {
   ): Promise<ApiResponse<{ user: User; token: string }>> {
     try {
       OpenAPI.BASE = env.API_URL;
+
       const result = await AccountService.postApiV1AccountLogin({
         requestBody: {
           email: credentials.email,
           password: credentials.password,
         },
       });
+
       const token = result?.data?.token ?? result?.token ?? result?.accessToken;
       if (!token) {
+        console.error("❌ [LOGIN] No token found in response!");
         return {
           success: false,
           data: null as any,
           message: "No token returned",
         };
       }
+
       await authStorage.setTokens(token);
+
+      // Set token to OpenAPI headers before fetching profile
+      OpenAPI.TOKEN = token;
+
       // Optionally fetch current profile
       const profileResp =
         await AccountProfileService.getApiV1AccountProfileProfile();
@@ -75,8 +84,10 @@ export const authApi = {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
       return { success: true, data: { user, token } };
     } catch (error) {
+      console.error("❌ [LOGIN] Error:", error);
       return {
         success: false,
         data: null as any,
@@ -100,6 +111,8 @@ export const authApi = {
       const token = result?.data?.token ?? result?.token ?? result?.accessToken;
       if (token) {
         await authStorage.setTokens(token);
+        // Set token to OpenAPI headers before fetching profile
+        OpenAPI.TOKEN = token;
       }
       const profileResp =
         await AccountProfileService.getApiV1AccountProfileProfile();
@@ -153,6 +166,8 @@ export const authApi = {
     }
     try {
       OpenAPI.BASE = env.API_URL;
+      // Set token to OpenAPI headers
+      OpenAPI.TOKEN = token;
       const profileResp =
         await AccountProfileService.getApiV1AccountProfileProfile();
       const user: User = {
@@ -561,9 +576,20 @@ export const bannersApi = {
   },
 };
 
-// Cart API (using local storage)
+// Cart API - switches between localStorage (Guest) and real API (User)
+// 购物车API - 在localStorage（访客）和真实API（用户）之间切换
 export const cartApi = {
-  async getItems(): Promise<ApiResponse<CartItem[]>> {
+  /**
+   * Get cart items - uses real API if authenticated, localStorage if guest
+   */
+  async getItems(
+    isAuthenticated: boolean = false
+  ): Promise<ApiResponse<CartItem[]>> {
+    if (isAuthenticated) {
+      return await realCartApi.getItems();
+    }
+
+    // Guest mode - use localStorage
     const items =
       (await storage.getItem<CartItem[]>(STORAGE_KEYS.CART_ITEMS)) || [];
     return {
@@ -572,13 +598,22 @@ export const cartApi = {
     };
   },
 
+  /**
+   * Add item to cart - uses real API if authenticated, localStorage if guest
+   */
   async addItem(
     productId: string,
-    quantity = 1
+    quantity = 1,
+    isAuthenticated: boolean = false
   ): Promise<ApiResponse<CartItem[]>> {
+    if (isAuthenticated) {
+      return await realCartApi.addItem(productId, quantity);
+    }
+
+    // Guest mode - use localStorage
     await sleep(300);
 
-    // Fetch product from backend instead of using fixtures
+    // Fetch product from backend
     let product: Product | null = null;
     try {
       const res = await ProductService.getApiV1ProductsGetProduct({
@@ -660,10 +695,19 @@ export const cartApi = {
     };
   },
 
+  /**
+   * Update cart item quantity
+   */
   async updateQuantity(
     itemId: string,
-    quantity: number
+    quantity: number,
+    isAuthenticated: boolean = false
   ): Promise<ApiResponse<CartItem[]>> {
+    if (isAuthenticated) {
+      return await realCartApi.updateQuantity(itemId, quantity);
+    }
+
+    // Guest mode - use localStorage
     await sleep(200);
 
     const items =
@@ -687,7 +731,18 @@ export const cartApi = {
     };
   },
 
-  async removeItem(itemId: string): Promise<ApiResponse<CartItem[]>> {
+  /**
+   * Remove item from cart
+   */
+  async removeItem(
+    itemId: string,
+    isAuthenticated: boolean = false
+  ): Promise<ApiResponse<CartItem[]>> {
+    if (isAuthenticated) {
+      return await realCartApi.removeItem(itemId);
+    }
+
+    // Guest mode - use localStorage
     await sleep(200);
 
     const items =
@@ -702,7 +757,15 @@ export const cartApi = {
     };
   },
 
-  async clear(): Promise<ApiResponse<null>> {
+  /**
+   * Clear cart
+   */
+  async clear(isAuthenticated: boolean = false): Promise<ApiResponse<null>> {
+    if (isAuthenticated) {
+      return await realCartApi.clear();
+    }
+
+    // Guest mode - use localStorage
     await sleep(200);
     await storage.removeItem(STORAGE_KEYS.CART_ITEMS);
 
@@ -928,7 +991,14 @@ export const paymentMethodsApi = {
         id: "cod",
         type: "COD",
         name: "Thanh toán khi nhận hàng",
-        description: "",
+        description: "Thanh toán bằng tiền mặt khi nhận hàng",
+        isActive: true,
+      },
+      {
+        id: "vnpay",
+        type: "E_WALLET",
+        name: "VNPay",
+        description: "Thanh toán trực tuyến qua VNPay",
         isActive: true,
       },
     ];

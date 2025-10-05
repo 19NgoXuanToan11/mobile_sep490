@@ -177,12 +177,9 @@ export default function OnboardingScreen() {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      // Navigate based on authentication status
-      if (isAuthenticated) {
-        router.replace("/(app)/(tabs)/home");
-      } else {
-        router.replace("/(public)/auth/login");
-      }
+      // Navigate directly to home - allow guest access
+      // Chuyển thẳng đến trang chủ - cho phép truy cập khách
+      router.replace("/(app)/(tabs)/home");
     });
   };
 

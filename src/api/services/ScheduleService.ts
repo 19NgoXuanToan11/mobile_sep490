@@ -123,4 +123,21 @@ export class ScheduleService {
             mediaType: 'application/json',
         });
     }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiV1ScheduleScheduleByStaff({
+        month,
+    }: {
+        month?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/Schedule/schedule-by-staff',
+            query: {
+                'month': month,
+            },
+        });
+    }
 }
