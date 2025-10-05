@@ -25,15 +25,18 @@ import {
   paymentMethodsApi,
   ordersApi,
 } from "../../src/shared/data/api";
-import { useCart, useLocalization } from "../../src/shared/hooks";
+import { vnpayApi } from "../../src/shared/data/paymentApiService";
+import { useCart, useLocalization, useAuth } from "../../src/shared/hooks";
 import { useToast } from "../../src/shared/ui/toast";
 import { formatCurrency } from "../../src/shared/lib/utils";
 import { Address, PaymentMethod, CheckoutFormData } from "../../src/types";
+import * as Linking from "expo-linking";
 
 const checkoutSchema = z.object({
-  addressId: z.string().min(1, "Vui lòng chọn địa chỉ giao hàng"),
+  addressId: z.string().optional(),
   paymentMethodId: z.string().min(1, "Vui lòng chọn phương thức thanh toán"),
   notes: z.string().optional(),
+  manualAddress: z.string().optional(),
 });
 
 const AddressSelector: React.FC<{
@@ -259,7 +262,21 @@ export default function CheckoutScreen() {
   const { t } = useLocalization();
   const toast = useToast();
   const { cart, clearCart } = useCart();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const [selectedDeliveryTime, setSelectedDeliveryTime] = useState("asap");
+  const [useManualAddress, setUseManualAddress] = useState(false);
+
+  // Redirect to login if not authenticated
+  // Chuyển hướng đến trang đăng nhập nếu chưa xác thực
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      toast.info(
+        "Yêu cầu đăng nhập",
+        "Vui lòng đăng nhập hoặc đăng ký để tiếp tục thanh toán"
+      );
+      router.replace("/(public)/auth/login");
+    }
+  }, [isAuthenticated, isLoading]);
 
   const deliveryTimeOptions = [
     { id: "asap", label: "Giao ngay (2-4 giờ)", time: "2-4 giờ", price: 0 },
@@ -285,14 +302,48 @@ export default function CheckoutScreen() {
 
   const createOrderMutation = useMutation({
     mutationFn: ordersApi.create,
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       if (response.success) {
-        clearCart();
-        toast.success(
-          t("checkout.orderPlaced"),
-          t("checkout.orderPlacedDescription")
+        const orderId = response.data.id;
+
+        // Check if using VNPAY payment
+        const paymentMethod = paymentMethods.find(
+          (m) => m.id === watchedPaymentMethodId
         );
-        router.replace(`/(app)/track/${response.data.id}`);
+
+        if (paymentMethod?.type === "E_WALLET") {
+          // Process VNPAY payment
+          try {
+            const paymentResponse = await vnpayApi.createPaymentUrl({
+              orderId: Number(orderId),
+              amount: cart.total,
+              orderDescription: `Thanh toán đơn hàng #${orderId}`,
+              name: user?.name ?? "Customer",
+            });
+
+            if (paymentResponse.success && paymentResponse.data?.paymentUrl) {
+              // Open VNPAY payment URL
+              await Linking.openURL(paymentResponse.data.paymentUrl);
+
+              // Navigate to payment result page
+              toast.info("Chuyển sang VNPAY", "Vui lòng hoàn tất thanh toán");
+              router.replace(`/(app)/payment-result?orderId=${orderId}`);
+            } else {
+              toast.error(
+                "Lỗi thanh toán",
+                "Không thể tạo liên kết thanh toán"
+              );
+            }
+          } catch (error) {
+            console.error("Payment error:", error);
+            toast.error("Lỗi thanh toán", "Vui lòng thử lại sau");
+          }
+        } else {
+          // COD payment - go directly to order tracking
+          clearCart();
+          toast.success("Đặt hàng thành công", "Đơn hàng của bạn đã được tạo");
+          router.replace(`/(app)/track/${orderId}`);
+        }
       }
     },
     onError: () => {
@@ -306,25 +357,27 @@ export default function CheckoutScreen() {
     watch,
     setValue,
     formState: { errors, isValid },
-  } = useForm<CheckoutFormData>({
+  } = useForm<CheckoutFormData & { manualAddress?: string }>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       addressId: addresses.find((a) => a.isDefault)?.id || "",
       paymentMethodId: paymentMethods[0]?.id || "",
       notes: "",
+      manualAddress: "",
     },
   });
 
   const watchedAddressId = watch("addressId");
   const watchedPaymentMethodId = watch("paymentMethodId");
+  const watchedManualAddress = watch("manualAddress");
 
   // Set default values when data loads
   React.useEffect(() => {
-    if (addresses.length > 0 && !watchedAddressId) {
+    if (addresses.length > 0 && !watchedAddressId && !useManualAddress) {
       const defaultAddress = addresses.find((a) => a.isDefault) || addresses[0];
       setValue("addressId", defaultAddress.id);
     }
-  }, [addresses, watchedAddressId, setValue]);
+  }, [addresses, watchedAddressId, setValue, useManualAddress]);
 
   React.useEffect(() => {
     if (paymentMethods.length > 0 && !watchedPaymentMethodId) {
@@ -332,7 +385,20 @@ export default function CheckoutScreen() {
     }
   }, [paymentMethods, watchedPaymentMethodId, setValue]);
 
-  const onSubmit = (data: CheckoutFormData) => {
+  // Auto-enable manual address mode if no addresses exist
+  React.useEffect(() => {
+    if (addresses.length === 0) {
+      setUseManualAddress(true);
+    }
+  }, [addresses]);
+
+  const onSubmit = (data: CheckoutFormData & { manualAddress?: string }) => {
+    // Validate address
+    if (!data.addressId && !data.manualAddress?.trim()) {
+      toast.error("Thiếu địa chỉ", "Vui lòng nhập địa chỉ giao hàng");
+      return;
+    }
+
     Alert.alert(
       "Xác nhận đặt hàng",
       `Bạn có chắc muốn đặt hàng với tổng tiền ${formatCurrency(cart.total)}?`,
@@ -343,7 +409,7 @@ export default function CheckoutScreen() {
           onPress: () =>
             createOrderMutation.mutate({
               ...data,
-            }),
+            } as any),
         },
       ]
     );
@@ -375,7 +441,7 @@ export default function CheckoutScreen() {
   return (
     <SafeAreaView className="flex-1 bg-neutral-50">
       <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
-      
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -476,13 +542,66 @@ export default function CheckoutScreen() {
             </View>
 
             {/* Address Selection */}
-            {addresses.length > 0 && (
+            {addresses.length > 0 && !useManualAddress ? (
               <View style={{ marginBottom: 10 }}>
                 <AddressSelector
                   addresses={addresses}
                   selectedId={watchedAddressId}
                   onSelect={(id) => setValue("addressId", id)}
                 />
+                <TouchableOpacity
+                  onPress={() => setUseManualAddress(true)}
+                  className="mt-3 px-4"
+                >
+                  <Text className="text-primary-600 font-medium text-center">
+                    Hoặc nhập địa chỉ mới
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={{ marginBottom: 10 }}>
+                <Card variant="elevated" padding="lg">
+                  <View className="space-y-4">
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center space-x-2">
+                        <Ionicons
+                          name="location-outline"
+                          size={20}
+                          color="#00623A"
+                        />
+                        <Text className="text-lg font-semibold text-neutral-900">
+                          Địa Chỉ Giao Hàng
+                        </Text>
+                      </View>
+                      {addresses.length > 0 && (
+                        <TouchableOpacity
+                          onPress={() => setUseManualAddress(false)}
+                        >
+                          <Text className="text-primary-600 font-medium">
+                            Chọn có sẵn
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    <Controller
+                      control={control}
+                      name="manualAddress"
+                      render={({ field: { onChange, onBlur, value } }) => (
+                        <Input
+                          placeholder="Nhập địa chỉ giao hàng đầy đủ"
+                          value={value}
+                          onChangeText={onChange}
+                          onBlur={onBlur}
+                          error={errors.manualAddress?.message}
+                          multiline
+                          numberOfLines={3}
+                          leftIcon="location-outline"
+                        />
+                      )}
+                    />
+                  </View>
+                </Card>
               </View>
             )}
 

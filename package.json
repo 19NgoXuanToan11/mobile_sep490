@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "start:android": "expo start --android",
-    "gen:api": "openapi --input http://localhost:5021/swagger/v1/swagger.json --output src/api --client axios --useOptions"
+    "gen:api": "openapi --input https://iotfarm.onrender.com/swagger/v1/swagger.json --output src/api --client axios --useOptions"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

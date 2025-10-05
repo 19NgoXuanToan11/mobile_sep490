@@ -3,10 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CropRequest = {
-    cropName?: string | null;
+    cropName: string;
     description?: string | null;
-    quantity?: number | null;
-    plantingDate?: string | null;
-    harvestDate?: string | null;
+    origin?: string | null;
 };
 

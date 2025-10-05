@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Card, Badge, EmptyState, Button } from "../../../src/shared/ui";
 import { ordersApi } from "../../../src/shared/data/api";
-import { useLocalization } from "../../../src/shared/hooks";
+import { useLocalization, useAuth } from "../../../src/shared/hooks";
 import {
   formatCurrency,
   formatDate,
@@ -23,13 +23,24 @@ import { Order } from "../../../src/types";
 
 export default function OrdersScreen() {
   const { t } = useLocalization();
+  const { isAuthenticated, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<"all" | "active" | "completed">(
     "all"
   );
 
-  const { data: orders = [], isLoading } = useQuery({
+  // Redirect to login if not authenticated
+  // Khi người dùng chưa đăng nhập truy cập trang đơn hàng, hiển thị lời nhắc đăng nhập
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      // Don't redirect immediately, just show empty state with login prompt
+      // Không chuyển hướng ngay lập tức, chỉ hiển thị trạng thái trống với lời nhắc đăng nhập
+    }
+  }, [isAuthenticated, isLoading]);
+
+  const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ["orders"],
     queryFn: () => ordersApi.getAll().then((res) => res.data),
+    enabled: isAuthenticated, // Only fetch orders if authenticated
   });
 
   const getStatusInfo = (status: Order["status"]) => {
@@ -265,6 +276,30 @@ export default function OrdersScreen() {
       </Card>
     );
   };
+
+  // Show login prompt if not authenticated
+  // Hiển thị yêu cầu đăng nhập nếu chưa xác thực
+  if (!isLoading && !isAuthenticated) {
+    return (
+      <View className="flex-1 bg-neutral-50">
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor="transparent"
+          translucent
+        />
+
+        <View className="flex-1 justify-center pt-12">
+          <EmptyState
+            icon="person-outline"
+            title="Yêu cầu đăng nhập"
+            description="Vui lòng đăng nhập để xem lịch sử đơn hàng của bạn"
+            actionLabel="Đăng nhập ngay"
+            onActionPress={() => router.push("/(public)/auth/login")}
+          />
+        </View>
+      </View>
+    );
+  }
 
   if (orders.length === 0) {
     return (

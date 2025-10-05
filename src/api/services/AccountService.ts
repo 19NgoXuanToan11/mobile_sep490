@@ -3,11 +3,11 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AccountForm } from '../models/AccountForm';
+import type { AccountStatus } from '../models/AccountStatus';
 import type { ChangePasswordDTO } from '../models/ChangePasswordDTO';
 import type { LoginRequestDTO } from '../models/LoginRequestDTO';
 import type { RegisterRequestDTO } from '../models/RegisterRequestDTO';
 import type { Roles } from '../models/Roles';
-import type { Status } from '../models/Status';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -110,7 +110,7 @@ export class AccountService {
     }: {
         pageSize?: number,
         pageIndex?: number,
-        status?: Status,
+        status?: AccountStatus,
         role?: Roles,
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
@@ -180,6 +180,16 @@ export class AccountService {
             },
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static put(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/',
         });
     }
 }

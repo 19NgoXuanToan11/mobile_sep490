@@ -20,13 +20,14 @@ import {
   Badge,
   Input,
 } from "../../../src/shared/ui";
-import { useCart, useLocalization } from "../../../src/shared/hooks";
+import { useCart, useLocalization, useAuth } from "../../../src/shared/hooks";
 import { formatCurrency } from "../../../src/shared/lib/utils";
 import { CartItem } from "../../../src/types";
 
 export default function CartScreen() {
   const { t } = useLocalization();
   const { cart, updateQuantity, removeItem } = useCart();
+  const { isAuthenticated } = useAuth();
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [savedItems, setSavedItems] = useState<string[]>([]);
@@ -74,6 +75,24 @@ export default function CartScreen() {
 
   const discountAmount = getDiscountAmount();
   const finalTotal = cart.total - discountAmount;
+
+  const handleCheckout = () => {
+    if (!isAuthenticated) {
+      Alert.alert(
+        "Yêu cầu đăng nhập",
+        "Bạn cần đăng nhập để tiếp tục thanh toán. Giỏ hàng của bạn sẽ được lưu lại.",
+        [
+          { text: "Huỷ", style: "cancel" },
+          {
+            text: "Đăng nhập",
+            onPress: () => router.push("/(public)/auth/login"),
+          },
+        ]
+      );
+      return;
+    }
+    router.push("/(app)/checkout");
+  };
 
   const renderCartItem = ({ item }: { item: CartItem }) => (
     <Card className="mx-4 mb-3" padding="none" variant="elevated">
@@ -370,9 +389,25 @@ export default function CartScreen() {
               </View>
             </View>
 
+            {/* Guest Login Banner */}
+            {!isAuthenticated && (
+              <View className="bg-warning-50 border border-warning-200 rounded-xl p-3 mb-4">
+                <View className="flex-row items-center space-x-2">
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={20}
+                    color="#f59e0b"
+                  />
+                  <Text className="text-warning-700 text-sm flex-1">
+                    Bạn cần đăng nhập để thanh toán. Giỏ hàng sẽ được lưu lại.
+                  </Text>
+                </View>
+              </View>
+            )}
+
             {/* Checkout Button */}
             <TouchableOpacity
-              onPress={() => router.push("/(app)/checkout")}
+              onPress={handleCheckout}
               className="bg-primary-500 rounded-xl py-4 items-center justify-center mb-1"
               style={{
                 shadowColor: "#00623A",
@@ -385,8 +420,11 @@ export default function CartScreen() {
             >
               <View className="flex-row items-center space-x-2">
                 <Text className="text-white font-semibold text-lg">
-                  Đặt hàng
+                  {isAuthenticated ? "Đặt hàng" : "Đăng nhập để thanh toán"}
                 </Text>
+                {!isAuthenticated && (
+                  <Ionicons name="arrow-forward" size={20} color="#fff" />
+                )}
               </View>
             </TouchableOpacity>
           </View>

@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Button, Card } from "../../../src/shared/ui";
+import { Button, Card, EmptyState } from "../../../src/shared/ui";
 import { useAuth } from "../../../src/shared/hooks";
 
 const SettingItem: React.FC<{
@@ -40,12 +40,74 @@ const SettingItem: React.FC<{
 );
 
 export default function AccountScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated, isLoading } = useAuth();
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/(public)/auth/login");
+    // Chuyển về trang chủ sau khi đăng xuất - cho phép tiếp tục mua sắm
+    router.replace("/(app)/(tabs)/home");
   };
+
+  // Show login prompt if not authenticated
+  // Hiển thị yêu cầu đăng nhập nếu chưa xác thực
+  if (!isLoading && !isAuthenticated) {
+    return (
+      <View className="flex-1 bg-neutral-50">
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor="transparent"
+          translucent
+        />
+
+        <View className="flex-1 justify-center pt-12 px-4">
+          <Card
+            padding="xl"
+            variant="elevated"
+            className="items-center space-y-6"
+          >
+            <View className="w-24 h-24 bg-primary-100 rounded-full items-center justify-center">
+              <Ionicons name="person-outline" size={48} color="#00623A" />
+            </View>
+
+            <View className="items-center space-y-2">
+              <Text className="text-2xl font-bold text-neutral-900">
+                Chào mừng đến với IFMS
+              </Text>
+              <Text className="text-center text-neutral-600">
+                Đăng nhập để truy cập tài khoản, xem đơn hàng và quản lý thông
+                tin cá nhân
+              </Text>
+            </View>
+
+            <View className="w-full space-y-3">
+              <Button
+                title="Đăng nhập ngay"
+                onPress={() => router.push("/(public)/auth/login")}
+                fullWidth
+                size="lg"
+              />
+              <Button
+                title="Tạo tài khoản"
+                variant="outline"
+                onPress={() => router.push("/(public)/auth/register")}
+                fullWidth
+                size="lg"
+              />
+            </View>
+
+            <TouchableOpacity
+              onPress={() => router.push("/(app)/(tabs)/home")}
+              className="mt-4"
+            >
+              <Text className="text-primary-600 font-medium">
+                Tiếp tục duyệt sản phẩm
+              </Text>
+            </TouchableOpacity>
+          </Card>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-neutral-50">

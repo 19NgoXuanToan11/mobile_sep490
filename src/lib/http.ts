@@ -11,7 +11,6 @@ const ONE_TIME_LOG = (() => {
   return (message: string, ...payload: unknown[]) => {
     if (!logged) {
       // eslint-disable-next-line no-console
-      console.log(message, ...payload);
       logged = true;
     }
   };
@@ -33,12 +32,7 @@ export const createHttpClient = (
 
   instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     try {
-      // eslint-disable-next-line no-console
-      console.log(
-        "[HTTP] →",
-        (config.method || "GET").toUpperCase(),
-        `${config.baseURL ?? ""}${config.url}`
-      );
+
     } catch {}
     return config;
   });
@@ -47,7 +41,6 @@ export const createHttpClient = (
     (response: AxiosResponse) => {
       try {
         // eslint-disable-next-line no-console
-        console.log("[HTTP] ←", response.status, response.config.url);
       } catch {}
       // IMPORTANT: return full AxiosResponse to keep compatibility with OpenAPI client
       return response;
