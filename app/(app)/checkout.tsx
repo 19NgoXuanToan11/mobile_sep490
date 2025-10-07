@@ -186,72 +186,62 @@ const PaymentMethodSelector: React.FC<{
         </View>
 
         <View className="space-y-3">
-          {paymentMethods.map((method) => (
-            <TouchableOpacity
-              key={method.id}
-              onPress={() => onSelect(method.id)}
-              className={`border-2 rounded-xl p-4 ${
-                selectedId === method.id
-                  ? "border-primary-500 bg-primary-50"
-                  : "border-neutral-200 bg-white"
-              }`}
-              style={{
-                shadowColor: selectedId === method.id ? "#00623A" : "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: selectedId === method.id ? 0.15 : 0.05,
-                shadowRadius: 4,
-                elevation: selectedId === method.id ? 4 : 2,
-              }}
-            >
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center space-x-3 flex-1">
-                  <View
-                    className="w-10 h-10 rounded-lg items-center justify-center"
-                    style={{
-                      backgroundColor: `${getPaymentColor(method.type)}15`,
-                    }}
-                  >
-                    <Ionicons
-                      name={getPaymentIcon(method.type)}
-                      size={20}
-                      color={getPaymentColor(method.type)}
-                    />
+          {paymentMethods
+            .filter((method) => method.type !== "COD")
+            .map((method) => (
+              <TouchableOpacity
+                key={method.id}
+                onPress={() => onSelect(method.id)}
+                className={`border-2 rounded-xl p-4 ${
+                  selectedId === method.id
+                    ? "border-primary-500 bg-primary-50"
+                    : "border-neutral-200 bg-white"
+                }`}
+                style={{
+                  shadowColor: selectedId === method.id ? "#00623A" : "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: selectedId === method.id ? 0.15 : 0.05,
+                  shadowRadius: 4,
+                  elevation: selectedId === method.id ? 4 : 2,
+                }}
+              >
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center space-x-3 flex-1">
+                    <View
+                      className="w-10 h-10 rounded-lg items-center justify-center"
+                      style={{
+                        backgroundColor: `${getPaymentColor(method.type)}15`,
+                      }}
+                    >
+                      <Ionicons
+                        name={getPaymentIcon(method.type)}
+                        size={20}
+                        color={getPaymentColor(method.type)}
+                      />
+                    </View>
+
+                    <View className="flex-1 pr-3">
+                      <Text className="font-semibold text-neutral-900 text-base">
+                        {method.name}
+                      </Text>
+                      <Text className="text-sm text-neutral-600 leading-5 mt-0.5">
+                        {method.description}
+                      </Text>
+                    </View>
                   </View>
 
-                  <View className="flex-1 pr-3">
-                    <Text className="font-semibold text-neutral-900 text-base">
-                      {method.name}
-                    </Text>
-                    <Text className="text-sm text-neutral-600 leading-5 mt-0.5">
-                      {method.description}
-                    </Text>
-                    {method.type === "COD" && (
-                      <View className="flex-row items-center space-x-1 mt-1.5">
-                        <Ionicons
-                          name="shield-checkmark-outline"
-                          size={12}
-                          color="#22c55e"
-                        />
-                        <Text className="text-xs text-success-600">
-                          Thanh toán an toàn
-                        </Text>
-                      </View>
-                    )}
-                  </View>
+                  <Ionicons
+                    name={
+                      selectedId === method.id
+                        ? "radio-button-on"
+                        : "radio-button-off"
+                    }
+                    size={24}
+                    color={selectedId === method.id ? "#00623A" : "#d1d5db"}
+                  />
                 </View>
-
-                <Ionicons
-                  name={
-                    selectedId === method.id
-                      ? "radio-button-on"
-                      : "radio-button-off"
-                  }
-                  size={24}
-                  color={selectedId === method.id ? "#00623A" : "#d1d5db"}
-                />
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))}
         </View>
       </View>
     </Card>
@@ -511,28 +501,12 @@ export default function CheckoutScreen() {
                           {formatCurrency(cart.subtotal)}
                         </Text>
                       </View>
-                      <View className="flex-row justify-between items-center">
-                        <Text className="text-neutral-600 text-base">
-                          Phí giao hàng
-                        </Text>
-                        <View className="items-end">
-                          {cart.shippingFee === 0 ? (
-                            <Text className="text-success-600 font-medium text-base">
-                              Miễn phí
-                            </Text>
-                          ) : (
-                            <Text className="font-medium text-neutral-900 text-base">
-                              {formatCurrency(cart.shippingFee)}
-                            </Text>
-                          )}
-                        </View>
-                      </View>
                       <View className="flex-row justify-between items-center pt-3 border-t border-neutral-200">
                         <Text className="text-lg font-semibold text-neutral-900">
                           Tổng cộng
                         </Text>
                         <Text className="text-xl font-bold text-primary-600">
-                          {formatCurrency(cart.total)}
+                          {formatCurrency(cart.subtotal)}
                         </Text>
                       </View>
                     </View>
@@ -561,7 +535,7 @@ export default function CheckoutScreen() {
             ) : (
               <View style={{ marginBottom: 10 }}>
                 <Card variant="elevated" padding="lg">
-                  <View className="space-y-4">
+                  <View style={{ rowGap: 10 }}>
                     <View className="flex-row items-center justify-between">
                       <View className="flex-row items-center space-x-2">
                         <Ionicons
@@ -596,7 +570,6 @@ export default function CheckoutScreen() {
                           error={errors.manualAddress?.message}
                           multiline
                           numberOfLines={3}
-                          leftIcon="location-outline"
                         />
                       )}
                     />

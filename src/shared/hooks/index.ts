@@ -189,13 +189,35 @@ export const useCartStore = create<CartStore>((set, get) => ({
   updateQuantity: async (itemId, quantity) => {
     try {
       const { isAuthenticated } = useAuthStore.getState();
-      const response = await cartApi.updateQuantity(
-        itemId,
-        quantity,
-        isAuthenticated
-      );
-      if (response.success) {
-        set({ items: response.data });
+
+      if (isAuthenticated) {
+        // For authenticated users, we need to get the productId from the cart item
+        // since backend expects productId, not cartItemId
+        const currentItems = get().items;
+        const item = currentItems.find((i) => i.id === itemId);
+        if (!item) {
+          console.error("Cart item not found:", itemId);
+          return;
+        }
+
+        const response = await cartApi.updateQuantity(
+          item.productId, // Pass productId instead of itemId
+          quantity,
+          isAuthenticated
+        );
+        if (response.success) {
+          set({ items: response.data });
+        }
+      } else {
+        // Guest mode - use localStorage with itemId
+        const response = await cartApi.updateQuantity(
+          itemId,
+          quantity,
+          isAuthenticated
+        );
+        if (response.success) {
+          set({ items: response.data });
+        }
       }
     } catch (error) {
       console.error("Update quantity error:", error);
@@ -205,9 +227,30 @@ export const useCartStore = create<CartStore>((set, get) => ({
   removeItem: async (itemId) => {
     try {
       const { isAuthenticated } = useAuthStore.getState();
-      const response = await cartApi.removeItem(itemId, isAuthenticated);
-      if (response.success) {
-        set({ items: response.data });
+
+      if (isAuthenticated) {
+        // For authenticated users, we need to get the productId from the cart item
+        // since backend expects productId, not cartItemId
+        const currentItems = get().items;
+        const item = currentItems.find((i) => i.id === itemId);
+        if (!item) {
+          console.error("Cart item not found:", itemId);
+          return;
+        }
+
+        const response = await cartApi.removeItem(
+          item.productId,
+          isAuthenticated
+        );
+        if (response.success) {
+          set({ items: response.data });
+        }
+      } else {
+        // Guest mode - use localStorage with itemId
+        const response = await cartApi.removeItem(itemId, isAuthenticated);
+        if (response.success) {
+          set({ items: response.data });
+        }
       }
     } catch (error) {
       console.error("Remove item error:", error);
