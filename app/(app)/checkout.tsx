@@ -255,6 +255,10 @@ export default function CheckoutScreen() {
   const { isAuthenticated, user, isLoading } = useAuth();
   const [selectedDeliveryTime, setSelectedDeliveryTime] = useState("asap");
   const [useManualAddress, setUseManualAddress] = useState(false);
+  const [pendingOrderData, setPendingOrderData] = useState<
+    (CheckoutFormData & { manualAddress?: string }) | null
+  >(null);
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
   // Redirect to login if not authenticated
   // Chuyển hướng đến trang đăng nhập nếu chưa xác thực
@@ -290,54 +294,123 @@ export default function CheckoutScreen() {
     queryFn: () => paymentMethodsApi.getAll().then((res) => res.data),
   });
 
+  // Step 1: Create Order
   const createOrderMutation = useMutation({
-    mutationFn: ordersApi.create,
+    mutationFn: async (orderData: {
+      orderItems: Array<{ productId: number; stockQuantity: number }>;
+      shippingAddress: string;
+    }) => {
+      return await ordersApi.create(orderData);
+    },
     onSuccess: async (response) => {
       if (response.success) {
-        const orderId = response.data.id;
+        const { orderId, totalPrice, paymentUrl } = response.data;
+        setCreatedOrderId(orderId);
 
-        // Check if using VNPAY payment
+        toast.success("Tạo đơn hàng thành công", `Mã đơn hàng: #${orderId}`);
+
+        // Check payment method
         const paymentMethod = paymentMethods.find(
           (m) => m.id === watchedPaymentMethodId
         );
 
         if (paymentMethod?.type === "E_WALLET") {
-          // Process VNPAY payment
-          try {
-            const paymentResponse = await vnpayApi.createPaymentUrl({
-              orderId: Number(orderId),
-              amount: cart.total,
-              orderDescription: `Thanh toán đơn hàng #${orderId}`,
-              name: user?.name ?? "Customer",
-            });
-
-            if (paymentResponse.success && paymentResponse.data?.paymentUrl) {
-              // Open VNPAY payment URL
-              await Linking.openURL(paymentResponse.data.paymentUrl);
-
-              // Navigate to payment result page
-              toast.info("Chuyển sang VNPAY", "Vui lòng hoàn tất thanh toán");
-              router.replace(`/(app)/payment-result?orderId=${orderId}`);
-            } else {
-              toast.error(
-                "Lỗi thanh toán",
-                "Không thể tạo liên kết thanh toán"
-              );
-            }
-          } catch (error) {
-            console.error("Payment error:", error);
-            toast.error("Lỗi thanh toán", "Vui lòng thử lại sau");
+          // Nếu đã có paymentUrl từ tạo đơn hàng, sử dụng luôn
+          if (paymentUrl) {
+            await Linking.openURL(paymentUrl);
+            toast.info("Chuyển hướng VNPAY", "Vui lòng hoàn tất thanh toán");
+            router.replace(`/(app)/payment-result?orderId=${orderId}`);
+            return;
           }
+
+          // Process VNPAY payment (fallback nếu không có paymentUrl)
+          createPaymentUrlMutation.mutate({
+            orderId,
+            amount: totalPrice,
+            orderDescription: `Thanh toán đơn hàng #${orderId}`,
+            name: user?.name ?? "Customer",
+          });
         } else {
-          // COD payment - go directly to order tracking
-          clearCart();
-          toast.success("Đặt hàng thành công", "Đơn hàng của bạn đã được tạo");
-          router.replace(`/(app)/track/${orderId}`);
+          // COD payment - create payment record and finish
+          createOrderPaymentMutation.mutate(orderId);
         }
+      } else {
+        toast.error(
+          "Tạo đơn hàng thất bại",
+          response.message || "Vui lòng thử lại sau"
+        );
+        setPendingOrderData(null);
       }
     },
-    onError: () => {
-      toast.error("Đặt hàng thất bại", "Vui lòng thử lại");
+    onError: (error: any) => {
+      console.error("Create order error:", error);
+      toast.error(
+        "Tạo đơn hàng thất bại",
+        error?.message || "Vui lòng kiểm tra thông tin và thử lại"
+      );
+      setPendingOrderData(null);
+    },
+  });
+
+  // Step 2: Create VNPAY Payment URL
+  const createPaymentUrlMutation = useMutation({
+    mutationFn: async (paymentData: {
+      orderId: number;
+      amount: number;
+      orderDescription: string;
+      name: string;
+    }) => {
+      return await ordersApi.createPaymentUrl(paymentData);
+    },
+    onSuccess: async (response) => {
+      if (response.success && response.data?.paymentUrl) {
+        // Open VNPAY payment URL
+        await Linking.openURL(response.data.paymentUrl);
+
+        // Navigate to payment result page
+        toast.info("Chuyển hướng VNPAY", "Vui lòng hoàn tất thanh toán");
+        router.replace(`/(app)/payment-result?orderId=${createdOrderId}`);
+      } else {
+        toast.error(
+          "Lỗi thanh toán",
+          response.message || "Không thể tạo liên kết thanh toán"
+        );
+      }
+    },
+    onError: (error: any) => {
+      console.error("Create payment URL error:", error);
+      toast.error(
+        "Lỗi thanh toán",
+        "Không thể tạo liên kết thanh toán. Vui lòng thử lại."
+      );
+    },
+  });
+
+  // Step 3: Create Order Payment Record
+  const createOrderPaymentMutation = useMutation({
+    mutationFn: async (orderId: number) => {
+      return await ordersApi.createOrderPayment(orderId);
+    },
+    onSuccess: async (response) => {
+      if (response.success) {
+        // Success - clear cart and redirect
+        await clearCart();
+        toast.success(
+          "Đặt hàng thành công",
+          "Đơn hàng đã được xử lý thành công"
+        );
+        router.replace(`/(app)/(tabs)/orders`);
+
+        // Reset states
+        setPendingOrderData(null);
+        setCreatedOrderId(null);
+      } else {
+        toast.error("Lỗi thanh toán", "Không thể lưu thông tin thanh toán");
+      }
+    },
+    onError: (error: any) => {
+      console.error("Create order payment error:", error);
+      toast.error("Lỗi thanh toán", "Không thể hoàn tất đơn hàng");
     },
   });
 
@@ -396,10 +469,36 @@ export default function CheckoutScreen() {
         { text: "Hủy", style: "cancel" },
         {
           text: "Đặt hàng",
-          onPress: () =>
+          onPress: () => {
+            // Prepare order data
+            setPendingOrderData(data);
+
+            // Get shipping address
+            let shippingAddress = "";
+            if (data.manualAddress?.trim()) {
+              shippingAddress = data.manualAddress.trim();
+            } else if (data.addressId) {
+              const selectedAddress = addresses.find(
+                (a) => a.id === data.addressId
+              );
+              if (selectedAddress) {
+                shippingAddress = `${selectedAddress.street}, ${selectedAddress.ward}, ${selectedAddress.district}, ${selectedAddress.city}`;
+              }
+            }
+
+            // Prepare order items for API
+            const orderItems = cart.items.map((item) => ({
+              productId: Number(item.productId), // Use item.productId instead of item.product.id
+              stockQuantity: item.quantity,
+            }));
+
+            // Start order creation process
+            toast.info("Đang tạo đơn hàng", "Vui lòng đợi...");
             createOrderMutation.mutate({
-              ...data,
-            } as any),
+              orderItems,
+              shippingAddress,
+            });
+          },
         },
       ]
     );
@@ -599,18 +698,36 @@ export default function CheckoutScreen() {
           >
             <TouchableOpacity
               onPress={handleSubmit(onSubmit)}
-              disabled={!isValid || createOrderMutation.isPending}
+              disabled={
+                !isValid ||
+                createOrderMutation.isPending ||
+                createPaymentUrlMutation.isPending ||
+                createOrderPaymentMutation.isPending
+              }
               className={`rounded-xl py-4 items-center justify-center ${
-                !isValid || createOrderMutation.isPending
+                !isValid ||
+                createOrderMutation.isPending ||
+                createPaymentUrlMutation.isPending ||
+                createOrderPaymentMutation.isPending
                   ? "bg-neutral-300"
                   : "bg-primary-500"
               }`}
               style={{
                 shadowColor: "#00623A",
                 shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: createOrderMutation.isPending ? 0 : 0.3,
+                shadowOpacity:
+                  createOrderMutation.isPending ||
+                  createPaymentUrlMutation.isPending ||
+                  createOrderPaymentMutation.isPending
+                    ? 0
+                    : 0.3,
                 shadowRadius: 8,
-                elevation: createOrderMutation.isPending ? 0 : 6,
+                elevation:
+                  createOrderMutation.isPending ||
+                  createPaymentUrlMutation.isPending ||
+                  createOrderPaymentMutation.isPending
+                    ? 0
+                    : 6,
               }}
               activeOpacity={0.8}
             >
@@ -619,7 +736,21 @@ export default function CheckoutScreen() {
                   <>
                     <View className="w-5 h-5 border-2 border-neutral-400 border-t-neutral-600 rounded-full animate-spin" />
                     <Text className="text-neutral-500 font-semibold text-lg">
-                      Đang xử lý...
+                      Đang tạo đơn hàng...
+                    </Text>
+                  </>
+                ) : createPaymentUrlMutation.isPending ? (
+                  <>
+                    <View className="w-5 h-5 border-2 border-neutral-400 border-t-neutral-600 rounded-full animate-spin" />
+                    <Text className="text-neutral-500 font-semibold text-lg">
+                      Đang tạo liên kết thanh toán...
+                    </Text>
+                  </>
+                ) : createOrderPaymentMutation.isPending ? (
+                  <>
+                    <View className="w-5 h-5 border-2 border-neutral-400 border-t-neutral-600 rounded-full animate-spin" />
+                    <Text className="text-neutral-500 font-semibold text-lg">
+                      Đang hoàn tất đơn hàng...
                     </Text>
                   </>
                 ) : (

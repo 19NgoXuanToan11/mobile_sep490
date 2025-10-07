@@ -25,9 +25,8 @@ import { CartItem } from "../../../src/types";
 
 export default function CartScreen() {
   const { t } = useLocalization();
-  const { cart, updateQuantity, removeItem } = useCart();
+  const { cart, updateQuantity, removeItem, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
-  const [savedItems, setSavedItems] = useState<string[]>([]);
 
   const handleRemoveItem = (itemId: string, itemName: string) => {
     Alert.alert(
@@ -44,9 +43,19 @@ export default function CartScreen() {
     );
   };
 
-  const handleSaveForLater = (itemId: string) => {
-    setSavedItems((prev) => [...prev, itemId]);
-    removeItem(itemId);
+  const handleClearCart = () => {
+    Alert.alert(
+      "Xóa tất cả sản phẩm",
+      "Bạn có chắc muốn xóa tất cả sản phẩm trong giỏ hàng?",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa tất cả",
+          onPress: () => clearCart(),
+          style: "destructive",
+        },
+      ]
+    );
   };
 
   const handleCheckout = () => {
@@ -156,18 +165,7 @@ export default function CartScreen() {
           />
 
           {/* Action Buttons */}
-          <View className="flex-row items-center space-x-3">
-            <TouchableOpacity
-              onPress={() => handleSaveForLater(item.id)}
-              className="flex-row items-center space-x-1.5 px-3 py-2 rounded-full bg-white/80"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="heart-outline" size={16} color="#6b7280" />
-              <Text className="text-sm text-neutral-600 font-medium">
-                Lưu sau
-              </Text>
-            </TouchableOpacity>
-
+          <View className="flex-row items-center">
             <TouchableOpacity
               onPress={() => handleRemoveItem(item.id, item.product.name)}
               className="flex-row items-center space-x-1.5 px-3 py-2 rounded-full bg-red-50"
@@ -218,14 +216,24 @@ export default function CartScreen() {
             <Text className="text-lg font-bold text-neutral-900">
               {cart.itemCount} món trong giỏ
             </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/(app)/(tabs)/catalog")}
-              className="flex-row items-center space-x-1"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="add-circle-outline" size={20} color="#00623A" />
-              <Text className="text-primary-600 font-medium">Thêm món</Text>
-            </TouchableOpacity>
+            <View className="flex-row items-center space-x-3">
+              <TouchableOpacity
+                onPress={handleClearCart}
+                className="flex-row items-center space-x-1"
+                activeOpacity={0.7}
+              >
+                <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                <Text className="text-red-500 font-medium">Xóa tất cả</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/(app)/(tabs)/catalog")}
+                className="flex-row items-center space-x-1"
+                activeOpacity={0.7}
+              >
+                <Ionicons name="add-circle-outline" size={20} color="#00623A" />
+                <Text className="text-primary-600 font-medium">Thêm món</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       )}

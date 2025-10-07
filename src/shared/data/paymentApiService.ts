@@ -1,6 +1,6 @@
 /**
  * Payment API Service - VNPAY integration
- * 支付API服务 - VNPAY集成
+ * Dịch vụ API thanh toán - Tích hợp VNPAY
  */
 
 import { OpenAPI } from "../../api/core/OpenAPI";
@@ -33,12 +33,12 @@ export interface PaymentResponse {
 
 /**
  * VNPAY Payment API Service
- * VNPAY支付API服务
+ * Dịch vụ API thanh toán VNPAY
  */
 export const vnpayApi = {
   /**
    * Create payment URL for VNPAY
-   * 创建VNPAY支付链接
+   * Tạo liên kết thanh toán VNPAY
    */
   async createPaymentUrl(
     paymentInfo: PaymentInformation
@@ -78,7 +78,7 @@ export const vnpayApi = {
 
   /**
    * Get payment info by order ID
-   * 根据订单ID获取支付信息
+   * Lấy thông tin thanh toán theo ID đơn hàng
    */
   async getPaymentByOrderId(orderId: number): Promise<PaymentResponse> {
     try {
@@ -115,7 +115,7 @@ export const vnpayApi = {
 
   /**
    * Create order payment
-   * 为订单创建支付记录
+   * Tạo bản ghi thanh toán cho đơn hàng
    */
   async createOrderPayment(orderId: number): Promise<PaymentResponse> {
     try {
@@ -149,7 +149,7 @@ export const vnpayApi = {
 
   /**
    * Process VNPAY callback after payment
-   * 处理VNPAY支付后的回调
+   * Xử lý callback VNPAY sau thanh toán
    */
   async handleCallback(queryParams: Record<string, string>): Promise<{
     success: boolean;

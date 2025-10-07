@@ -2,275 +2,235 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
+  TouchableOpacity,
   StatusBar,
   ActivityIndicator,
-  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Linking from "expo-linking";
-import { Card, Button } from "../../src/shared/ui";
-import { vnpayApi } from "../../src/shared/data/paymentApiService";
-import { formatCurrency } from "../../src/shared/lib/utils";
+import { Button, Card } from "../../src/shared/ui";
+import { ordersApi } from "../../src/shared/data/api";
+import { useToast } from "../../src/shared/ui/toast";
 import { useCart } from "../../src/shared/hooks";
+import { formatCurrency } from "../../src/shared/lib/utils";
 
 export default function PaymentResultScreen() {
-  const params = useLocalSearchParams();
-  const orderId = params.orderId as string;
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const toast = useToast();
   const { clearCart } = useCart();
-
-  const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState<
-    "SUCCESS" | "FAILED" | "PENDING"
-  >("PENDING");
-  const [paymentData, setPaymentData] = useState<any>(null);
+    "loading" | "success" | "failed"
+  >("loading");
+  const [orderDetails, setOrderDetails] = useState<any>(null);
+
+  // Check payment status
+  const { data: paymentData, isLoading } = useQuery({
+    queryKey: ["payment-status", orderId],
+    queryFn: async () => {
+      if (!orderId) throw new Error("Order ID not found");
+      return await ordersApi.getPaymentStatus(Number(orderId));
+    },
+    enabled: !!orderId,
+    refetchInterval: paymentStatus === "loading" ? 3000 : false,
+    refetchIntervalInBackground: false,
+  });
+
+  // Get order details
+  const { data: orderData } = useQuery({
+    queryKey: ["order", orderId],
+    queryFn: async () => {
+      if (!orderId) throw new Error("Order ID not found");
+      return await ordersApi.getById(orderId);
+    },
+    enabled: !!orderId && paymentStatus === "success",
+  });
 
   useEffect(() => {
-    checkPaymentStatus();
-  }, [orderId]);
+    if (paymentData?.success) {
+      const { isSuccess } = paymentData.data;
 
-  const checkPaymentStatus = async () => {
-    if (!orderId) {
-      setLoading(false);
-      setPaymentStatus("FAILED");
-      return;
+      if (isSuccess === true) {
+        setPaymentStatus("success");
+        handlePaymentSuccess();
+      } else if (isSuccess === false) {
+        setPaymentStatus("failed");
+        toast.error("Thanh toán thất bại", "Giao dịch không thành công");
+      }
+      // If isSuccess is undefined, keep loading state
+    } else if (paymentData?.success === false) {
+      setPaymentStatus("failed");
+      toast.error(
+        "Lỗi kiểm tra thanh toán",
+        paymentData.message || "Vui lòng thử lại"
+      );
     }
+  }, [paymentData]);
 
+  const handlePaymentSuccess = async () => {
     try {
-      setLoading(true);
-      const response = await vnpayApi.getPaymentByOrderId(Number(orderId));
+      // Create order payment record
+      const paymentResult = await ordersApi.createOrderPayment(Number(orderId));
 
-      if (response.success && response.data) {
-        setPaymentData(response.data);
-
-        // Check payment status
-        const status = response.data.status?.toUpperCase();
-        if (
-          status === "SUCCESS" ||
-          status === "PAID" ||
-          status === "COMPLETED"
-        ) {
-          setPaymentStatus("SUCCESS");
-          // Clear cart on successful payment
-          await clearCart();
-        } else if (status === "FAILED" || status === "CANCELLED") {
-          setPaymentStatus("FAILED");
-        } else {
-          setPaymentStatus("PENDING");
-        }
+      if (paymentResult.success) {
+        // Clear cart and show success
+        await clearCart();
+        toast.success(
+          "Thanh toán thành công",
+          "Đơn hàng đã được xử lý thành công"
+        );
+        setOrderDetails(paymentResult.data);
       } else {
-        setPaymentStatus("PENDING");
+        toast.error("Lỗi thanh toán", "Không thể hoàn tất đơn hàng");
+        setPaymentStatus("failed");
       }
     } catch (error) {
-      console.error("Check payment status error:", error);
-      setPaymentStatus("FAILED");
-    } finally {
-      setLoading(false);
+      console.error("Payment success handling error:", error);
+      toast.error("Lỗi xử lý thanh toán", "Vui lòng liên hệ hỗ trợ");
+      setPaymentStatus("failed");
     }
   };
 
-  const handleRetryPayment = async () => {
-    if (!orderId) return;
-
-    try {
-      const response = await vnpayApi.createPaymentUrl({
-        orderId: Number(orderId),
-        amount: paymentData?.amount ?? 0,
-        orderDescription: `Thanh toán đơn hàng #${orderId}`,
-        name: "Customer",
-      });
-
-      if (response.success && response.data?.paymentUrl) {
-        // Open VNPAY payment URL
-        await Linking.openURL(response.data.paymentUrl);
-      }
-    } catch (error) {
-      console.error("Retry payment error:", error);
-    }
+  const handleRetry = () => {
+    router.replace("/(app)/checkout");
   };
 
-  if (loading) {
+  const handleGoToOrders = () => {
+    router.replace("/(app)/(tabs)/orders");
+  };
+
+  const handleGoHome = () => {
+    router.replace("/(app)/(tabs)/home");
+  };
+
+  if (!orderId) {
     return (
       <SafeAreaView className="flex-1 bg-neutral-50 items-center justify-center">
-        <StatusBar
-          barStyle="dark-content"
-          backgroundColor="transparent"
-          translucent
-        />
-        <ActivityIndicator size="large" color="#00623A" />
-        <Text className="mt-4 text-neutral-600">
-          Đang kiểm tra thanh toán...
-        </Text>
+        <Card variant="elevated" padding="lg">
+          <View className="items-center space-y-4">
+            <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
+            <Text className="text-lg font-semibold text-neutral-900">
+              Không tìm thấy thông tin đơn hàng
+            </Text>
+            <Button title="Về trang chủ" onPress={handleGoHome} size="lg" />
+          </View>
+        </Card>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-50">
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
 
-      <View className="flex-1 items-center justify-center px-6">
-        {/* Status Icon */}
-        <View
-          className={`w-24 h-24 rounded-full items-center justify-center mb-6 ${
-            paymentStatus === "SUCCESS"
-              ? "bg-success-100"
-              : paymentStatus === "FAILED"
-              ? "bg-red-100"
-              : "bg-warning-100"
-          }`}
-        >
-          <Ionicons
-            name={
-              paymentStatus === "SUCCESS"
-                ? "checkmark-circle"
-                : paymentStatus === "FAILED"
-                ? "close-circle"
-                : "time"
-            }
-            size={80}
-            color={
-              paymentStatus === "SUCCESS"
-                ? "#16a34a"
-                : paymentStatus === "FAILED"
-                ? "#ef4444"
-                : "#f59e0b"
-            }
-          />
-        </View>
-
-        {/* Status Text */}
-        <Text className="text-2xl font-bold text-neutral-900 mb-3 text-center">
-          {paymentStatus === "SUCCESS"
-            ? "Thanh toán thành công!"
-            : paymentStatus === "FAILED"
-            ? "Thanh toán thất bại"
-            : "Đang chờ thanh toán"}
-        </Text>
-
-        <Text className="text-neutral-600 text-center mb-6 px-4">
-          {paymentStatus === "SUCCESS"
-            ? "Đơn hàng của bạn đã được thanh toán thành công. Chúng tôi sẽ xử lý và giao hàng sớm nhất."
-            : paymentStatus === "FAILED"
-            ? "Thanh toán không thành công. Vui lòng thử lại hoặc chọn phương thức thanh toán khác."
-            : "Đơn hàng của bạn đang chờ xác nhận thanh toán."}
-        </Text>
-
-        {/* Payment Details */}
-        {paymentData && (
-          <Card variant="elevated" padding="lg" className="w-full mb-6">
-            <View className="space-y-4">
-              <View className="flex-row items-center justify-between pb-4 border-b border-neutral-200">
-                <Text className="text-lg font-semibold text-neutral-900">
-                  Chi tiết thanh toán
-                </Text>
-              </View>
-
-              <View className="flex-row justify-between">
-                <Text className="text-neutral-600">Mã đơn hàng</Text>
-                <Text className="font-semibold text-neutral-900">
-                  #{orderId}
-                </Text>
-              </View>
-
-              {paymentData.amount && (
-                <View className="flex-row justify-between">
-                  <Text className="text-neutral-600">Số tiền</Text>
-                  <Text className="font-semibold text-neutral-900">
-                    {formatCurrency(paymentData.amount)}
+      <View className="flex-1 px-4 py-6 justify-center">
+        <Card variant="elevated" padding="xl">
+          <View className="items-center space-y-6">
+            {paymentStatus === "loading" && (
+              <>
+                <View className="w-20 h-20 bg-blue-100 rounded-full items-center justify-center">
+                  <ActivityIndicator size="large" color="#3b82f6" />
+                </View>
+                <View className="items-center space-y-2">
+                  <Text className="text-xl font-semibold text-neutral-900">
+                    Đang xử lý thanh toán
+                  </Text>
+                  <Text className="text-neutral-600 text-center">
+                    Vui lòng đợi trong khi chúng tôi xác nhận thanh toán của
+                    bạn...
                   </Text>
                 </View>
-              )}
-
-              {paymentData.transactionNo && (
-                <View className="flex-row justify-between">
-                  <Text className="text-neutral-600">Mã giao dịch</Text>
-                  <Text className="font-semibold text-neutral-900 text-right flex-1 ml-2">
-                    {paymentData.transactionNo}
+                <View className="bg-blue-50 p-4 rounded-lg w-full">
+                  <Text className="text-blue-800 text-sm text-center">
+                    Mã đơn hàng: #{orderId}
                   </Text>
                 </View>
-              )}
+              </>
+            )}
 
-              {paymentData.bankCode && (
-                <View className="flex-row justify-between">
-                  <Text className="text-neutral-600">Ngân hàng</Text>
-                  <Text className="font-semibold text-neutral-900">
-                    {paymentData.bankCode}
+            {paymentStatus === "success" && (
+              <>
+                <View className="w-20 h-20 bg-green-100 rounded-full items-center justify-center">
+                  <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
+                </View>
+                <View className="items-center space-y-2">
+                  <Text className="text-xl font-semibold text-neutral-900">
+                    Thanh toán thành công!
+                  </Text>
+                  <Text className="text-neutral-600 text-center">
+                    Đơn hàng của bạn đã được thanh toán và đang được xử lý
                   </Text>
                 </View>
-              )}
+                <View className="bg-green-50 p-4 rounded-lg w-full space-y-2">
+                  <Text className="text-green-800 text-sm text-center font-medium">
+                    Mã đơn hàng: #{orderId}
+                  </Text>
+                  {paymentData?.data?.transactionId && (
+                    <Text className="text-green-700 text-sm text-center">
+                      Mã giao dịch: {paymentData.data.transactionId}
+                    </Text>
+                  )}
+                  {paymentData?.data?.amount && (
+                    <Text className="text-green-700 text-sm text-center">
+                      Số tiền: {formatCurrency(paymentData.data.amount)}
+                    </Text>
+                  )}
+                </View>
+                <View className="w-full space-y-3">
+                  <Button
+                    title="Xem đơn hàng của tôi"
+                    onPress={handleGoToOrders}
+                    size="lg"
+                    variant="primary"
+                  />
+                  <Button
+                    title="Tiếp tục mua sắm"
+                    onPress={handleGoHome}
+                    size="lg"
+                    variant="outline"
+                  />
+                </View>
+              </>
+            )}
 
-              {paymentData.payDate && (
-                <View className="flex-row justify-between">
-                  <Text className="text-neutral-600">Thời gian</Text>
-                  <Text className="font-semibold text-neutral-900">
-                    {new Date(paymentData.payDate).toLocaleString("vi-VN")}
+            {paymentStatus === "failed" && (
+              <>
+                <View className="w-20 h-20 bg-red-100 rounded-full items-center justify-center">
+                  <Ionicons name="close-circle" size={48} color="#ef4444" />
+                </View>
+                <View className="items-center space-y-2">
+                  <Text className="text-xl font-semibold text-neutral-900">
+                    Thanh toán thất bại
+                  </Text>
+                  <Text className="text-neutral-600 text-center">
+                    Giao dịch của bạn không thành công. Vui lòng thử lại.
                   </Text>
                 </View>
-              )}
-            </View>
-          </Card>
-        )}
-
-        {/* Action Buttons */}
-        <View className="w-full space-y-3">
-          {paymentStatus === "SUCCESS" && (
-            <>
-              <Button
-                title="Xem đơn hàng"
-                onPress={() => router.push(`/(app)/track/${orderId}`)}
-                size="lg"
-                variant="primary"
-              />
-              <Button
-                title="Tiếp tục mua sắm"
-                onPress={() => router.push("/(app)/(tabs)/catalog")}
-                size="lg"
-                variant="outline"
-              />
-            </>
-          )}
-
-          {paymentStatus === "FAILED" && (
-            <>
-              <Button
-                title="Thử lại"
-                onPress={handleRetryPayment}
-                size="lg"
-                variant="primary"
-              />
-              <Button
-                title="Về trang chủ"
-                onPress={() => router.push("/(app)/(tabs)/home")}
-                size="lg"
-                variant="outline"
-              />
-            </>
-          )}
-
-          {paymentStatus === "PENDING" && (
-            <>
-              <Button
-                title="Kiểm tra lại"
-                onPress={checkPaymentStatus}
-                size="lg"
-                variant="primary"
-              />
-              <Button
-                title="Xem đơn hàng"
-                onPress={() => router.push(`/(app)/track/${orderId}`)}
-                size="lg"
-                variant="outline"
-              />
-            </>
-          )}
-        </View>
+                <View className="bg-red-50 p-4 rounded-lg w-full mt-5">
+                  <Text className="text-red-800 text-sm text-center">
+                    Mã đơn hàng: #{orderId}
+                  </Text>
+                </View>
+                <View className="w-full space-y-3 mt-5">
+                  <Button
+                    title="Thử lại"
+                    onPress={handleRetry}
+                    size="lg"
+                    variant="primary"
+                  />
+                  <Button
+                    title="Về trang chủ"
+                    onPress={handleGoHome}
+                    size="lg"
+                    variant="outline"
+                  />
+                </View>
+              </>
+            )}
+          </View>
+        </Card>
       </View>
     </SafeAreaView>
   );

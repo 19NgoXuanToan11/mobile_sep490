@@ -1,6 +1,6 @@
 /**
  * Cart API Service - Real backend integration for authenticated users
- * 购物车API服务 - 为已认证用户提供真实后端集成
+ * Dịch vụ API giỏ hàng - Tích hợp backend thực cho người dùng đã xác thực
  */
 
 import { OpenAPI } from "../../api/core/OpenAPI";
@@ -194,12 +194,12 @@ async function transformCartItem(
 
 /**
  * Real Cart API for authenticated users
- * 为已认证用户提供的真实购物车API
+ * API giỏ hàng thực cho người dùng đã xác thực
  */
 export const realCartApi = {
   /**
    * Get all cart items for current user
-   * 获取当前用户的所有购物车项
+   * Lấy tất cả mặt hàng trong giỏ hàng của người dùng hiện tại
    */
   async getItems(): Promise<{
     success: boolean;
@@ -257,7 +257,7 @@ export const realCartApi = {
 
   /**
    * Add item to cart
-   * 添加商品到购物车
+   * Thêm mặt hàng vào giỏ hàng
    */
   async addItem(
     productId: string,
@@ -300,7 +300,7 @@ export const realCartApi = {
 
   /**
    * Update cart item quantity
-   * 更新购物车商品数量
+   * Cập nhật số lượng mặt hàng trong giỏ hàng
    */
   async updateQuantity(
     productId: string, // Frontend passes cartItemId, but backend expects productId
@@ -343,7 +343,7 @@ export const realCartApi = {
 
   /**
    * Remove item from cart
-   * 从购物车删除商品
+   * Xóa mặt hàng khỏi giỏ hàng
    */
   async removeItem(
     productId: string // Frontend passes cartItemId, but backend expects productId
@@ -384,7 +384,7 @@ export const realCartApi = {
 
   /**
    * Clear all cart items
-   * 清空购物车
+   * Xóa tất cả mặt hàng trong giỏ hàng
    */
   async clear(): Promise<{ success: boolean; data: null; message?: string }> {
     try {
