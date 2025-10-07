@@ -83,33 +83,18 @@ const ImageGallery = ({ images }: { images: string[] }) => {
           <Ionicons name="chevron-back" size={20} color="#374151" />
         </TouchableOpacity>
 
-        <View className="flex-row space-x-2">
-          <TouchableOpacity
-            className="w-10 h-10 bg-white/90 rounded-full items-center justify-center"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
-          >
-            <Ionicons name="heart-outline" size={20} color="#374151" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="w-10 h-10 bg-white/90 rounded-full items-center justify-center"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
-          >
-            <Ionicons name="share-outline" size={20} color="#374151" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          className="w-10 h-10 bg-white/90 rounded-full items-center justify-center"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 4,
+          }}
+        >
+          <Ionicons name="share-outline" size={20} color="#374151" />
+        </TouchableOpacity>
       </View>
 
       {/* Image indicators */}

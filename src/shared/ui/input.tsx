@@ -45,6 +45,8 @@ export interface InputProps
   rightIcon?: keyof typeof Ionicons.glyphMap;
   onRightIconPress?: () => void;
   required?: boolean;
+  multiline?: boolean;
+  numberOfLines?: number;
 }
 
 export const Input = forwardRef<TextInput, InputProps>(
@@ -61,6 +63,8 @@ export const Input = forwardRef<TextInput, InputProps>(
       onRightIconPress,
       required,
       secureTextEntry,
+      multiline,
+      numberOfLines,
       ...props
     },
     ref
@@ -149,6 +153,8 @@ export const Input = forwardRef<TextInput, InputProps>(
             returnKeyType={props.returnKeyType || "next"}
             enablesReturnKeyAutomatically={true}
             contextMenuHidden={isPassword}
+            multiline={multiline}
+            numberOfLines={numberOfLines}
             {...props}
             style={[
               {
@@ -165,28 +171,39 @@ export const Input = forwardRef<TextInput, InputProps>(
                     : size === "sm"
                     ? 18
                     : 20,
-                paddingVertical: 0,
-                paddingTop:
-                  Platform.OS === "android"
-                    ? size === "lg"
-                      ? 16
-                      : size === "sm"
-                      ? 8
-                      : 12
-                    : 0,
-                paddingBottom:
-                  Platform.OS === "android"
-                    ? size === "lg"
-                      ? 16
-                      : size === "sm"
-                      ? 8
-                      : 12
-                    : 0,
+                paddingVertical: multiline ? 12 : 0,
+                paddingTop: multiline
+                  ? 12
+                  : Platform.OS === "android"
+                  ? size === "lg"
+                    ? 16
+                    : size === "sm"
+                    ? 8
+                    : 12
+                  : 0,
+                paddingBottom: multiline
+                  ? 12
+                  : Platform.OS === "android"
+                  ? size === "lg"
+                    ? 16
+                    : size === "sm"
+                    ? 8
+                    : 12
+                  : 0,
                 includeFontPadding: false,
-                textAlignVertical: "center",
-                height: size === "lg" ? 56 : size === "sm" ? 36 : 44,
+                textAlignVertical: multiline ? "top" : "center",
+                height: multiline
+                  ? numberOfLines
+                    ? numberOfLines * 24 + 24
+                    : 80
+                  : size === "lg"
+                  ? 56
+                  : size === "sm"
+                  ? 36
+                  : 44,
+                minHeight: multiline ? 80 : undefined,
                 margin: 0,
-                verticalAlign: "middle",
+                verticalAlign: multiline ? "top" : "middle",
               },
               props.style,
             ]}

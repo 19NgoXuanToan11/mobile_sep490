@@ -23,9 +23,11 @@ import {
   ProductService,
   CategoryService,
   OrderService,
+  PaymentService,
   FeedbackService,
   CreateFeedbackDTO,
 } from "../../api";
+import { request as __request } from "../../api/core/request";
 import env from "../../config/env";
 import { realCartApi } from "./cartApiService";
 
@@ -577,7 +579,7 @@ export const bannersApi = {
 };
 
 // Cart API - switches between localStorage (Guest) and real API (User)
-// 购物车API - 在localStorage（访客）和真实API（用户）之间切换
+// API giỏ hàng - chuyển đổi giữa localStorage (Khách) và API thực (Người dùng)
 export const cartApi = {
   /**
    * Get cart items - uses real API if authenticated, localStorage if guest
@@ -830,6 +832,264 @@ export const ordersApi = {
     }
   },
 
+  /**
+   * Create new order
+   */
+  async create(orderData: {
+    orderItems: Array<{ productId: number; stockQuantity: number }>;
+    shippingAddress: string;
+  }): Promise<
+    ApiResponse<{
+      orderId: number;
+      totalPrice: number;
+      message?: string;
+      paymentUrl?: string;
+    }>
+  > {
+    try {
+      // Ensure authentication is set up
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: { orderId: 0, totalPrice: 0 },
+          message: "Chưa đăng nhập - Vui lòng đăng nhập lại",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token; // Ensure token is set for this request
+
+      const result = await OrderService.postApiV1OrderCreate({
+        requestBody: {
+          orderItems: orderData.orderItems.map((item) => ({
+            productId: item.productId,
+            stockQuantity: item.stockQuantity,
+          })),
+          shippingAddress: orderData.shippingAddress,
+        },
+      });
+
+      const data = (result as any)?.data ?? result;
+
+      // Check for success indicators - handle multiple possible success formats
+      // Backend trả về status: 1 khi thành công
+      const isSuccess =
+        data.status === 1 ||
+        data.status === 201 ||
+        data.status === 200 ||
+        (data.orderId && typeof data.orderId === "number") ||
+        (data.data?.orderId && typeof data.data.orderId === "number") ||
+        (data.paymentUrl && typeof data.paymentUrl === "string") ||
+        (data.message && data.message.includes("Order created"));
+
+      if (isSuccess) {
+        // Lấy orderId từ nhiều nguồn có thể
+        let orderId = data.orderId || data.data?.orderId || 0;
+
+        // Nếu không có orderId, thử lấy từ vnp_TxnRef trong paymentUrl
+        if (!orderId && data.paymentUrl) {
+          const urlParams = new URLSearchParams(data.paymentUrl.split("?")[1]);
+          const txnRef = urlParams.get("vnp_TxnRef");
+          if (txnRef) {
+            orderId = parseInt(txnRef);
+          }
+        }
+
+        const totalPrice = data.totalPrice || data.data?.totalPrice || 0;
+
+        return {
+          success: true,
+          data: {
+            orderId,
+            totalPrice,
+            message: data.message || data.data?.message,
+            paymentUrl: data.paymentUrl, // Thêm paymentUrl để có thể sử dụng sau
+          },
+          message: data.message || "Đơn hàng được tạo thành công",
+        };
+      } else {
+        return {
+          success: false,
+          data: { orderId: 0, totalPrice: 0 },
+          message:
+            data.message ||
+            data.data?.message ||
+            "Tạo đơn hàng thất bại - response không hợp lệ",
+        };
+      }
+    } catch (error: any) {
+      console.error("Create order error:", error);
+      console.error("Error details:", {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status,
+      });
+
+      return {
+        success: false,
+        data: { orderId: 0, totalPrice: 0 },
+        message:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Lỗi tạo đơn hàng",
+      };
+    }
+  },
+
+  /**
+   * Create payment URL for VNPAY
+   */
+  async createPaymentUrl(paymentData: {
+    orderId: number;
+    amount: number;
+    orderDescription: string;
+    name: string;
+  }): Promise<ApiResponse<{ paymentUrl: string }>> {
+    try {
+      // Ensure authentication is set up
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: { paymentUrl: "" },
+          message: "Chưa đăng nhập - Vui lòng đăng nhập lại",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token; // Ensure token is set for this request
+      const result = await PaymentService.postApiVnpayCreatePaymentUrl({
+        requestBody: {
+          orderId: paymentData.orderId,
+          orderType: "product",
+          amount: paymentData.amount,
+          orderDescription: paymentData.orderDescription,
+          name: paymentData.name,
+        },
+      });
+
+      const data = (result as any)?.data ?? result;
+      const paymentUrl = data?.url || data?.paymentUrl;
+
+      if (paymentUrl) {
+        return {
+          success: true,
+          data: { paymentUrl },
+        };
+      } else {
+        return {
+          success: false,
+          data: { paymentUrl: "" },
+          message: "Không thể tạo liên kết thanh toán",
+        };
+      }
+    } catch (error: any) {
+      console.error("Create payment URL error:", error);
+      return {
+        success: false,
+        data: { paymentUrl: "" },
+        message: error?.message || "Lỗi tạo liên kết thanh toán",
+      };
+    }
+  },
+
+  /**
+   * Get payment status by order ID
+   */
+  async getPaymentStatus(orderId: number): Promise<
+    ApiResponse<{
+      isSuccess: boolean;
+      transactionId?: string;
+      amount?: number;
+      payDate?: string;
+    }>
+  > {
+    try {
+      // Ensure authentication is set up
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: { isSuccess: false },
+          message: "Chưa đăng nhập - Vui lòng đăng nhập lại",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token; // Ensure token is set for this request
+      const result = await PaymentService.getApiVnpayPaymentByOrderId({
+        orderId,
+      });
+
+      const data = (result as any)?.data ?? result;
+
+      if (data.status === 200 && data.data) {
+        return {
+          success: true,
+          data: {
+            isSuccess: data.data.success || false,
+            transactionId: data.data.transactionId,
+            amount: data.data.amount,
+            payDate: data.data.payDate,
+          },
+        };
+      } else {
+        return {
+          success: false,
+          data: { isSuccess: false },
+          message: "Không thể lấy trạng thái thanh toán",
+        };
+      }
+    } catch (error: any) {
+      console.error("Get payment status error:", error);
+      return {
+        success: false,
+        data: { isSuccess: false },
+        message: error?.message || "Lỗi kiểm tra trạng thái thanh toán",
+      };
+    }
+  },
+
+  /**
+   * Create order payment record
+   */
+  async createOrderPayment(
+    orderId: number
+  ): Promise<ApiResponse<{ message: string }>> {
+    try {
+      // Ensure authentication is set up
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: { message: "" },
+          message: "Chưa đăng nhập - Vui lòng đăng nhập lại",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token; // Ensure token is set for this request
+      const result = await OrderService.postApiV1OrderCreateOrderPayment({
+        orderId,
+      });
+
+      const data = (result as any)?.data ?? result;
+
+      return {
+        success: true,
+        data: { message: data.message || "Tạo bản ghi thanh toán thành công" },
+      };
+    } catch (error: any) {
+      console.error("Create order payment error:", error);
+      return {
+        success: false,
+        data: { message: "" },
+        message: error?.message || "Lỗi tạo bản ghi thanh toán",
+      };
+    }
+  },
+
   async getById(id: string): Promise<ApiResponse<Order>> {
     try {
       const res = await OrderService.getApiV1OrderOrder({
@@ -878,79 +1138,35 @@ export const ordersApi = {
     }
   },
 
-  async create(
-    checkoutData: CheckoutFormData & { manualAddress?: string }
-  ): Promise<ApiResponse<Order>> {
+  // Prepare order before creation - validate stock and get order details
+  async prepareOrder(): Promise<
+    ApiResponse<{
+      orderItems: Array<{ productId: number; stockQuantity: number }>;
+      shippingAddress: string;
+    }>
+  > {
     try {
-      const cartItems =
-        (await storage.getItem<CartItem[]>(STORAGE_KEYS.CART_ITEMS)) || [];
-      if (!cartItems.length) {
-        return { success: false, data: null as any, message: "Cart is empty" };
-      }
-
       OpenAPI.BASE = env.API_URL;
-      const requestBody: any = {
-        orderItems: cartItems.map((ci) => ({
-          productId: Number(ci.productId),
-          stockQuantity: ci.quantity,
-        })),
-        shippingAddress: checkoutData.manualAddress || "",
-      };
-
-      const result = await OrderService.postApiV1OrderCreate({
-        requestBody,
+      const result = await __request(OpenAPI, {
+        method: "POST",
+        url: "/api/v1/account/prepare-order",
+        mediaType: "application/json",
       });
 
-      // Clear cart on success
-      await storage.removeItem(STORAGE_KEYS.CART_ITEMS);
-
-      const o: any = (result as any)?.data ?? (result as any);
-      const order: Order = {
-        id: String(o.orderId ?? o.id ?? generateId("order")),
-        orderNumber: o.orderNumber ?? `ORD-${String(Date.now()).slice(-6)}`,
-        userId: String(o.userId ?? ""),
-        items: cartItems,
-        status: String(o.status ?? "PLACED") as any,
-        statusHistory: [],
-        shippingAddress: {
-          id: "",
-          name: "",
-          phone: "",
-          street: String(
-            o.shippingAddress ?? requestBody.shippingAddress ?? ""
-          ),
-          ward: "",
-          district: "",
-          city: "",
-          isDefault: false,
-          type: "OTHER",
+      const data = (result as any)?.data ?? result;
+      return {
+        success: true,
+        data: {
+          orderItems: data.orderItems || [],
+          shippingAddress: data.shippingAddress || "",
         },
-        paymentMethod: {
-          id: "cod",
-          type: "COD",
-          name: "Thanh toán khi nhận hàng",
-          description: "",
-          isActive: true,
-        },
-        itemCount: cartItems.reduce((sum, item) => sum + item.quantity, 0),
-        subtotal: cartItems.reduce((sum, item) => sum + item.subtotal, 0),
-        shippingFee: Number(o.shippingFee ?? 0),
-        discount: Number(o.discount ?? 0),
-        total: Number(o.total ?? 0),
-        notes: checkoutData.notes,
-        estimatedDelivery: o.estimatedDelivery ?? undefined,
-        trackingNumber: o.trackingNumber ?? undefined,
-        createdAt: o.createdAt ?? new Date().toISOString(),
-        updatedAt: o.updatedAt ?? new Date().toISOString(),
       };
-
-      return { success: true, data: order };
     } catch (error) {
       return {
         success: false,
         data: null as any,
         message:
-          error instanceof Error ? error.message : "Failed to create order",
+          error instanceof Error ? error.message : "Failed to prepare order",
       };
     }
   },

@@ -79,6 +79,13 @@ export default function AppLayout() {
           title: "Chỉnh Sửa Địa Chỉ",
         }}
       />
+      <Stack.Screen
+        name="payment-result"
+        options={{
+          title: "Kết Quả Thanh Toán",
+          headerBackTitle: "Quay lại",
+        }}
+      />
     </Stack>
   );
 }

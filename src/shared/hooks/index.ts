@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         });
 
         // Sync guest cart to user cart after successful login
-        // 登录成功后同步访客购物车到用户购物车
+        // Đồng bộ giỏ hàng khách đến giỏ hàng người dùng sau khi đăng nhập thành công
         setTimeout(() => {
           useCartStore.getState().syncGuestCartToUser();
         }, 500);
@@ -96,7 +96,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
 
       // Clear cart when logging out
-      // 登出时清空购物车
+      // Xóa giỏ hàng khi đăng xuất
       useCartStore.getState().clearCart();
     } catch (error) {
       console.error("Logout error:", error);
@@ -271,7 +271,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   /**
    * Sync guest cart (localStorage) to user cart (API) after login
-   * 登录后将访客购物车（localStorage）同步到用户购物车（API）
+   * Đồng bộ giỏ hàng khách (localStorage) đến giỏ hàng người dùng (API) sau khi đăng nhập
    */
   syncGuestCartToUser: async () => {
     try {
