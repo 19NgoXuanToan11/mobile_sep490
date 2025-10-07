@@ -18,7 +18,6 @@ import {
   QuantityStepper,
   EmptyState,
   Badge,
-  Input,
 } from "../../../src/shared/ui";
 import { useCart, useLocalization, useAuth } from "../../../src/shared/hooks";
 import { formatCurrency } from "../../../src/shared/lib/utils";
@@ -28,8 +27,6 @@ export default function CartScreen() {
   const { t } = useLocalization();
   const { cart, updateQuantity, removeItem } = useCart();
   const { isAuthenticated } = useAuth();
-  const [promoCode, setPromoCode] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [savedItems, setSavedItems] = useState<string[]>([]);
 
   const handleRemoveItem = (itemId: string, itemName: string) => {
@@ -51,30 +48,6 @@ export default function CartScreen() {
     setSavedItems((prev) => [...prev, itemId]);
     removeItem(itemId);
   };
-
-  const handleApplyPromo = () => {
-    // Mock promo code validation
-    if (promoCode.toLowerCase() === "fresh20") {
-      setAppliedPromo(promoCode);
-      setPromoCode("");
-      Alert.alert("Thành công", "Mã giảm giá đã được áp dụng!");
-    } else if (promoCode.toLowerCase() === "organic10") {
-      setAppliedPromo(promoCode);
-      setPromoCode("");
-      Alert.alert("Thành công", "Mã giảm giá đã được áp dụng!");
-    } else {
-      Alert.alert("Lỗi", "Mã giảm giá không hợp lệ");
-    }
-  };
-
-  const getDiscountAmount = () => {
-    if (appliedPromo === "fresh20") return cart.subtotal * 0.2;
-    if (appliedPromo === "organic10") return cart.subtotal * 0.1;
-    return 0;
-  };
-
-  const discountAmount = getDiscountAmount();
-  const finalTotal = cart.total - discountAmount;
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -263,79 +236,6 @@ export default function CartScreen() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingVertical: 20, paddingBottom: 240 }}
-        ListFooterComponent={() => (
-          <View className="px-4 space-y-5 pb-8">
-            {/* Promo Code Section */}
-            <Card variant="elevated" padding="lg" className="mb-4">
-              <View className="space-y-5">
-                <View className="flex-row items-center space-x-2">
-                  <Ionicons name="pricetag-outline" size={20} color="#00623A" />
-                  <Text className="text-lg font-semibold text-neutral-900">
-                    Mã Giảm Giá
-                  </Text>
-                </View>
-
-                {appliedPromo ? (
-                  <View className="flex-row items-center justify-between bg-success-50 p-3 rounded-xl">
-                    <View className="flex-row items-center space-x-2">
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={20}
-                        color="#16a34a"
-                      />
-                      <Text className="text-success-700 font-medium">
-                        Đã áp dụng: {appliedPromo.toUpperCase()}
-                      </Text>
-                    </View>
-                    <TouchableOpacity onPress={() => setAppliedPromo(null)}>
-                      <Text className="text-success-600">Hủy</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View className="flex-row space-x-3">
-                    <View className="flex-1">
-                      <Input
-                        placeholder="Nhập mã giảm giá"
-                        value={promoCode}
-                        onChangeText={setPromoCode}
-                        leftIcon="pricetag-outline"
-                      />
-                    </View>
-                    <Button
-                      title="Áp dụng"
-                      onPress={handleApplyPromo}
-                      variant="outline"
-                      size="md"
-                      disabled={!promoCode.trim()}
-                    />
-                  </View>
-                )}
-
-                {/* Promo suggestions */}
-                {!appliedPromo && (
-                  <View className="flex-row space-x-2">
-                    <TouchableOpacity
-                      onPress={() => setPromoCode("FRESH20")}
-                      className="bg-primary-50 px-3 py-1 rounded-full"
-                    >
-                      <Text className="text-primary-600 text-sm font-medium">
-                        FRESH20
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => setPromoCode("ORGANIC10")}
-                      className="bg-organic-50 px-3 py-1 rounded-full"
-                    >
-                      <Text className="text-organic-600 text-sm font-medium">
-                        ORGANIC10
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            </Card>
-          </View>
-        )}
       />
 
       {/* Bottom Cart Summary */}
@@ -359,32 +259,10 @@ export default function CartScreen() {
                 </Text>
               </View>
 
-              {appliedPromo && (
-                <View className="flex-row justify-between">
-                  <Text className="text-success-600">
-                    Giảm giá ({appliedPromo})
-                  </Text>
-                  <Text className="font-medium text-success-600">
-                    -{formatCurrency(discountAmount)}
-                  </Text>
-                </View>
-              )}
-
-              <View className="flex-row justify-between">
-                <Text className="text-neutral-600">Phí giao hàng</Text>
-                {cart.shippingFee === 0 ? (
-                  <Text className="font-medium text-success-600">Miễn phí</Text>
-                ) : (
-                  <Text className="font-medium">
-                    {formatCurrency(cart.shippingFee)}
-                  </Text>
-                )}
-              </View>
-
               <View className="flex-row justify-between pt-2 border-t border-neutral-200">
                 <Text className="text-lg font-semibold">Tổng thanh toán</Text>
                 <Text className="text-lg font-bold text-primary-600">
-                  {formatCurrency(finalTotal)}
+                  {formatCurrency(cart.subtotal)}
                 </Text>
               </View>
             </View>

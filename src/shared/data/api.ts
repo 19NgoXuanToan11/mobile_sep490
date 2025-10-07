@@ -704,6 +704,7 @@ export const cartApi = {
     isAuthenticated: boolean = false
   ): Promise<ApiResponse<CartItem[]>> {
     if (isAuthenticated) {
+      // For authenticated users, itemId should be productId for backend compatibility
       return await realCartApi.updateQuantity(itemId, quantity);
     }
 
@@ -739,6 +740,7 @@ export const cartApi = {
     isAuthenticated: boolean = false
   ): Promise<ApiResponse<CartItem[]>> {
     if (isAuthenticated) {
+      // For authenticated users, itemId should be productId for backend compatibility
       return await realCartApi.removeItem(itemId);
     }
 
