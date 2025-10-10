@@ -5,6 +5,8 @@ export interface User {
   phone?: string;
   avatar?: string;
   role: "GUEST" | "CUSTOMER";
+  gender?: string; // "male", "female", hoặc null
+  address?: string;
   createdAt: string;
   updatedAt: string;
 }

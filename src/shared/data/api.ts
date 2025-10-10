@@ -82,6 +82,10 @@ export const authApi = {
           credentials.email.split("@")[0],
         email:
           profileResp?.data?.email ?? profileResp?.email ?? credentials.email,
+        phone: profileResp?.data?.phone ?? profileResp?.phone,
+        gender: profileResp?.data?.gender ?? profileResp?.gender,
+        address: profileResp?.data?.address ?? profileResp?.address,
+        avatar: profileResp?.data?.images ?? profileResp?.images,
         role: "CUSTOMER",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

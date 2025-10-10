@@ -124,7 +124,6 @@ export const Input = forwardRef<TextInput, InputProps>(
                 top: 0,
                 bottom: 0,
                 width: 24,
-                height: size === "lg" ? 56 : size === "sm" ? 36 : 44,
                 zIndex: 10,
               }}
             >

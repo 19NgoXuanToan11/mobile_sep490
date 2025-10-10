@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Alert,
   Platform,
   TextInput,
+  Modal,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -16,11 +18,14 @@ import * as ImagePicker from "expo-image-picker";
 import { Button, Card, Input } from "../../../src/shared/ui";
 import { useAuth } from "../../../src/shared/hooks";
 import { User } from "../../../src/types";
+import { profileApi } from "../../../src/shared/data/api";
 
 interface EditProfileForm {
   name: string;
   email: string;
   phone: string;
+  address: string;
+  gender: number; // 0: Không xác định, 1: Nam, 2: Nữ
   avatar?: string;
 }
 
@@ -31,14 +36,18 @@ export default function EditProfileScreen() {
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
+    address: "",
+    gender: 0,
     avatar: user?.avatar,
   });
   const [errors, setErrors] = useState<Partial<EditProfileForm>>({});
+  const [showGenderPicker, setShowGenderPicker] = useState(false);
 
   // Refs for input focus management
   const nameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const phoneRef = useRef<TextInput>(null);
+  const addressRef = useRef<TextInput>(null);
 
   const focusNextField = useCallback(
     (nextFieldRef: React.RefObject<TextInput | null>) => {
@@ -69,6 +78,10 @@ export default function EditProfileScreen() {
       newErrors.phone = "Số điện thoại không hợp lệ";
     }
 
+    if (formData.address && formData.address.length > 255) {
+      newErrors.address = "Địa chỉ không được vượt quá 255 ký tự";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -80,17 +93,27 @@ export default function EditProfileScreen() {
 
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Call real API to update profile
+      const response = await profileApi.updateProfile({
+        fullname: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        gender: formData.gender,
+        images: formData.avatar,
+      });
 
-      // Update user profile logic would go here
-      // await updateProfile(formData);
-
-      Alert.alert(
-        "Thành công",
-        "Thông tin cá nhân đã được cập nhật thành công",
-        [{ text: "OK", onPress: () => router.back() }]
-      );
+      if (response.success) {
+        Alert.alert(
+          "Thành công",
+          "Thông tin cá nhân đã được cập nhật thành công",
+          [{ text: "OK", onPress: () => router.back() }]
+        );
+      } else {
+        Alert.alert(
+          "Lỗi",
+          response.message || "Có lỗi xảy ra khi cập nhật thông tin"
+        );
+      }
     } catch (error) {
       Alert.alert("Lỗi", "Có lỗi xảy ra khi cập nhật thông tin");
     } finally {
@@ -125,12 +148,54 @@ export default function EditProfileScreen() {
     }
   };
 
-  const updateField = (field: keyof EditProfileForm, value: string) => {
+  const updateField = (
+    field: keyof EditProfileForm,
+    value: string | number
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
+
+  const getGenderLabel = (value: number): string => {
+    switch (value) {
+      case 1:
+        return "Nam";
+      case 2:
+        return "Nữ";
+      default:
+        return "Không xác định";
+    }
+  };
+
+  const handleGenderSelect = (value: number) => {
+    updateField("gender", value);
+    setShowGenderPicker(false);
+  };
+
+  // Load profile data on component mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await profileApi.getProfile();
+        if (response.success && response.data) {
+          setFormData({
+            name: response.data.fullname || user?.name || "",
+            email: response.data.email || user?.email || "",
+            phone: response.data.phone || user?.phone || "",
+            address: response.data.address || "",
+            gender: response.data.gender ? Number(response.data.gender) : 0,
+            avatar: response.data.images || user?.avatar,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load profile:", error);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   return (
     <View className="flex-1 bg-neutral-50">
@@ -249,9 +314,39 @@ export default function EditProfileScreen() {
               keyboardType="phone-pad"
               autoComplete="tel"
               size="lg"
-              returnKeyType="done"
-              onSubmitEditing={handleSave}
+              returnKeyType="next"
+              onSubmitEditing={() => focusNextField(addressRef)}
             />
+
+            <Input
+              ref={addressRef}
+              label="Địa chỉ"
+              placeholder="Nhập địa chỉ (tối đa 255 ký tự)"
+              value={formData.address}
+              onChangeText={(text) => updateField("address", text)}
+              error={errors.address}
+              leftIcon="location-outline"
+              multiline
+              numberOfLines={3}
+              size="lg"
+              maxLength={255}
+              returnKeyType="done"
+            />
+
+            <View>
+              <Text className="text-sm font-medium text-neutral-700 mb-2">
+                Giới tính
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowGenderPicker(true)}
+                className="border border-neutral-300 rounded-lg bg-white px-4 py-3 flex-row items-center justify-between"
+              >
+                <Text className="text-base text-neutral-900">
+                  {getGenderLabel(formData.gender)}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
           </View>
         </Card>
 
@@ -267,6 +362,97 @@ export default function EditProfileScreen() {
           />
         </View>
       </ScrollView>
+
+      {/* Gender Picker Modal */}
+      <Modal
+        visible={showGenderPicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowGenderPicker(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/50 justify-end"
+          onPress={() => setShowGenderPicker(false)}
+        >
+          <Pressable
+            className="bg-white rounded-t-3xl"
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View className="px-4 py-6">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-lg font-semibold text-neutral-900">
+                  Chọn giới tính
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowGenderPicker(false)}
+                  className="p-2"
+                >
+                  <Ionicons name="close" size={24} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+
+              <View className="space-y-2">
+                <TouchableOpacity
+                  onPress={() => handleGenderSelect(0)}
+                  className={`p-4 rounded-lg border ${
+                    formData.gender === 0
+                      ? "bg-primary-50 border-primary-600"
+                      : "bg-white border-neutral-200"
+                  }`}
+                >
+                  <Text
+                    className={`text-base font-medium ${
+                      formData.gender === 0
+                        ? "text-primary-600"
+                        : "text-neutral-900"
+                    }`}
+                  >
+                    Không xác định
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => handleGenderSelect(1)}
+                  className={`p-4 rounded-lg border ${
+                    formData.gender === 1
+                      ? "bg-primary-50 border-primary-600"
+                      : "bg-white border-neutral-200"
+                  }`}
+                >
+                  <Text
+                    className={`text-base font-medium ${
+                      formData.gender === 1
+                        ? "text-primary-600"
+                        : "text-neutral-900"
+                    }`}
+                  >
+                    Nam
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => handleGenderSelect(2)}
+                  className={`p-4 rounded-lg border ${
+                    formData.gender === 2
+                      ? "bg-primary-50 border-primary-600"
+                      : "bg-white border-neutral-200"
+                  }`}
+                >
+                  <Text
+                    className={`text-base font-medium ${
+                      formData.gender === 2
+                        ? "text-primary-600"
+                        : "text-neutral-900"
+                    }`}
+                  >
+                    Nữ
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
