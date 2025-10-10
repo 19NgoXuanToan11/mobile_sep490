@@ -94,15 +94,6 @@ export default function AccountScreen() {
                 size="lg"
               />
             </View>
-
-            <TouchableOpacity
-              onPress={() => router.push("/(app)/(tabs)/home")}
-              className="mt-4"
-            >
-              <Text className="text-primary-600 font-medium">
-                Tiếp tục duyệt sản phẩm
-              </Text>
-            </TouchableOpacity>
           </Card>
         </View>
       </View>
