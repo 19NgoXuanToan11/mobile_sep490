@@ -315,15 +315,24 @@ export default function CheckoutScreen() {
         );
 
         if (paymentMethod?.type === "E_WALLET") {
-          // Nếu đã có paymentUrl từ tạo đơn hàng, sử dụng luôn
+          // Nếu đã có paymentUrl từ API tạo đơn hàng, redirect luôn
           if (paymentUrl) {
+            // Clear cart trước khi redirect
+            await clearCart();
+
+            // Redirect đến paymentUrl từ backend
+            toast.info(
+              "Chuyển hướng thanh toán",
+              "Đang chuyển đến trang thanh toán VNPay..."
+            );
             await Linking.openURL(paymentUrl);
-            toast.info("Chuyển hướng VNPAY", "Vui lòng hoàn tất thanh toán");
+
+            // Navigate to payment result page để user quay lại sau khi thanh toán
             router.replace(`/(app)/payment-result?orderId=${orderId}`);
             return;
           }
 
-          // Process VNPAY payment (fallback nếu không có paymentUrl)
+          // Fallback: Nếu không có paymentUrl, tạo mới (trường hợp cũ)
           createPaymentUrlMutation.mutate({
             orderId,
             amount: totalPrice,
@@ -352,7 +361,7 @@ export default function CheckoutScreen() {
     },
   });
 
-  // Step 2: Create VNPAY Payment URL
+  // Step 2: Create VNPAY Payment URL (Fallback)
   const createPaymentUrlMutation = useMutation({
     mutationFn: async (paymentData: {
       orderId: number;
@@ -364,11 +373,17 @@ export default function CheckoutScreen() {
     },
     onSuccess: async (response) => {
       if (response.success && response.data?.paymentUrl) {
-        // Open VNPAY payment URL
+        // Clear cart trước khi redirect
+        await clearCart();
+
+        // Redirect đến paymentUrl
+        toast.info(
+          "Chuyển hướng thanh toán",
+          "Đang chuyển đến trang thanh toán VNPay..."
+        );
         await Linking.openURL(response.data.paymentUrl);
 
-        // Navigate to payment result page
-        toast.info("Chuyển hướng VNPAY", "Vui lòng hoàn tất thanh toán");
+        // Navigate to payment result page để user quay lại sau khi thanh toán
         router.replace(`/(app)/payment-result?orderId=${createdOrderId}`);
       } else {
         toast.error(
