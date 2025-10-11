@@ -327,7 +327,6 @@ export default function CheckoutScreen() {
             );
             await Linking.openURL(paymentUrl);
 
-            // Navigate to payment result page để user quay lại sau khi thanh toán
             router.replace(`/(app)/payment-result?orderId=${orderId}`);
             return;
           }

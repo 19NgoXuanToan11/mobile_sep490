@@ -50,16 +50,24 @@ export default function PaymentResultScreen() {
 
   useEffect(() => {
     if (paymentData?.success) {
-      const { isSuccess } = paymentData.data;
+      const { isSuccess, vnpayResponseCode, isPending } = paymentData.data;
 
-      if (isSuccess === true) {
+      // 🔥 SỬA: Kiểm tra isPending trước
+      if (isPending === true) {
+        setPaymentStatus("loading");
+      } else if (isSuccess === true) {
         setPaymentStatus("success");
         handlePaymentSuccess();
       } else if (isSuccess === false) {
         setPaymentStatus("failed");
-        toast.error("Thanh toán thất bại", "Giao dịch không thành công");
+        const errorMessage =
+          vnpayResponseCode !== "00"
+            ? `Mã lỗi VNPay: ${vnpayResponseCode}`
+            : "Giao dịch không thành công";
+        toast.error("Thanh toán thất bại", errorMessage);
+      } else {
+        // Keep loading state để tiếp tục polling
       }
-      // If isSuccess is undefined, keep loading state
     } else if (paymentData?.success === false) {
       setPaymentStatus("failed");
       toast.error(
@@ -167,16 +175,6 @@ export default function PaymentResultScreen() {
                   <Text className="text-green-800 text-sm text-center font-medium">
                     Mã đơn hàng: #{orderId}
                   </Text>
-                  {paymentData?.data?.transactionId && (
-                    <Text className="text-green-700 text-sm text-center">
-                      Mã giao dịch: {paymentData.data.transactionId}
-                    </Text>
-                  )}
-                  {paymentData?.data?.amount && (
-                    <Text className="text-green-700 text-sm text-center">
-                      Số tiền: {formatCurrency(paymentData.data.amount)}
-                    </Text>
-                  )}
                 </View>
                 <View className="w-full space-y-3">
                   <Button
