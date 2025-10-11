@@ -1007,6 +1007,8 @@ export const ordersApi = {
       transactionId?: string;
       amount?: number;
       payDate?: string;
+      vnpayResponseCode?: string;
+      isPending?: boolean;
     }>
   > {
     try {
@@ -1028,14 +1030,40 @@ export const ordersApi = {
 
       const data = (result as any)?.data ?? result;
 
-      if (data.status === 200 && data.data) {
+      // Kiểm tra cả 2 cấu trúc có thể: data.data hoặc data trực tiếp
+      const responseData = data.data || data;
+
+      // 🔥 Nếu backend trả về lỗi "Không tìm thấy Payment", có thể payment chưa được tạo
+      if (data.message && data.message.includes("Không tìm thấy Payment")) {
         return {
           success: true,
           data: {
-            isSuccess: data.data.success || false,
-            transactionId: data.data.transactionId,
-            amount: data.data.amount,
-            payDate: data.data.payDate,
+            isSuccess: false,
+            transactionId: undefined,
+            amount: 0,
+            payDate: undefined,
+            vnpayResponseCode: undefined,
+            isPending: true, // Đánh dấu là đang chờ xử lý
+          },
+        };
+      }
+
+      if ((data.status === 200 && data.data) || data.success !== undefined) {
+        // 🔥 SỬA: Đọc từ response thực tế (lowercase và camelCase)
+        const vnpaySuccess = responseData.vnPayResponseCode === "00";
+        const backendSuccess = responseData.success === true;
+
+        // Chỉ coi là thành công khi cả 2 điều kiện đều true
+        const finalSuccess = vnpaySuccess && backendSuccess;
+        
+        return {
+          success: true,
+          data: {
+            isSuccess: finalSuccess,
+            transactionId: responseData.transactionId,
+            amount: responseData.amount,
+            payDate: responseData.paymentTime,
+            vnpayResponseCode: responseData.vnPayResponseCode,
           },
         };
       } else {
