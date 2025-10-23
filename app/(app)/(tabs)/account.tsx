@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Button, Card, EmptyState } from "../../../src/shared/ui";
-import { useAuth } from "../../../src/shared/hooks";
+import { useAuth, useAuthActions } from "../../../src/shared/hooks";
 
 const SettingItem: React.FC<{
   icon: keyof typeof Ionicons.glyphMap;
@@ -40,7 +40,8 @@ const SettingItem: React.FC<{
 );
 
 export default function AccountScreen() {
-  const { user, logout, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const { logout } = useAuthActions();
 
   const handleLogout = async () => {
     await logout();

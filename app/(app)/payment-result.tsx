@@ -18,7 +18,14 @@ import { useCart } from "../../src/shared/hooks";
 import { formatCurrency } from "../../src/shared/lib/utils";
 
 export default function PaymentResultScreen() {
-  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const params = useLocalSearchParams<{
+    orderId: string;
+    success?: string;
+    amount?: string;
+    code?: string;
+    message?: string;
+  }>();
+  const { orderId, success, amount, code, message } = params;
   const toast = useToast();
   const { clearCart } = useCart();
   const [paymentStatus, setPaymentStatus] = useState<
@@ -26,15 +33,37 @@ export default function PaymentResultScreen() {
   >("loading");
   const [orderDetails, setOrderDetails] = useState<any>(null);
 
-  // Check payment status
+  // Handle deep link parameters from VNPay callback
+  useEffect(() => {
+    if (success !== undefined) {
+      // Direct callback from VNPay via deep link
+      if (success === "true") {
+        setPaymentStatus("success");
+        handlePaymentSuccess();
+        toast.success(
+          "Thanh toán thành công",
+          message || "Giao dịch đã được xử lý thành công"
+        );
+      } else {
+        setPaymentStatus("failed");
+        toast.error(
+          "Thanh toán thất bại",
+          message || `Mã lỗi: ${code || "Unknown"}`
+        );
+      }
+    }
+  }, [success, code, message]);
+
+  // Check payment status (only if not from deep link)
   const { data: paymentData, isLoading } = useQuery({
     queryKey: ["payment-status", orderId],
     queryFn: async () => {
       if (!orderId) throw new Error("Order ID not found");
       return await ordersApi.getPaymentStatus(Number(orderId));
     },
-    enabled: !!orderId,
-    refetchInterval: paymentStatus === "loading" ? 3000 : false,
+    enabled: !!orderId && success === undefined, // Only poll if not from deep link
+    refetchInterval:
+      paymentStatus === "loading" && success === undefined ? 3000 : false,
     refetchIntervalInBackground: false,
   });
 
@@ -49,7 +78,8 @@ export default function PaymentResultScreen() {
   });
 
   useEffect(() => {
-    if (paymentData?.success) {
+    // Only process API data if not from deep link
+    if (success === undefined && paymentData?.success) {
       const { isSuccess, vnpayResponseCode, isPending } = paymentData.data;
 
       // 🔥 SỬA: Kiểm tra isPending trước
@@ -68,14 +98,14 @@ export default function PaymentResultScreen() {
       } else {
         // Keep loading state để tiếp tục polling
       }
-    } else if (paymentData?.success === false) {
+    } else if (success === undefined && paymentData?.success === false) {
       setPaymentStatus("failed");
       toast.error(
         "Lỗi kiểm tra thanh toán",
         paymentData.message || "Vui lòng thử lại"
       );
     }
-  }, [paymentData]);
+  }, [paymentData, success]);
 
   const handlePaymentSuccess = async () => {
     try {
@@ -175,6 +205,11 @@ export default function PaymentResultScreen() {
                   <Text className="text-green-800 text-sm text-center font-medium">
                     Mã đơn hàng: #{orderId}
                   </Text>
+                  {amount && (
+                    <Text className="text-green-800 text-sm text-center">
+                      Số tiền: {formatCurrency(Number(amount))}
+                    </Text>
+                  )}
                 </View>
                 <View className="w-full space-y-3">
                   <Button

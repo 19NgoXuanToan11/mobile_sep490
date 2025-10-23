@@ -29,12 +29,15 @@ import {
   categoriesApi,
   productsApi,
 } from "../../../src/shared/data/api";
-import { useAuth, useLocalization } from "../../../src/shared/hooks";
+import { useAuth, useLocalization, useCart } from "../../../src/shared/hooks";
 import { formatCurrency } from "../../../src/shared/lib/utils";
+import { useToast } from "../../../src/shared/ui/toast";
 
 export default function HomeScreen() {
   const { t } = useLocalization();
   const { user } = useAuth();
+  const toast = useToast();
+  const { addItem } = useCart();
   const [refreshing, setRefreshing] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -115,6 +118,14 @@ export default function HomeScreen() {
 
   const handleSearchFocus = () => {
     router.push("/(public)/search");
+  };
+
+  const handleAddToCart = async (productId: string, productName: string) => {
+    await addItem(productId, 1);
+    toast.success(
+      "Đã thêm vào giỏ",
+      `${productName} đã được thêm vào giỏ hàng`
+    );
   };
 
   return (
@@ -344,6 +355,7 @@ export default function HomeScreen() {
                       params: { id: product.id },
                     })
                   }
+                  onAddToCart={() => handleAddToCart(product.id, product.name)}
                   showQuickView={true}
                 />
               ))}
@@ -376,6 +388,9 @@ export default function HomeScreen() {
                         pathname: "/(app)/product/[id]",
                         params: { id: product.id },
                       })
+                    }
+                    onAddToCart={() =>
+                      handleAddToCart(product.id, product.name)
                     }
                   />
                 </View>
