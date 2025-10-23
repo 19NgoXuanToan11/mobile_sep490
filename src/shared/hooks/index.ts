@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useQueryClient } from "@tanstack/react-query";
 import { User, CartItem, Cart } from "../../types";
 import { authStorage, storage, STORAGE_KEYS } from "../lib/storage";
 import { authApi, cartApi } from "../data/api";
@@ -628,5 +629,37 @@ export const useLocalization = () => {
     language: i18n.language,
     changeLanguage,
     isRTL: i18n.dir() === "rtl",
+  };
+};
+
+// Enhanced auth actions with query cache management
+export const useAuthActions = () => {
+  const queryClient = useQueryClient();
+  const authStore = useAuthStore();
+
+  const logoutWithCacheInvalidation = useCallback(async () => {
+    try {
+      // Perform the logout
+      await authStore.logout();
+
+      // Invalidate all product-related queries to ensure fresh data for guest users
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+      await queryClient.invalidateQueries({ queryKey: ["featured-products"] });
+      await queryClient.invalidateQueries({ queryKey: ["trending-products"] });
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
+      await queryClient.invalidateQueries({ queryKey: ["banners"] });
+
+      // Clear any stale product data
+      queryClient.removeQueries({ queryKey: ["products"], exact: false });
+      queryClient.removeQueries({ queryKey: ["featured-products"] });
+      queryClient.removeQueries({ queryKey: ["trending-products"] });
+    } catch (error) {
+      console.error("Logout with cache invalidation error:", error);
+    }
+  }, [authStore, queryClient]);
+
+  return {
+    ...authStore,
+    logout: logoutWithCacheInvalidation,
   };
 };

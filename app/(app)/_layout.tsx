@@ -38,12 +38,6 @@ export default function AppLayout() {
         }}
       />
       <Stack.Screen
-        name="track/[orderId]"
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
         name="profile/edit"
         options={{
           headerShown: false,

@@ -155,6 +155,8 @@ export const authApi = {
   async logout(): Promise<ApiResponse<null>> {
     await sleep(200);
     await authStorage.clearTokens();
+    // ✅ Clear OpenAPI token để guest users có thể truy cập API
+    OpenAPI.TOKEN = undefined;
     return {
       success: true,
       data: null,
@@ -786,20 +788,95 @@ export const cartApi = {
 
 // Orders API
 export const ordersApi = {
-  async getAll(): Promise<ApiResponse<Order[]>> {
+  async getAll(params?: {
+    pageIndex?: number;
+    pageSize?: number;
+    status?: string;
+  }): Promise<
+    ApiResponse<{ orders: Order[]; totalCount: number; hasNextPage: boolean }>
+  > {
     try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: { orders: [], totalCount: 0, hasNextPage: false },
+          message: "Not authenticated",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      // Use the new endpoint that doesn't need customer ID
       const res = await OrderService.getApiV1OrderOrderListByCurrentAccount({
-        pageIndex: 1,
-        pageSize: 50,
+        pageIndex: params?.pageIndex ?? 1,
+        pageSize: params?.pageSize ?? 10,
+        status: params?.status ? (params.status as any) : undefined,
       });
+
       const payload = res?.data ?? res;
+      // Handle the new API response structure
       const list: any[] = payload?.items ?? payload?.data ?? [];
+      const totalCount =
+        payload?.totalItemCount ??
+        payload?.totalCount ??
+        payload?.total ??
+        list.length;
+      const hasNextPage = Boolean(
+        payload?.next ??
+          payload?.hasNextPage ??
+          (params?.pageIndex ?? 1) * (params?.pageSize ?? 10) < totalCount
+      );
+
       const mapped: Order[] = list.map((o: any, idx: number) => ({
         id: String(o.orderId ?? o.id ?? idx),
-        orderNumber: o.orderNumber ?? `ORD-${String(o.orderId ?? idx)}`,
-        userId: String(o.userId ?? ""),
-        items: [],
-        status: String(o.status ?? "PLACED") as any,
+        orderNumber:
+          o.orderNumber ?? `ORD-${String(o.orderId ?? idx).padStart(2, "0")}`,
+        userId: String(o.userId ?? o.customerId ?? ""),
+        items: (o.orderItems ?? o.orderDetails ?? []).map((item: any) => ({
+          id: String(item.id ?? item.orderDetailId ?? idx),
+          productId: String(item.productId ?? ""),
+          quantity: Number(item.quantity ?? item.stockQuantity ?? 1),
+          price: Number(item.price ?? item.unitPrice ?? 0),
+          product: {
+            id: String(item.productId ?? ""),
+            name: String(item.productName ?? "Sản phẩm"),
+            images: item.productImages ? [item.productImages] : [],
+            tags: [],
+            price: Number(item.price ?? item.unitPrice ?? 0),
+            description: "",
+            category: {
+              id: "",
+              name: "",
+              slug: "",
+              description: "",
+              image: "",
+              isActive: true,
+            },
+            isActive: true,
+            stock: 0,
+            rating: 0,
+            reviewCount: 0,
+            discount: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        })),
+        status:
+          String(o.status ?? "1") === "1"
+            ? "PLACED"
+            : String(o.status ?? "2") === "2"
+            ? "CONFIRMED"
+            : String(o.status ?? "3") === "3"
+            ? "PACKED"
+            : String(o.status ?? "4") === "4"
+            ? "SHIPPED"
+            : String(o.status ?? "5") === "5"
+            ? "DELIVERED"
+            : String(o.status ?? "0") === "0"
+            ? "CANCELLED"
+            : "PLACED",
         statusHistory: [],
         shippingAddress: {
           id: "",
@@ -819,20 +896,29 @@ export const ordersApi = {
           description: "",
           isActive: true,
         },
-        itemCount: Number(o.itemCount ?? 0),
-        subtotal: Number(o.subtotal ?? 0),
-        shippingFee: Number(o.shippingFee ?? 0),
-        discount: Number(o.discount ?? 0),
-        total: Number(o.total ?? 0),
+        itemCount: Number(o.orderItems?.length ?? o.orderDetails?.length ?? 1),
+        subtotal: Number(o.totalPrice ?? o.total ?? 0),
+        shippingFee: 0,
+        discount: 0,
+        total: Number(o.totalPrice ?? o.total ?? 0),
         notes: o.notes ?? undefined,
         estimatedDelivery: o.estimatedDelivery ?? undefined,
         trackingNumber: o.trackingNumber ?? undefined,
         createdAt: o.createdAt ?? new Date().toISOString(),
         updatedAt: o.updatedAt ?? new Date().toISOString(),
       }));
-      return { success: true, data: mapped };
+
+      return {
+        success: true,
+        data: { orders: mapped, totalCount, hasNextPage },
+      };
     } catch (error) {
-      return { success: true, data: [], message: "Failed to fetch orders" };
+      console.error("❌ [ORDERS] Error fetching orders:", error);
+      return {
+        success: true,
+        data: { orders: [], totalCount: 0, hasNextPage: false },
+        message: "Failed to fetch orders",
+      };
     }
   },
 
@@ -949,6 +1035,7 @@ export const ordersApi = {
     amount: number;
     orderDescription: string;
     name: string;
+    source?: string; // Add source parameter for mobile detection
   }): Promise<ApiResponse<{ paymentUrl: string }>> {
     try {
       // Ensure authentication is set up
@@ -963,6 +1050,8 @@ export const ordersApi = {
 
       OpenAPI.BASE = env.API_URL;
       OpenAPI.TOKEN = token; // Ensure token is set for this request
+
+      // Create payment URL with mobile source parameter
       const result = await PaymentService.postApiVnpayCreatePaymentUrl({
         requestBody: {
           orderId: paymentData.orderId,
@@ -974,7 +1063,16 @@ export const ordersApi = {
       });
 
       const data = (result as any)?.data ?? result;
-      const paymentUrl = data?.url || data?.paymentUrl;
+      let paymentUrl = data?.url || data?.paymentUrl;
+
+      // If source is mobile, modify the payment URL to use mobile callback
+      if (paymentUrl && paymentData.source === "mobile") {
+        const url = new URL(paymentUrl);
+        // Update return URL to use CallBackForApp endpoint with source=mobile
+        const returnUrl = `${env.API_URL}/api/vnpay/CallBackForApp?source=mobile`;
+        url.searchParams.set("vnp_ReturnUrl", returnUrl);
+        paymentUrl = url.toString();
+      }
 
       if (paymentUrl) {
         return {
@@ -1055,7 +1153,7 @@ export const ordersApi = {
 
         // Chỉ coi là thành công khi cả 2 điều kiện đều true
         const finalSuccess = vnpaySuccess && backendSuccess;
-        
+
         return {
           success: true,
           data: {

@@ -29,6 +29,7 @@ import { vnpayApi } from "../../src/shared/data/paymentApiService";
 import { useCart, useLocalization, useAuth } from "../../src/shared/hooks";
 import { useToast } from "../../src/shared/ui/toast";
 import { formatCurrency } from "../../src/shared/lib/utils";
+import { CartItem } from "../../src/types";
 import { Address, PaymentMethod, CheckoutFormData } from "../../src/types";
 import * as Linking from "expo-linking";
 
@@ -186,6 +187,30 @@ const PaymentMethodSelector: React.FC<{
         </View>
 
         <View className="space-y-3">
+          {/* Placeholder option khi chưa chọn */}
+          {!selectedId && (
+            <View className="border-2 border-dashed border-neutral-300 rounded-xl p-4 bg-neutral-50">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center space-x-3 flex-1">
+                  <View className="w-10 h-10 rounded-lg items-center justify-center bg-neutral-100">
+                    <Ionicons name="help-outline" size={20} color="#9ca3af" />
+                  </View>
+
+                  <View className="flex-1 pr-3">
+                    <Text className="font-medium text-neutral-500 text-base">
+                      Chọn phương thức thanh toán
+                    </Text>
+                    <Text className="text-sm text-neutral-400 leading-5 mt-0.5">
+                      Vui lòng chọn một phương thức bên dưới
+                    </Text>
+                  </View>
+                </View>
+
+                <Ionicons name="radio-button-off" size={24} color="#d1d5db" />
+              </View>
+            </View>
+          )}
+
           {paymentMethods
             .filter((method) => method.type !== "COD")
             .map((method) => (
@@ -303,20 +328,30 @@ export default function CheckoutScreen() {
       return await ordersApi.create(orderData);
     },
     onSuccess: async (response) => {
+      console.log("🎯 Create Order Response:", response);
+
       if (response.success) {
         const { orderId, totalPrice, paymentUrl } = response.data;
         setCreatedOrderId(orderId);
 
         toast.success("Tạo đơn hàng thành công", `Mã đơn hàng: #${orderId}`);
+        console.log("✅ Order created successfully:", {
+          orderId,
+          totalPrice,
+          paymentUrl,
+        });
 
         // Check payment method
         const paymentMethod = paymentMethods.find(
           (m) => m.id === watchedPaymentMethodId
         );
+        console.log("💳 Selected payment method:", paymentMethod);
 
         if (paymentMethod?.type === "E_WALLET") {
           // Nếu đã có paymentUrl từ API tạo đơn hàng, redirect luôn
           if (paymentUrl) {
+            console.log("🔗 Using paymentUrl from order creation:", paymentUrl);
+
             // Clear cart trước khi redirect
             await clearCart();
 
@@ -325,24 +360,32 @@ export default function CheckoutScreen() {
               "Chuyển hướng thanh toán",
               "Đang chuyển đến trang thanh toán VNPay..."
             );
+
+            console.log("🚀 Opening payment URL:", paymentUrl);
             await Linking.openURL(paymentUrl);
 
+            // Navigate to payment result page để user có thể quay lại
+            console.log("📱 Navigating to payment-result screen");
             router.replace(`/(app)/payment-result?orderId=${orderId}`);
             return;
           }
 
           // Fallback: Nếu không có paymentUrl, tạo mới (trường hợp cũ)
+          console.log("⚠️ No paymentUrl from order, creating new payment URL");
           createPaymentUrlMutation.mutate({
             orderId,
             amount: totalPrice,
             orderDescription: `Thanh toán đơn hàng #${orderId}`,
             name: user?.name ?? "Customer",
+            source: "mobile", // Add mobile source parameter
           });
         } else {
           // COD payment - create payment record and finish
+          console.log("💰 Processing COD payment");
           createOrderPaymentMutation.mutate(orderId);
         }
       } else {
+        console.error("❌ Order creation failed:", response);
         toast.error(
           "Tạo đơn hàng thất bại",
           response.message || "Vui lòng thử lại sau"
@@ -367,11 +410,16 @@ export default function CheckoutScreen() {
       amount: number;
       orderDescription: string;
       name: string;
+      source?: string;
     }) => {
       return await ordersApi.createPaymentUrl(paymentData);
     },
     onSuccess: async (response) => {
+      console.log("🔗 Create Payment URL Response:", response);
+
       if (response.success && response.data?.paymentUrl) {
+        console.log("✅ Payment URL created:", response.data.paymentUrl);
+
         // Clear cart trước khi redirect
         await clearCart();
 
@@ -380,11 +428,18 @@ export default function CheckoutScreen() {
           "Chuyển hướng thanh toán",
           "Đang chuyển đến trang thanh toán VNPay..."
         );
+
+        console.log(
+          "🚀 Opening fallback payment URL:",
+          response.data.paymentUrl
+        );
         await Linking.openURL(response.data.paymentUrl);
 
         // Navigate to payment result page để user quay lại sau khi thanh toán
+        console.log("📱 Navigating to payment-result screen (fallback)");
         router.replace(`/(app)/payment-result?orderId=${createdOrderId}`);
       } else {
+        console.error("❌ Payment URL creation failed:", response);
         toast.error(
           "Lỗi thanh toán",
           response.message || "Không thể tạo liên kết thanh toán"
@@ -438,7 +493,7 @@ export default function CheckoutScreen() {
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       addressId: addresses.find((a) => a.isDefault)?.id || "",
-      paymentMethodId: paymentMethods[0]?.id || "",
+      paymentMethodId: "", // Không set default, yêu cầu user phải chọn
       notes: "",
       manualAddress: "",
     },
@@ -456,11 +511,7 @@ export default function CheckoutScreen() {
     }
   }, [addresses, watchedAddressId, setValue, useManualAddress]);
 
-  React.useEffect(() => {
-    if (paymentMethods.length > 0 && !watchedPaymentMethodId) {
-      setValue("paymentMethodId", paymentMethods[0].id);
-    }
-  }, [paymentMethods, watchedPaymentMethodId, setValue]);
+  // Removed auto-selection of payment method to require user selection
 
   // Auto-enable manual address mode if no addresses exist
   React.useEffect(() => {
@@ -476,9 +527,20 @@ export default function CheckoutScreen() {
       return;
     }
 
+    // Validate payment method
+    if (!data.paymentMethodId?.trim()) {
+      toast.error(
+        "Thiếu phương thức thanh toán",
+        "Vui lòng chọn phương thức thanh toán"
+      );
+      return;
+    }
+
     Alert.alert(
       "Xác nhận đặt hàng",
-      `Bạn có chắc muốn đặt hàng với tổng tiền ${formatCurrency(cart.total)}?`,
+      `Bạn có chắc muốn đặt hàng với tổng tiền ${formatCurrency(
+        cart.subtotal
+      )}?`,
       [
         { text: "Hủy", style: "cancel" },
         {
@@ -501,7 +563,7 @@ export default function CheckoutScreen() {
             }
 
             // Prepare order items for API
-            const orderItems = cart.items.map((item) => ({
+            const orderItems = cart.items.map((item: CartItem) => ({
               productId: Number(item.productId), // Use item.productId instead of item.product.id
               stockQuantity: item.quantity,
             }));
@@ -572,7 +634,7 @@ export default function CheckoutScreen() {
                   </View>
 
                   <View className="space-y-5">
-                    {cart.items.map((item) => (
+                    {cart.items.map((item: CartItem) => (
                       <View
                         key={item.id}
                         className="flex-row space-x-3 items-start"
@@ -769,8 +831,16 @@ export default function CheckoutScreen() {
                   </>
                 ) : (
                   <>
-                    <Text className="text-white font-semibold text-lg">
-                      Đặt hàng
+                    <Text
+                      className={`font-semibold text-lg ${
+                        !watchedPaymentMethodId
+                          ? "text-neutral-500"
+                          : "text-white"
+                      }`}
+                    >
+                      {!watchedPaymentMethodId
+                        ? "Chọn phương thức thanh toán để tiếp tục"
+                        : "Đặt hàng"}
                     </Text>
                   </>
                 )}
