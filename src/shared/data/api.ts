@@ -31,6 +31,19 @@ import { request as __request } from "../../api/core/request";
 import env from "../../config/env";
 import { realCartApi } from "./cartApiService";
 
+// Helper function to normalize image URLs
+const normalizeImageUrl = (url: string): string => {
+  if (!url || typeof url !== "string") return "";
+  // If already absolute URL (http/https), return as is
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  // If relative path, prepend base URL
+  const baseUrl = env.API_URL.replace(/\/$/, ""); // Remove trailing slash
+  const imagePath = url.startsWith("/") ? url : `/${url}`;
+  return `${baseUrl}${imagePath}`;
+};
+
 // Simulate network delay
 const withDelay = async <T>(data: T, delay?: number): Promise<T> => {
   await sleep(delay ?? getRandomDelay());
@@ -328,6 +341,25 @@ export const productsApi = {
         productId: Number(id),
       });
       const p: any = res?.data ?? res;
+
+      // Handle images from various field names
+      let images: string[] = [];
+      if (p.images) {
+        images = Array.isArray(p.images) ? p.images : [p.images];
+      } else if (p.imageUrl) {
+        images = Array.isArray(p.imageUrl) ? p.imageUrl : [p.imageUrl];
+      } else if (p.image) {
+        images = Array.isArray(p.image) ? p.image : [p.image];
+      } else if (p.image_url) {
+        images = Array.isArray(p.image_url) ? p.image_url : [p.image_url];
+      }
+      // Filter out empty/null/undefined values and normalize URLs
+      images = images
+        .filter(
+          (img: any) => img && typeof img === "string" && img.trim().length > 0
+        )
+        .map((img: string) => normalizeImageUrl(img.trim()));
+
       const product: Product = {
         id: String(p.productId ?? p.id),
         name: p.productName ?? p.name ?? "",
@@ -339,11 +371,7 @@ export const productsApi = {
         price: Number(p.price ?? 0),
         originalPrice: Number(p.originalPrice ?? p.price ?? 0),
         categoryId: String(p.categoryId ?? ""),
-        images: p.images
-          ? Array.isArray(p.images)
-            ? p.images
-            : [p.images]
-          : [],
+        images: images,
         rating: Number(p.rating ?? 0),
         reviewCount: Number(p.reviewCount ?? 0),
         soldCount: Number(p.soldCount ?? 0),
@@ -1065,14 +1093,14 @@ export const ordersApi = {
       const data = (result as any)?.data ?? result;
       let paymentUrl = data?.url || data?.paymentUrl;
 
-      // If source is mobile, modify the payment URL to use mobile callback
-      if (paymentUrl && paymentData.source === "mobile") {
-        const url = new URL(paymentUrl);
-        // Update return URL to use CallBackForApp endpoint with source=mobile
-        const returnUrl = `${env.API_URL}/api/vnpay/CallBackForApp?source=mobile`;
-        url.searchParams.set("vnp_ReturnUrl", returnUrl);
-        paymentUrl = url.toString();
-      }
+      // // If source is mobile, modify the payment URL to use mobile callback
+      // if (paymentUrl && paymentData.source === "mobile") {
+      //   const url = new URL(paymentUrl);
+      //   // Update return URL to use CallBackForApp endpoint with source=mobile
+      //   const returnUrl = `${env.API_URL}/api/vnpay/CallBackForApp?source=mobile`;
+      //   url.searchParams.set("vnp_ReturnUrl", returnUrl);
+      //   paymentUrl = url.toString();
+      // }
 
       if (paymentUrl) {
         return {
