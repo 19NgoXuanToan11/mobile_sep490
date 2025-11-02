@@ -310,32 +310,6 @@ export default function HomeScreen() {
                 <Text className="text-primary-700 font-medium">Xem tất cả</Text>
               </TouchableOpacity>
             </View>
-
-            {/* Product Filters */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row space-x-8">
-                {[
-                  { label: "🔥 Bán chạy", value: "bestseller" },
-                  { label: "💰 Giá tốt", value: "price" },
-                  { label: "💚 Organic", value: "organic" },
-                  { label: "⭐ Mới", value: "newest" },
-                ].map((filter) => (
-                  <TouchableOpacity
-                    key={filter.value}
-                    className="px-3 py-1.5 rounded-full"
-                    style={{
-                      backgroundColor: "#F3F6F5",
-                      borderWidth: 1,
-                      borderColor: "#E5E7EB",
-                    }}
-                  >
-                    <Text className="text-xs font-medium text-neutral-700">
-                      {filter.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
           </View>
 
           <ScrollView

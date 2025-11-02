@@ -24,7 +24,7 @@ const productCardVariants = cva("", {
 
 export interface ProductCardProps
   extends ViewProps,
-    VariantProps<typeof productCardVariants> {
+  VariantProps<typeof productCardVariants> {
   product: {
     id: string;
     name: string;
@@ -69,67 +69,78 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     product.originalPrice && product.originalPrice > product.price;
   const discountPercent = hasDiscount
     ? Math.round(
-        ((product.originalPrice! - product.price) / product.originalPrice!) *
-          100
-      )
+      ((product.originalPrice! - product.price) / product.originalPrice!) *
+      100
+    )
     : 0;
 
-  const renderImage = () => (
-    <View className="relative bg-neutral-100 rounded-xl overflow-hidden w-full h-36">
-      <Image
-        source={{ uri: product.images[0] }}
-        style={{ width: "100%", height: "100%" }}
-        contentFit="cover"
-      />
+  const renderImage = () => {
+    const imageUrl = product.images && product.images.length > 0 ? product.images[0] : null;
 
-      {/* Top Badges - Left Side */}
-      <View className="absolute top-1.5 left-1.5 space-y-1">
-        {hasDiscount && (
-          <View className="bg-red-500 px-1.5 py-0.5 rounded-md">
-            <Text className="text-white text-xs font-bold">
-              -{discountPercent}%
-            </Text>
+    return (
+      <View className="relative bg-neutral-100 rounded-xl overflow-hidden w-full h-36">
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+          />
+        ) : (
+          <View className="w-full h-full items-center justify-center">
+            <Ionicons name="image-outline" size={48} color="#9ca3af" />
+            <Text className="text-neutral-500 text-xs mt-2">Không có hình ảnh</Text>
           </View>
         )}
-        {product.isFeatured && (
-          <View className="bg-orange-500 px-1.5 py-0.5 rounded-md">
-            <Text className="text-white text-xs font-bold">HOT</Text>
+
+        {/* Top Badges - Left Side */}
+        <View className="absolute top-1.5 left-1.5 space-y-1">
+          {hasDiscount && (
+            <View className="bg-red-500 px-1.5 py-0.5 rounded-md">
+              <Text className="text-white text-xs font-bold">
+                -{discountPercent}%
+              </Text>
+            </View>
+          )}
+          {product.isFeatured && (
+            <View className="bg-orange-500 px-1.5 py-0.5 rounded-md">
+              <Text className="text-white text-xs font-bold">HOT</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Top Badge - Right Side */}
+        {product.tags?.includes("organic") && (
+          <View className="absolute top-1.5 right-1.5">
+            <View className="bg-green-500 px-1.5 py-0.5 rounded-md">
+              <Text className="text-white text-xs font-bold">Organic</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Quick actions */}
+        {showQuickView && (
+          <View
+            className="absolute top-1.5 right-1.5"
+            style={{ marginTop: product.tags?.includes("organic") ? 28 : 0 }}
+          >
+            <TouchableOpacity
+              className="w-7 h-7 bg-white/90 rounded-full items-center justify-center shadow-sm"
+              onPress={onPress}
+            >
+              <Ionicons name="eye-outline" size={14} color="#00623A" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Out of stock overlay */}
+        {product.isInStock === false && (
+          <View className="absolute inset-0 bg-black/60 items-center justify-center rounded-xl">
+            <Text className="text-white text-xs font-semibold">Hết hàng</Text>
           </View>
         )}
       </View>
-
-      {/* Top Badge - Right Side */}
-      {product.tags?.includes("organic") && (
-        <View className="absolute top-1.5 right-1.5">
-          <View className="bg-green-500 px-1.5 py-0.5 rounded-md">
-            <Text className="text-white text-xs font-bold">Organic</Text>
-          </View>
-        </View>
-      )}
-
-      {/* Quick actions */}
-      {showQuickView && (
-        <View
-          className="absolute top-1.5 right-1.5"
-          style={{ marginTop: product.tags?.includes("organic") ? 28 : 0 }}
-        >
-          <TouchableOpacity
-            className="w-7 h-7 bg-white/90 rounded-full items-center justify-center shadow-sm"
-            onPress={onPress}
-          >
-            <Ionicons name="eye-outline" size={14} color="#00623A" />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Out of stock overlay */}
-      {product.isInStock === false && (
-        <View className="absolute inset-0 bg-black/60 items-center justify-center rounded-xl">
-          <Text className="text-white text-xs font-semibold">Hết hàng</Text>
-        </View>
-      )}
-    </View>
-  );
+    );
+  };
 
   const renderContent = () => (
     <View className="flex-1 justify-between pt-3">

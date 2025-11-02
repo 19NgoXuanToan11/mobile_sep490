@@ -328,30 +328,20 @@ export default function CheckoutScreen() {
       return await ordersApi.create(orderData);
     },
     onSuccess: async (response) => {
-      console.log("🎯 Create Order Response:", response);
-
       if (response.success) {
         const { orderId, totalPrice, paymentUrl } = response.data;
         setCreatedOrderId(orderId);
 
         toast.success("Tạo đơn hàng thành công", `Mã đơn hàng: #${orderId}`);
-        console.log("✅ Order created successfully:", {
-          orderId,
-          totalPrice,
-          paymentUrl,
-        });
 
         // Check payment method
         const paymentMethod = paymentMethods.find(
           (m) => m.id === watchedPaymentMethodId
         );
-        console.log("💳 Selected payment method:", paymentMethod);
 
         if (paymentMethod?.type === "E_WALLET") {
           // Nếu đã có paymentUrl từ API tạo đơn hàng, redirect luôn
           if (paymentUrl) {
-            console.log("🔗 Using paymentUrl from order creation:", paymentUrl);
-
             // Clear cart trước khi redirect
             await clearCart();
 
@@ -361,17 +351,14 @@ export default function CheckoutScreen() {
               "Đang chuyển đến trang thanh toán VNPay..."
             );
 
-            console.log("🚀 Opening payment URL:", paymentUrl);
             await Linking.openURL(paymentUrl);
 
             // Navigate to payment result page để user có thể quay lại
-            console.log("📱 Navigating to payment-result screen");
             router.replace(`/(app)/payment-result?orderId=${orderId}`);
             return;
           }
 
           // Fallback: Nếu không có paymentUrl, tạo mới (trường hợp cũ)
-          console.log("⚠️ No paymentUrl from order, creating new payment URL");
           createPaymentUrlMutation.mutate({
             orderId,
             amount: totalPrice,
@@ -381,7 +368,6 @@ export default function CheckoutScreen() {
           });
         } else {
           // COD payment - create payment record and finish
-          console.log("💰 Processing COD payment");
           createOrderPaymentMutation.mutate(orderId);
         }
       } else {
@@ -415,11 +401,7 @@ export default function CheckoutScreen() {
       return await ordersApi.createPaymentUrl(paymentData);
     },
     onSuccess: async (response) => {
-      console.log("🔗 Create Payment URL Response:", response);
-
       if (response.success && response.data?.paymentUrl) {
-        console.log("✅ Payment URL created:", response.data.paymentUrl);
-
         // Clear cart trước khi redirect
         await clearCart();
 
@@ -429,14 +411,9 @@ export default function CheckoutScreen() {
           "Đang chuyển đến trang thanh toán VNPay..."
         );
 
-        console.log(
-          "🚀 Opening fallback payment URL:",
-          response.data.paymentUrl
-        );
         await Linking.openURL(response.data.paymentUrl);
 
         // Navigate to payment result page để user quay lại sau khi thanh toán
-        console.log("📱 Navigating to payment-result screen (fallback)");
         router.replace(`/(app)/payment-result?orderId=${createdOrderId}`);
       } else {
         console.error("❌ Payment URL creation failed:", response);

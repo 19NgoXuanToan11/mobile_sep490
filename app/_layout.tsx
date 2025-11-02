@@ -50,9 +50,6 @@ export default function RootLayout() {
       // Make test utilities available in development
       if (__DEV__) {
         (global as any).testVnpayIntegration = testVnpayIntegration;
-        console.log(
-          "🧪 VNPay test utilities loaded. Use 'testVnpayIntegration.runAllTests()' in console."
-        );
       }
     }
   }, [fontsLoaded]);
@@ -60,24 +57,14 @@ export default function RootLayout() {
   // Handle deep links
   useEffect(() => {
     const handleDeepLink = (url: string) => {
-      console.log("🔗 Deep link received:", url);
-
       try {
         // Parse the URL
         const parsed = Linking.parse(url);
-        console.log("📋 Parsed deep link:", parsed);
 
         // Handle payment result deep link
         if (parsed.path === "payment-result") {
           const { success, orderId, amount, code, message } =
             parsed.queryParams || {};
-          console.log("💳 Payment result params:", {
-            success,
-            orderId,
-            amount,
-            code,
-            message,
-          });
 
           if (orderId) {
             // Navigate to payment result screen with parameters
@@ -89,13 +76,11 @@ export default function RootLayout() {
             if (message) params.append("message", message as string);
 
             const targetUrl = `/(app)/payment-result?${params.toString()}`;
-            console.log("🎯 Navigating to:", targetUrl);
             router.replace(targetUrl as any);
           } else {
             console.warn("⚠️ No orderId in deep link parameters");
           }
         } else {
-          console.log("ℹ️ Deep link path not handled:", parsed.path);
         }
       } catch (error) {
         console.error("❌ Error handling deep link:", error);
