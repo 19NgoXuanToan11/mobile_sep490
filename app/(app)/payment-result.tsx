@@ -145,7 +145,8 @@ export default function PaymentResultScreen() {
 
   if (!orderId) {
     return (
-      <SafeAreaView className="flex-1 bg-neutral-50 items-center justify-center">
+      <SafeAreaView className="flex-1 bg-neutral-50 items-center justify-center" edges={['bottom', 'left', 'right']}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
         <Card variant="elevated" padding="lg">
           <View className="items-center space-y-4">
             <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
@@ -160,8 +161,8 @@ export default function PaymentResultScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50">
-      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
+    <SafeAreaView className="flex-1 bg-neutral-50" edges={['bottom', 'left', 'right']}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
 
       <View className="flex-1 px-4 py-6 justify-center">
         <Card variant="elevated" padding="xl">

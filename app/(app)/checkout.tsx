@@ -332,8 +332,6 @@ export default function CheckoutScreen() {
         const { orderId, totalPrice, paymentUrl } = response.data;
         setCreatedOrderId(orderId);
 
-        toast.success("Tạo đơn hàng thành công", `Mã đơn hàng: #${orderId}`);
-
         // Check payment method
         const paymentMethod = paymentMethods.find(
           (m) => m.id === watchedPaymentMethodId
@@ -545,8 +543,6 @@ export default function CheckoutScreen() {
               stockQuantity: item.quantity,
             }));
 
-            // Start order creation process
-            toast.info("Đang tạo đơn hàng", "Vui lòng đợi...");
             createOrderMutation.mutate({
               orderItems,
               shippingAddress,
