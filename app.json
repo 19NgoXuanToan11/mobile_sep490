@@ -8,6 +8,26 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "scheme": "ifms",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "linking": {
+      "prefixes": [
+        "ifms://",
+        "exp://192.168.2.14:8081/--/",
+        "exp://localhost:8081/--/",
+        "https://web-sep490.vercel.app/mobile-redirect/"
+      ],
+      "config": {
+        "screens": {
+          "(app)": {
+            "screens": {
+              "payment-result": "payment-result"
+            }
+          }
+        }
+      }
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -35,9 +55,6 @@
           "faceIDPermission": "Cho phép $(PRODUCT_NAME) truy cập dữ liệu sinh trắc học Face ID."
         }
       ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    }
+    ]
   }
 }

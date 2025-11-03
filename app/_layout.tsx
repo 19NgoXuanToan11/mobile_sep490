@@ -10,7 +10,6 @@ import * as Linking from "expo-linking";
 import i18n from "../src/shared/lib/i18n";
 import { ToastProvider } from "../src/shared/ui/toast";
 import { userPreferences } from "../src/shared/lib/storage";
-import { testVnpayIntegration } from "../src/shared/utils/testVnpayIntegration";
 import { OpenAPI } from "../src/api";
 import env from "../src/config/env";
 import "../global.css";
@@ -46,11 +45,6 @@ export default function RootLayout() {
       // Clear any legacy onboarding flags on app start
       userPreferences.clearLegacyOnboardingFlags();
       SplashScreen.hideAsync();
-
-      // Make test utilities available in development
-      if (__DEV__) {
-        (global as any).testVnpayIntegration = testVnpayIntegration;
-      }
     }
   }, [fontsLoaded]);
 
@@ -76,14 +70,13 @@ export default function RootLayout() {
             if (message) params.append("message", message as string);
 
             const targetUrl = `/(app)/payment-result?${params.toString()}`;
+
             router.replace(targetUrl as any);
           } else {
-            console.warn("⚠️ No orderId in deep link parameters");
           }
         } else {
         }
       } catch (error) {
-        console.error("❌ Error handling deep link:", error);
       }
     };
 
@@ -113,7 +106,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <I18nextProvider i18n={i18n}>
-            <StatusBar style="auto" />
+            <StatusBar style="dark" backgroundColor="transparent" />
             <ToastProvider />
             <Slot />
           </I18nextProvider>
