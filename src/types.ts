@@ -66,15 +66,19 @@ export interface Cart {
 
 export interface Address {
   id: string;
-  name: string;
-  phone: string;
-  street: string;
-  ward: string;
+  customerName: string;
+  phoneNumber: string;
+  province: string;
   district: string;
-  city: string;
-  postalCode?: string;
+  ward: string;
+  street: string;
   isDefault: boolean;
-  type: "HOME" | "OFFICE" | "OTHER";
+  latitude?: number;
+  longitude?: number;
+  // Legacy fields for backward compatibility
+  name?: string;
+  phone?: string;
+  city?: string;
 }
 
 export interface PaymentMethod {
@@ -116,6 +120,7 @@ export interface Order {
   estimatedDelivery?: string;
   actualDelivery?: string;
   trackingNumber?: string;
+  images?: string[]; // Hình ảnh đơn hàng từ backend
   createdAt: string;
   updatedAt: string;
 }

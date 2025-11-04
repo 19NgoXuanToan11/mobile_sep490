@@ -379,11 +379,9 @@ export const addresses: Address[] = [
     phone: "0909123456",
     street: "123 Nguyễn Huệ",
     ward: "Bến Nghé",
-    district: "Quận 1",
     city: "Hồ Chí Minh",
     postalCode: "70000",
     isDefault: true,
-    type: "HOME",
   },
   {
     id: "addr_002",
@@ -391,11 +389,9 @@ export const addresses: Address[] = [
     phone: "0909123456",
     street: "456 Lê Lợi",
     ward: "Bến Thành",
-    district: "Quận 1",
     city: "Hồ Chí Minh",
     postalCode: "70000",
     isDefault: false,
-    type: "OFFICE",
   },
 ];
 

@@ -65,11 +65,10 @@ const AddressSelector: React.FC<{
             <TouchableOpacity
               key={address.id}
               onPress={() => onSelect(address.id)}
-              className={`border-2 rounded-xl p-4 ${
-                selectedId === address.id
-                  ? "border-primary-500 bg-primary-50"
-                  : "border-neutral-200 bg-white"
-              }`}
+              className={`border-2 rounded-xl p-4 ${selectedId === address.id
+                ? "border-primary-500 bg-primary-50"
+                : "border-neutral-200 bg-white"
+                }`}
               style={{
                 shadowColor: selectedId === address.id ? "#00623A" : "#000",
                 shadowOffset: { width: 0, height: 2 },
@@ -82,28 +81,17 @@ const AddressSelector: React.FC<{
                 <View className="flex-1 pr-3 space-y-2">
                   <View className="flex-row items-center flex-wrap gap-2">
                     <Text className="font-semibold text-neutral-900 text-base">
-                      {address.name}
+                      {address.customerName || address.name}
                     </Text>
                     {address.isDefault && (
                       <Badge text="Mặc định" size="sm" variant="success" />
                     )}
-                    <Badge
-                      text={
-                        address.type === "HOME"
-                          ? "Nhà"
-                          : address.type === "OFFICE"
-                          ? "Văn phòng"
-                          : "Khác"
-                      }
-                      size="sm"
-                      variant="outline"
-                    />
                   </View>
 
                   <View className="flex-row items-center space-x-1">
                     <Ionicons name="call-outline" size={14} color="#6b7280" />
                     <Text className="text-sm text-neutral-600">
-                      {address.phone}
+                      {address.phoneNumber || address.phone}
                     </Text>
                   </View>
 
@@ -115,8 +103,7 @@ const AddressSelector: React.FC<{
                       className="mt-0.5"
                     />
                     <Text className="text-sm text-neutral-700 leading-5 flex-1">
-                      {address.street}, {address.ward}, {address.district},{" "}
-                      {address.city}
+                      {address.street}, {address.ward}, {address.province || address.city}
                     </Text>
                   </View>
                 </View>
@@ -187,41 +174,16 @@ const PaymentMethodSelector: React.FC<{
         </View>
 
         <View className="space-y-3">
-          {/* Placeholder option khi chưa chọn */}
-          {!selectedId && (
-            <View className="border-2 border-dashed border-neutral-300 rounded-xl p-4 bg-neutral-50">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center space-x-3 flex-1">
-                  <View className="w-10 h-10 rounded-lg items-center justify-center bg-neutral-100">
-                    <Ionicons name="help-outline" size={20} color="#9ca3af" />
-                  </View>
-
-                  <View className="flex-1 pr-3">
-                    <Text className="font-medium text-neutral-500 text-base">
-                      Chọn phương thức thanh toán
-                    </Text>
-                    <Text className="text-sm text-neutral-400 leading-5 mt-0.5">
-                      Vui lòng chọn một phương thức bên dưới
-                    </Text>
-                  </View>
-                </View>
-
-                <Ionicons name="radio-button-off" size={24} color="#d1d5db" />
-              </View>
-            </View>
-          )}
-
           {paymentMethods
             .filter((method) => method.type !== "COD")
             .map((method) => (
               <TouchableOpacity
                 key={method.id}
                 onPress={() => onSelect(method.id)}
-                className={`border-2 rounded-xl p-4 ${
-                  selectedId === method.id
-                    ? "border-primary-500 bg-primary-50"
-                    : "border-neutral-200 bg-white"
-                }`}
+                className={`border-2 rounded-xl p-4 ${selectedId === method.id
+                  ? "border-primary-500 bg-primary-50"
+                  : "border-neutral-200 bg-white"
+                  }`}
                 style={{
                   shadowColor: selectedId === method.id ? "#00623A" : "#000",
                   shadowOffset: { width: 0, height: 2 },
@@ -482,7 +444,7 @@ export default function CheckoutScreen() {
   React.useEffect(() => {
     if (addresses.length > 0 && !watchedAddressId && !useManualAddress) {
       const defaultAddress = addresses.find((a) => a.isDefault) || addresses[0];
-      setValue("addressId", defaultAddress.id);
+      setValue("addressId", defaultAddress.id, { shouldValidate: true });
     }
   }, [addresses, watchedAddressId, setValue, useManualAddress]);
 
@@ -533,7 +495,13 @@ export default function CheckoutScreen() {
                 (a) => a.id === data.addressId
               );
               if (selectedAddress) {
-                shippingAddress = `${selectedAddress.street}, ${selectedAddress.ward}, ${selectedAddress.district}, ${selectedAddress.city}`;
+                // Build full address string
+                const addressParts = [
+                  selectedAddress.street,
+                  selectedAddress.ward,
+                  selectedAddress.province || selectedAddress.city,
+                ].filter(Boolean);
+                shippingAddress = addressParts.join(", ");
               }
             }
 
@@ -669,7 +637,7 @@ export default function CheckoutScreen() {
                 <AddressSelector
                   addresses={addresses}
                   selectedId={watchedAddressId}
-                  onSelect={(id) => setValue("addressId", id)}
+                  onSelect={(id) => setValue("addressId", id, { shouldValidate: true })}
                 />
                 <TouchableOpacity
                   onPress={() => setUseManualAddress(true)}
@@ -732,7 +700,7 @@ export default function CheckoutScreen() {
                 <PaymentMethodSelector
                   paymentMethods={paymentMethods}
                   selectedId={watchedPaymentMethodId}
-                  onSelect={(id) => setValue("paymentMethodId", id)}
+                  onSelect={(id) => setValue("paymentMethodId", id, { shouldValidate: true })}
                 />
               </View>
             )}
@@ -753,28 +721,27 @@ export default function CheckoutScreen() {
                 createPaymentUrlMutation.isPending ||
                 createOrderPaymentMutation.isPending
               }
-              className={`rounded-xl py-4 items-center justify-center ${
-                !isValid ||
+              className={`rounded-xl py-4 items-center justify-center ${!isValid ||
                 createOrderMutation.isPending ||
                 createPaymentUrlMutation.isPending ||
                 createOrderPaymentMutation.isPending
-                  ? "bg-neutral-300"
-                  : "bg-primary-500"
-              }`}
+                ? "bg-neutral-300"
+                : "bg-primary-500"
+                }`}
               style={{
                 shadowColor: "#00623A",
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity:
                   createOrderMutation.isPending ||
-                  createPaymentUrlMutation.isPending ||
-                  createOrderPaymentMutation.isPending
+                    createPaymentUrlMutation.isPending ||
+                    createOrderPaymentMutation.isPending
                     ? 0
                     : 0.3,
                 shadowRadius: 8,
                 elevation:
                   createOrderMutation.isPending ||
-                  createPaymentUrlMutation.isPending ||
-                  createOrderPaymentMutation.isPending
+                    createPaymentUrlMutation.isPending ||
+                    createOrderPaymentMutation.isPending
                     ? 0
                     : 6,
               }}
@@ -805,11 +772,10 @@ export default function CheckoutScreen() {
                 ) : (
                   <>
                     <Text
-                      className={`font-semibold text-lg ${
-                        !watchedPaymentMethodId
-                          ? "text-neutral-500"
-                          : "text-white"
-                      }`}
+                      className={`font-semibold text-lg ${!watchedPaymentMethodId
+                        ? "text-neutral-500"
+                        : "text-white"
+                        }`}
                     >
                       {!watchedPaymentMethodId
                         ? "Chọn phương thức thanh toán để tiếp tục"

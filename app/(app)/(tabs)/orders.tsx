@@ -347,18 +347,24 @@ export default function OrdersScreen() {
       color: "#ef4444",
       bgColor: "#fef2f2",
     },
+
+
   ];
 
   // Enhanced Apple-style order card renderer
   const renderOrder = ({ item: order }: { item: Order }) => {
     const statusInfo = getStatusInfo(order.status);
+
+    // Ưu tiên hiển thị order images từ backend, nếu không có thì dùng product images
+    const orderImages = order.images && order.images.length > 0 ? order.images : [];
     const displayItems = order.items.slice(0, 2);
+    const hasOrderImages = orderImages.length > 0;
 
     return (
       <TouchableOpacity
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          router.push(`/(app)/track/${order.id}`);
+          router.push(`/(app)/track/${order.id}` as any);
         }}
         activeOpacity={0.98}
         className="mx-4 mb-4"
@@ -412,12 +418,12 @@ export default function OrdersScreen() {
             </View>
           </View>
 
-          {/* Product Images Section */}
-          {displayItems.length > 0 && (
+          {/* Order/Product Images Section */}
+          {(hasOrderImages || displayItems.length > 0) && (
             <View className="mb-5">
               <View className="flex-row items-center justify-between mb-3">
                 <Text className="text-base font-semibold text-gray-900">
-                  Sản phẩm
+                  {hasOrderImages ? "Hình ảnh đơn hàng" : "Sản phẩm"}
                 </Text>
                 <View className="flex-row items-center">
                   <Ionicons name="cube-outline" size={16} color="#6B7280" />
@@ -428,48 +434,79 @@ export default function OrdersScreen() {
               </View>
 
               <View className="flex-row items-center">
-                {displayItems.map((item, index) => {
-                  const imageUri = item.product?.images?.[0];
-                  return (
-                    <View key={`${item.id}-${index}`} className="mr-4">
-                      <View className="relative">
+                {hasOrderImages ? (
+                  // Hiển thị order images từ backend
+                  <>
+                    {orderImages.slice(0, 3).map((imageUri, index) => (
+                      <View key={`order-img-${index}`} className="mr-4">
                         <Image
                           source={{
-                            uri:
-                              imageUri ||
-                              "https://via.placeholder.com/80x80/f9fafb/9ca3af?text=SP",
+                            uri: imageUri || "https://via.placeholder.com/80x80/f9fafb/9ca3af?text=IMG",
                           }}
                           style={{ width: 80, height: 80 }}
                           className="rounded-2xl bg-gray-50"
                           contentFit="cover"
                         />
-                        {item.quantity > 1 && (
-                          <View className="absolute -top-2 -right-2 bg-green-500 rounded-full w-7 h-7 items-center justify-center shadow-lg">
-                            <Text className="text-white text-xs font-bold">
-                              {item.quantity}
-                            </Text>
-                          </View>
-                        )}
                       </View>
-                      <Text
-                        className="text-sm font-medium text-gray-700 mt-2 w-20 text-center"
-                        numberOfLines={2}
-                      >
-                        {item.product?.name || "Sản phẩm"}
-                      </Text>
-                    </View>
-                  );
-                })}
+                    ))}
+                    {orderImages.length > 3 && (
+                      <View className="items-center">
+                        <View className="w-20 h-20 bg-gray-50 rounded-2xl items-center justify-center border-2 border-dashed border-gray-200">
+                          <Text className="text-lg font-bold text-gray-400">
+                            +{orderImages.length - 3}
+                          </Text>
+                        </View>
+                        <Text className="text-sm text-gray-500 mt-2">Khác</Text>
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  // Fallback: hiển thị product images như cũ
+                  <>
+                    {displayItems.map((item, index) => {
+                      const imageUri = item.product?.images?.[0];
+                      return (
+                        <View key={`${item.id}-${index}`} className="mr-4">
+                          <View className="relative">
+                            <Image
+                              source={{
+                                uri:
+                                  imageUri ||
+                                  "https://via.placeholder.com/80x80/f9fafb/9ca3af?text=SP",
+                              }}
+                              style={{ width: 80, height: 80 }}
+                              className="rounded-2xl bg-gray-50"
+                              contentFit="cover"
+                            />
+                            {item.quantity > 1 && (
+                              <View className="absolute -top-2 -right-2 bg-green-500 rounded-full w-7 h-7 items-center justify-center shadow-lg">
+                                <Text className="text-white text-xs font-bold">
+                                  {item.quantity}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                          <Text
+                            className="text-sm font-medium text-gray-700 mt-2 w-20 text-center"
+                            numberOfLines={2}
+                          >
+                            {item.product?.name || "Sản phẩm"}
+                          </Text>
+                        </View>
+                      );
+                    })}
 
-                {order.items.length > 2 && (
-                  <View className="items-center">
-                    <View className="w-20 h-20 bg-gray-50 rounded-2xl items-center justify-center border-2 border-dashed border-gray-200">
-                      <Text className="text-lg font-bold text-gray-400">
-                        +{order.items.length - 2}
-                      </Text>
-                    </View>
-                    <Text className="text-sm text-gray-500 mt-2">Khác</Text>
-                  </View>
+                    {order.items.length > 2 && (
+                      <View className="items-center">
+                        <View className="w-20 h-20 bg-gray-50 rounded-2xl items-center justify-center border-2 border-dashed border-gray-200">
+                          <Text className="text-lg font-bold text-gray-400">
+                            +{order.items.length - 2}
+                          </Text>
+                        </View>
+                        <Text className="text-sm text-gray-500 mt-2">Khác</Text>
+                      </View>
+                    )}
+                  </>
                 )}
               </View>
             </View>
@@ -603,18 +640,16 @@ export default function OrdersScreen() {
       <Animated.View style={animatedStyle}>
         <TouchableOpacity
           onPress={() => handleTabPress(chip.id)}
-          className={`mr-3 px-4 py-3 rounded-2xl border-2 ${
-            isActive
-              ? "bg-white border-green-500 shadow-lg shadow-green-500/25"
-              : "bg-gray-50 border-gray-200"
-          }`}
+          className={`mr-3 px-4 py-3 rounded-2xl border-2 ${isActive
+            ? "bg-white border-green-500 shadow-lg shadow-green-500/25"
+            : "bg-gray-50 border-gray-200"
+            }`}
           activeOpacity={0.8}
         >
           <View className="flex-row items-center">
             <View
-              className={`w-8 h-8 rounded-full items-center justify-center mr-2 ${
-                isActive ? "bg-green-100" : "bg-gray-100"
-              }`}
+              className={`w-8 h-8 rounded-full items-center justify-center mr-2 ${isActive ? "bg-green-100" : "bg-gray-100"
+                }`}
             >
               <Ionicons
                 name={chip.icon as any}
@@ -624,22 +659,19 @@ export default function OrdersScreen() {
             </View>
             <View>
               <Text
-                className={`font-semibold ${
-                  isActive ? "text-green-600" : "text-gray-600"
-                }`}
+                className={`font-semibold ${isActive ? "text-green-600" : "text-gray-600"
+                  }`}
               >
                 {chip.label}
               </Text>
               {chip.count > 0 && (
                 <View
-                  className={`px-2 py-0.5 rounded-full mt-1 ${
-                    isActive ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`px-2 py-0.5 rounded-full mt-1 ${isActive ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <Text
-                    className={`text-xs font-bold ${
-                      isActive ? "text-white" : "text-gray-600"
-                    }`}
+                    className={`text-xs font-bold ${isActive ? "text-white" : "text-gray-600"
+                      }`}
                   >
                     {chip.count}
                   </Text>
@@ -824,18 +856,18 @@ export default function OrdersScreen() {
               debouncedSearch
                 ? `Không tìm thấy đơn hàng với mã "${debouncedSearch}"`
                 : activeTab === "placed"
-                ? "Bạn không có đơn hàng nào vừa đặt"
-                : activeTab === "confirmed"
-                ? "Bạn không có đơn hàng nào đã được xác nhận"
-                : activeTab === "packed"
-                ? "Bạn không có đơn hàng nào đang đóng gói"
-                : activeTab === "shipped"
-                ? "Bạn không có đơn hàng nào đang giao"
-                : activeTab === "delivered"
-                ? "Bạn không có đơn hàng nào đã hoàn thành"
-                : activeTab === "cancelled"
-                ? "Bạn không có đơn hàng nào đã hủy"
-                : "Hãy bắt đầu mua sắm những sản phẩm nông sản tươi ngon!"
+                  ? "Bạn không có đơn hàng nào vừa đặt"
+                  : activeTab === "confirmed"
+                    ? "Bạn không có đơn hàng nào đã được xác nhận"
+                    : activeTab === "packed"
+                      ? "Bạn không có đơn hàng nào đang đóng gói"
+                      : activeTab === "shipped"
+                        ? "Bạn không có đơn hàng nào đang giao"
+                        : activeTab === "delivered"
+                          ? "Bạn không có đơn hàng nào đã hoàn thành"
+                          : activeTab === "cancelled"
+                            ? "Bạn không có đơn hàng nào đã hủy"
+                            : "Hãy bắt đầu mua sắm những sản phẩm nông sản tươi ngon!"
             }
             actionLabel={debouncedSearch ? "Xóa bộ lọc" : "Khám phá sản phẩm"}
             onActionPress={() => {

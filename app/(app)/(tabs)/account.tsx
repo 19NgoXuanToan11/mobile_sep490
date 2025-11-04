@@ -167,12 +167,6 @@ export default function AccountScreen() {
               title="Lịch sử đơn hàng"
               onPress={() => router.push("/(app)/(tabs)/orders")}
             />
-
-            <SettingItem
-              icon="notifications-outline"
-              title="Thông báo"
-              onPress={() => router.push("../notifications/")}
-            />
           </View>
         </Card>
 

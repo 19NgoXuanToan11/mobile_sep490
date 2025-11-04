@@ -119,11 +119,21 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="notifications"
+        options={{
+          title: "Thông báo",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="notifications" focused={focused} count={unreadCount} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="account"
         options={{
           title: "Tài khoản",
           tabBarIcon: ({ focused }) => (
-            <TabIcon name="person" focused={focused} count={unreadCount} />
+            <TabIcon name="person" focused={focused} />
           ),
         }}
       />

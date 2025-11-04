@@ -23,13 +23,11 @@ import { useToast } from "../../../src/shared/ui/toast";
 import { addressesApi } from "../../../src/shared/data/api";
 
 const addressSchema = z.object({
-  name: z.string().min(1, "Vui lòng nhập tên người nhận"),
-  phone: z.string().min(10, "Số điện thoại phải có ít nhất 10 số"),
+  customerName: z.string().min(1, "Vui lòng nhập tên người nhận"),
+  phoneNumber: z.string().min(10, "Số điện thoại phải có ít nhất 10 số"),
   street: z.string().min(1, "Vui lòng nhập địa chỉ chi tiết"),
   ward: z.string().min(1, "Vui lòng nhập phường/xã"),
-  district: z.string().min(1, "Vui lòng nhập quận/huyện"),
-  city: z.string().min(1, "Vui lòng nhập tỉnh/thành phố"),
-  type: z.enum(["HOME", "OFFICE", "OTHER"]),
+  province: z.string().min(1, "Vui lòng nhập tỉnh/thành phố"),
   isDefault: z.boolean(),
 });
 
@@ -70,93 +68,43 @@ const CustomTextInput: React.FC<{
   numberOfLines = 1,
   keyboardType = "default",
 }) => {
-  const [isFocused, setIsFocused] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
 
-  return (
-    <View
-      className={`border-2 rounded-2xl px-4 ${
-        multiline ? "py-4" : "py-3.5"
-      } bg-white ${isFocused ? "border-primary-500" : "border-neutral-200"}`}
-      style={{
-        shadowColor: isFocused ? "#00623A" : "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: isFocused ? 0.1 : 0.03,
-        shadowRadius: 4,
-        elevation: isFocused ? 2 : 1,
-      }}
-    >
-      <TextInput
-        placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
-        value={value}
-        onChangeText={onChangeText}
-        multiline={multiline}
-        numberOfLines={numberOfLines}
-        textAlignVertical={multiline ? "top" : "auto"}
-        keyboardType={keyboardType}
-        className="text-neutral-900 text-base"
+    return (
+      <View
+        className={`border-2 rounded-2xl px-4 ${multiline ? "py-4" : "py-3.5"
+          } bg-white ${isFocused ? "border-primary-500" : "border-neutral-200"}`}
         style={{
-          fontSize: 16,
-          minHeight: multiline ? 80 : undefined,
-          lineHeight: multiline ? undefined : 20,
-          paddingVertical: multiline ? undefined : 0,
-          includeFontPadding: false,
+          shadowColor: isFocused ? "#00623A" : "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: isFocused ? 0.1 : 0.03,
+          shadowRadius: 4,
+          elevation: isFocused ? 2 : 1,
         }}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-      />
-    </View>
-  );
-};
-
-const AddressTypeSelector: React.FC<{
-  selectedType: AddressFormData["type"];
-  onSelect: (type: AddressFormData["type"]) => void;
-}> = ({ selectedType, onSelect }) => {
-  const addressTypes = [
-    { value: "HOME", label: "Nhà", icon: "home-outline" },
-    { value: "OFFICE", label: "Văn phòng", icon: "business-outline" },
-    { value: "OTHER", label: "Khác", icon: "location-outline" },
-  ] as const;
-
-  return (
-    <View className="flex-row space-x-3">
-      {addressTypes.map((type) => (
-        <TouchableOpacity
-          key={type.value}
-          onPress={() => onSelect(type.value)}
-          className={`flex-1 border-2 rounded-2xl p-4 items-center ${
-            selectedType === type.value
-              ? "border-primary-500 bg-primary-50"
-              : "border-neutral-200 bg-white"
-          }`}
+      >
+        <TextInput
+          placeholder={placeholder}
+          placeholderTextColor="#9CA3AF"
+          value={value}
+          onChangeText={onChangeText}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          textAlignVertical={multiline ? "top" : "auto"}
+          keyboardType={keyboardType}
+          className="text-neutral-900 text-base"
           style={{
-            shadowColor: selectedType === type.value ? "#00623A" : "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: selectedType === type.value ? 0.1 : 0.03,
-            shadowRadius: 4,
-            elevation: selectedType === type.value ? 2 : 1,
+            fontSize: 16,
+            minHeight: multiline ? 80 : undefined,
+            lineHeight: multiline ? undefined : 20,
+            paddingVertical: multiline ? undefined : 0,
+            includeFontPadding: false,
           }}
-        >
-          <Ionicons
-            name={type.icon as keyof typeof Ionicons.glyphMap}
-            size={24}
-            color={selectedType === type.value ? "#00623A" : "#6b7280"}
-          />
-          <Text
-            className={`text-sm font-medium mt-2 ${
-              selectedType === type.value
-                ? "text-primary-600"
-                : "text-neutral-600"
-            }`}
-          >
-            {type.label}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
-};
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+      </View>
+    );
+  };
 
 export default function AddAddressScreen() {
   const toast = useToast();
@@ -185,18 +133,15 @@ export default function AddAddressScreen() {
   } = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
-      name: "",
-      phone: "",
+      customerName: "",
+      phoneNumber: "",
       street: "",
       ward: "",
-      district: "",
-      city: "",
-      type: "HOME",
+      province: "",
       isDefault: false,
     },
   });
 
-  const watchedType = watch("type");
   const watchedIsDefault = watch("isDefault");
 
   const onSubmit = (data: AddressFormData) => {
@@ -204,7 +149,10 @@ export default function AddAddressScreen() {
       { text: "Hủy", style: "cancel" },
       {
         text: "Thêm",
-        onPress: () => createAddressMutation.mutate(data),
+        onPress: () => createAddressMutation.mutate({
+          ...data,
+          district: data.province, // Use province as district since they are the same level now
+        }),
       },
     ]);
   };
@@ -237,11 +185,11 @@ export default function AddAddressScreen() {
                 <FormField
                   label="Tên người nhận"
                   required
-                  error={errors.name?.message}
+                  error={errors.customerName?.message}
                 >
                   <Controller
                     control={control}
-                    name="name"
+                    name="customerName"
                     render={({ field: { onChange, value } }) => (
                       <CustomTextInput
                         placeholder="Nhập tên người nhận"
@@ -255,11 +203,11 @@ export default function AddAddressScreen() {
                 <FormField
                   label="Số điện thoại"
                   required
-                  error={errors.phone?.message}
+                  error={errors.phoneNumber?.message}
                 >
                   <Controller
                     control={control}
-                    name="phone"
+                    name="phoneNumber"
                     render={({ field: { onChange, value } }) => (
                       <CustomTextInput
                         placeholder="Nhập số điện thoại"
@@ -286,32 +234,14 @@ export default function AddAddressScreen() {
                 <FormField
                   label="Tỉnh/Thành phố"
                   required
-                  error={errors.city?.message}
+                  error={errors.province?.message}
                 >
                   <Controller
                     control={control}
-                    name="city"
+                    name="province"
                     render={({ field: { onChange, value } }) => (
                       <CustomTextInput
-                        placeholder="Chọn tỉnh/thành phố"
-                        value={value}
-                        onChangeText={onChange}
-                      />
-                    )}
-                  />
-                </FormField>
-
-                <FormField
-                  label="Quận/Huyện"
-                  required
-                  error={errors.district?.message}
-                >
-                  <Controller
-                    control={control}
-                    name="district"
-                    render={({ field: { onChange, value } }) => (
-                      <CustomTextInput
-                        placeholder="Chọn quận/huyện"
+                        placeholder="Nhập tỉnh/thành phố"
                         value={value}
                         onChangeText={onChange}
                       />
@@ -329,7 +259,7 @@ export default function AddAddressScreen() {
                     name="ward"
                     render={({ field: { onChange, value } }) => (
                       <CustomTextInput
-                        placeholder="Chọn phường/xã"
+                        placeholder="Nhập phường/xã"
                         value={value}
                         onChangeText={onChange}
                       />
@@ -359,29 +289,6 @@ export default function AddAddressScreen() {
               </View>
             </Card>
 
-            {/* Address Type */}
-            <Card variant="elevated" padding="lg">
-              <View className="space-y-6">
-                <View className="flex-row items-center space-x-2 mb-2">
-                  <Ionicons name="bookmark-outline" size={20} color="#00623A" />
-                  <Text className="text-lg font-semibold text-neutral-900">
-                    Loại Địa Chỉ
-                  </Text>
-                </View>
-
-                <Controller
-                  control={control}
-                  name="type"
-                  render={({ field: { onChange } }) => (
-                    <AddressTypeSelector
-                      selectedType={watchedType}
-                      onSelect={onChange}
-                    />
-                  )}
-                />
-              </View>
-            </Card>
-
             {/* Default Address */}
             <Card variant="elevated" padding="lg">
               <TouchableOpacity
@@ -400,11 +307,10 @@ export default function AddAddressScreen() {
                   </View>
                 </View>
                 <View
-                  className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
-                    watchedIsDefault
-                      ? "border-primary-500 bg-primary-500"
-                      : "border-neutral-300"
-                  }`}
+                  className={`w-6 h-6 rounded-full border-2 items-center justify-center ${watchedIsDefault
+                    ? "border-primary-500 bg-primary-500"
+                    : "border-neutral-300"
+                    }`}
                 >
                   {watchedIsDefault && (
                     <Ionicons name="checkmark" size={16} color="white" />
@@ -424,11 +330,10 @@ export default function AddAddressScreen() {
             <TouchableOpacity
               onPress={handleSubmit(onSubmit)}
               disabled={!isValid || createAddressMutation.isPending}
-              className={`rounded-2xl py-4 items-center justify-center ${
-                !isValid || createAddressMutation.isPending
-                  ? "bg-neutral-300"
-                  : "bg-primary-500"
-              }`}
+              className={`rounded-2xl py-4 items-center justify-center ${!isValid || createAddressMutation.isPending
+                ? "bg-neutral-300"
+                : "bg-primary-500"
+                }`}
               style={{
                 shadowColor: "#00623A",
                 shadowOffset: { width: 0, height: 4 },

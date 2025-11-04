@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
     View,
     Text,
@@ -8,6 +8,8 @@ import {
     Dimensions,
     ActivityIndicator,
     RefreshControl,
+    Animated,
+    Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -32,7 +34,7 @@ import { FeedbackService } from "../../../src/api/services/FeedbackService";
 import { useAuth, useCart } from "../../../src/shared/hooks";
 import { useToast } from "../../../src/shared/ui/toast";
 
-const { width: screenWidth } = Dimensions.get("window");
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -52,8 +54,42 @@ export default function ProductDetailScreen() {
     const [quantity, setQuantity] = React.useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
     const [feedbackModalVisible, setFeedbackModalVisible] = React.useState(false);
+    const [isFavorite, setIsFavorite] = React.useState(false);
+    const [addedToCart, setAddedToCart] = React.useState(false);
+
+    // Animation values
+    const scrollY = useRef(new Animated.Value(0)).current;
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const scaleAnim = useRef(new Animated.Value(0.95)).current;
+    const priceSlideAnim = useRef(new Animated.Value(20)).current;
+    const favoriteScaleAnim = useRef(new Animated.Value(1)).current;
+    const quantityScaleAnim = useRef(new Animated.Value(1)).current;
+    const cartButtonScaleAnim = useRef(new Animated.Value(1)).current;
 
     const productId = parseInt(id || "0", 10);
+
+    // Entrance animations
+    React.useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 600,
+                useNativeDriver: true,
+            }),
+            Animated.spring(scaleAnim, {
+                toValue: 1,
+                friction: 8,
+                tension: 40,
+                useNativeDriver: true,
+            }),
+            Animated.timing(priceSlideAnim, {
+                toValue: 0,
+                duration: 500,
+                delay: 200,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, []);
 
     // 获取产品详情
     const {
@@ -106,15 +142,69 @@ export default function ProductDetailScreen() {
         setRefreshing(false);
     }, [refetchProduct, refetchFeedback]);
 
+    // Animate favorite toggle
+    const handleToggleFavorite = () => {
+        setIsFavorite(!isFavorite);
+        Animated.sequence([
+            Animated.spring(favoriteScaleAnim, {
+                toValue: 1.3,
+                friction: 3,
+                useNativeDriver: true,
+            }),
+            Animated.spring(favoriteScaleAnim, {
+                toValue: 1,
+                friction: 3,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    };
+
+    // Animate quantity change
+    const handleQuantityChange = (newQuantity: number) => {
+        setQuantity(newQuantity);
+        Animated.sequence([
+            Animated.timing(quantityScaleAnim, {
+                toValue: 1.2,
+                duration: 100,
+                useNativeDriver: true,
+            }),
+            Animated.spring(quantityScaleAnim, {
+                toValue: 1,
+                friction: 3,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    };
+
     const handleAddToCart = async () => {
         if (!product?.data) return;
 
+        // Button press animation
+        Animated.sequence([
+            Animated.timing(cartButtonScaleAnim, {
+                toValue: 0.95,
+                duration: 100,
+                useNativeDriver: true,
+            }),
+            Animated.timing(cartButtonScaleAnim, {
+                toValue: 1,
+                duration: 100,
+                useNativeDriver: true,
+            }),
+        ]).start();
+
         try {
             await addItem(productId.toString(), quantity);
+            setAddedToCart(true);
             toast.success(
-                "Đã thêm vào giỏ",
+                "Đã thêm vào giỏ ✓",
                 `${product.data.productName} (x${quantity}) đã được thêm vào giỏ hàng`
             );
+
+            // Reset added state after 2 seconds
+            setTimeout(() => {
+                setAddedToCart(false);
+            }, 2000);
         } catch (error) {
             console.error("Add to cart error:", error);
             toast.error("Lỗi", "Không thể thêm sản phẩm vào giỏ hàng");
@@ -137,22 +227,37 @@ export default function ProductDetailScreen() {
         await createFeedbackMutation.mutateAsync(data);
     };
 
+    // Parallax effect for image
+    const imageTranslateY = scrollY.interpolate({
+        inputRange: [0, 300],
+        outputRange: [0, -50],
+        extrapolate: 'clamp',
+    });
+
+    const imageScale = scrollY.interpolate({
+        inputRange: [-100, 0],
+        outputRange: [1.3, 1],
+        extrapolate: 'clamp',
+    });
+
     if (isProductLoading) {
         return (
-            <SafeAreaView className="flex-1 bg-white">
-                <StatusBar barStyle="dark-content" backgroundColor="white" />
-                <ScrollView className="flex-1 px-5 py-4">
-                    <Skeleton className="w-full h-80 rounded-2xl mb-6" />
-                    <Skeleton className="w-3/4 h-6 rounded mb-3" />
-                    <Skeleton className="w-1/2 h-8 rounded mb-4" />
-                    <Skeleton className="w-full h-32 rounded-xl mb-6" />
-                    <View className="space-y-3">
-                        {[1, 2, 3].map((i) => (
-                            <Skeleton key={i} className="w-full h-20 rounded-xl" />
-                        ))}
-                    </View>
-                </ScrollView>
-            </SafeAreaView>
+            <View className="flex-1 bg-white">
+                <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+                <SafeAreaView className="flex-1">
+                    <ScrollView className="flex-1 px-5 py-4">
+                        <Skeleton className="w-full h-80 rounded-3xl mb-6" />
+                        <Skeleton className="w-3/4 h-6 rounded-xl mb-3" />
+                        <Skeleton className="w-1/2 h-8 rounded-xl mb-4" />
+                        <Skeleton className="w-full h-32 rounded-2xl mb-6" />
+                        <View className="space-y-3">
+                            {[1, 2, 3].map((i) => (
+                                <Skeleton key={i} className="w-full h-20 rounded-2xl" />
+                            ))}
+                        </View>
+                    </ScrollView>
+                </SafeAreaView>
+            </View>
         );
     }
 
@@ -194,46 +299,103 @@ export default function ProductDetailScreen() {
         : 0;
 
     return (
-        <View className="flex-1 bg-white">
-            <StatusBar barStyle="dark-content" backgroundColor="white" />
+        <View className="flex-1" style={{ backgroundColor: '#FFFFFF' }}>
+            <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-            {/* Header */}
-            <SafeAreaView>
+            {/* Premium Header - Minimal & Clean */}
+            <SafeAreaView className="absolute top-0 left-0 right-0 z-10">
                 <View className="flex-row items-center justify-between px-5 py-3">
-                    <TouchableOpacity
+                    {/* Back Button */}
+                    <Pressable
                         onPress={() => router.back()}
-                        className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center"
+                        className="w-11 h-11 rounded-full items-center justify-center"
+                        style={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.08,
+                            shadowRadius: 8,
+                            elevation: 3,
+                        }}
                     >
-                        <Ionicons name="arrow-back" size={20} color="#374151" />
-                    </TouchableOpacity>
+                        <Ionicons name="chevron-back" size={24} color="#111827" />
+                    </Pressable>
 
-                    <Text className="text-lg font-semibold text-neutral-900 flex-1 text-center mx-4" numberOfLines={1}>
+                    {/* Title - Subtle */}
+                    <Animated.Text
+                        className="text-base font-semibold flex-1 text-center mx-4"
+                        style={{
+                            color: '#111827',
+                            letterSpacing: 0.3,
+                            opacity: scrollY.interpolate({
+                                inputRange: [100, 150],
+                                outputRange: [0, 1],
+                                extrapolate: 'clamp',
+                            })
+                        }}
+                        numberOfLines={1}
+                    >
                         Chi tiết sản phẩm
-                    </Text>
+                    </Animated.Text>
 
-                    <TouchableOpacity className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center">
-                        <Ionicons name="heart-outline" size={20} color="#374151" />
-                    </TouchableOpacity>
+                    {/* Favorite Button */}
+                    <Animated.View style={{ transform: [{ scale: favoriteScaleAnim }] }}>
+                        <Pressable
+                            onPress={handleToggleFavorite}
+                            className="w-11 h-11 rounded-full items-center justify-center"
+                            style={{
+                                backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.08,
+                                shadowRadius: 8,
+                                elevation: 3,
+                            }}
+                        >
+                            <Ionicons
+                                name={isFavorite ? "heart" : "heart-outline"}
+                                size={22}
+                                color={isFavorite ? "#00A86B" : "#111827"}
+                            />
+                        </Pressable>
+                    </Animated.View>
                 </View>
             </SafeAreaView>
 
-            <ScrollView
+            <Animated.ScrollView
                 className="flex-1"
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00A86B" />
                 }
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 120 }}
+                onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                    { useNativeDriver: true }
+                )}
+                scrollEventThrottle={16}
             >
-                {/* Product Images */}
-                <View className="mb-6">
-                    <ScrollView
-                        horizontal
-                        pagingEnabled
-                        showsHorizontalScrollIndicator={false}
-                        onMomentumScrollEnd={(e) => {
-                            const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
-                            setSelectedImageIndex(index);
+                {/* Premium Product Image with Parallax */}
+                <Animated.View
+                    className="overflow-hidden"
+                    style={{
+                        height: screenHeight * 0.5,
+                        transform: [{ translateY: imageTranslateY }]
+                    }}
+                >
+                    {/* Gradient Background */}
+                    <LinearGradient
+                        colors={['#FFFFFF', '#F6FFF8', '#FFFFFF']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 0, y: 1 }}
+                        className="absolute inset-0"
+                    />
+
+                    <Animated.View
+                        style={{
+                            flex: 1,
+                            opacity: fadeAnim,
+                            transform: [{ scale: Animated.multiply(scaleAnim, imageScale) }]
                         }}
                     >
                         {(() => {
@@ -242,67 +404,56 @@ export default function ProductDetailScreen() {
 
                             if (productData?.images) {
                                 if (Array.isArray(productData.images)) {
-                                    // If images is an array
                                     imagesToShow = productData.images.filter((img: string) => img && img.trim() !== '');
                                 } else if (typeof productData.images === 'string' && productData.images.trim() !== '') {
-                                    // If images is a string (single image URL)
                                     imagesToShow = [productData.images];
                                 }
                             }
 
-                            // Fallback to single image field if no images found
                             if (imagesToShow.length === 0 && productData?.image) {
                                 imagesToShow = [productData.image];
                             }
 
                             return imagesToShow.length > 0 ? (
-                                imagesToShow.map((image: string, index: number) => (
-                                    <View
-                                        key={index}
-                                        className="relative"
-                                        style={{ width: screenWidth }}
-                                    >
-                                        <Image
-                                            source={{ uri: image }}
-                                            style={{ width: screenWidth, height: 300 }}
-                                            contentFit="cover"
-                                        />
-
-                                        {/* Badges Overlay */}
-                                        <View className="absolute top-4 left-4 space-y-2">
-                                            {hasDiscount && (
-                                                <Badge
-                                                    text={`-${discountPercent}%`}
-                                                    variant="error"
-                                                    size="sm"
-                                                />
-                                            )}
-                                            {productData?.isFeatured && (
-                                                <Badge text="HOT" variant="warning" size="sm" />
-                                            )}
-                                            {productData?.tags?.includes("organic") && (
-                                                <Badge text="Organic" variant="success" size="sm" />
-                                            )}
-                                        </View>
-                                    </View>
-                                ))
-                            ) : (
-                                <View
-                                    className="bg-neutral-100 items-center justify-center"
-                                    style={{ width: screenWidth, height: 300 }}
+                                <ScrollView
+                                    horizontal
+                                    pagingEnabled
+                                    showsHorizontalScrollIndicator={false}
+                                    onMomentumScrollEnd={(e) => {
+                                        const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+                                        setSelectedImageIndex(index);
+                                    }}
                                 >
-                                    <Ionicons name="image-outline" size={64} color="#9ca3af" />
-                                    <Text className="text-neutral-500 mt-2">Không có hình ảnh</Text>
+                                    {imagesToShow.map((image: string, index: number) => (
+                                        <View
+                                            key={index}
+                                            className="items-center justify-center"
+                                            style={{ width: screenWidth, height: screenHeight * 0.5 }}
+                                        >
+                                            <Image
+                                                source={{ uri: image }}
+                                                style={{
+                                                    width: screenWidth * 0.85,
+                                                    height: screenHeight * 0.4,
+                                                    borderRadius: 0,
+                                                }}
+                                                contentFit="contain"
+                                            />
+                                        </View>
+                                    ))}
+                                </ScrollView>
+                            ) : (
+                                <View className="flex-1 items-center justify-center">
+                                    <Ionicons name="leaf-outline" size={64} color="#9ca3af" />
+                                    <Text className="text-neutral-400 mt-3" style={{ fontSize: 14 }}>Không có hình ảnh</Text>
                                 </View>
                             );
                         })()}
-                    </ScrollView>
+                    </Animated.View>
 
-                    {/* Image Indicators */}
+                    {/* Subtle Indicators */}
                     {(() => {
-                        // Use same logic as above for consistency
                         let imagesToShow: string[] = [];
-
                         if (productData?.images) {
                             if (Array.isArray(productData.images)) {
                                 imagesToShow = productData.images.filter((img: string) => img && img.trim() !== '');
@@ -310,166 +461,442 @@ export default function ProductDetailScreen() {
                                 imagesToShow = [productData.images];
                             }
                         }
-
                         if (imagesToShow.length === 0 && productData?.image) {
                             imagesToShow = [productData.image];
                         }
 
                         return imagesToShow.length > 1 && (
-                            <View className="flex-row justify-center mt-3 space-x-2">
+                            <View className="absolute bottom-8 left-0 right-0 flex-row justify-center space-x-1.5">
                                 {imagesToShow.map((_: any, index: number) => (
                                     <View
                                         key={index}
-                                        className={`w-2 h-2 rounded-full ${index === selectedImageIndex ? "bg-primary-500" : "bg-neutral-300"
-                                            }`}
+                                        style={{
+                                            width: index === selectedImageIndex ? 24 : 6,
+                                            height: 6,
+                                            borderRadius: 3,
+                                            backgroundColor: index === selectedImageIndex ? "#00A86B" : "#D1D5DB",
+                                            opacity: index === selectedImageIndex ? 1 : 0.5,
+                                        }}
                                     />
                                 ))}
                             </View>
                         );
                     })()}
-                </View>
+                </Animated.View>
 
-                {/* Product Info */}
-                <View className="px-5">
-                    {/* Product Name & Rating */}
-                    <View className="mb-4">
-                        <Text className="text-2xl font-bold text-neutral-900 mb-2">
+                {/* Premium Product Info Section */}
+                <View className="px-6 pt-6">
+                    {/* Product Name - Apple Style */}
+                    <Animated.View
+                        className="mb-2"
+                        style={{
+                            opacity: fadeAnim,
+                            transform: [{ translateY: priceSlideAnim }]
+                        }}
+                    >
+                        <Text
+                            className="font-semibold mb-1"
+                            style={{
+                                fontSize: 28,
+                                color: '#111827',
+                                letterSpacing: -0.5,
+                                lineHeight: 36,
+                            }}
+                        >
                             {productData?.productName}
                         </Text>
+                    </Animated.View>
 
-                        {averageRating > 0 && (
-                            <RatingDisplay
-                                rating={averageRating}
-                                reviewCount={feedbacks.length}
-                                size="md"
-                            />
-                        )}
-                    </View>
-
-                    {/* Price */}
-                    <View className="mb-6">
-                        <View className="flex-row items-baseline space-x-3 mb-2">
-                            <Text className="text-3xl font-bold text-primary-600">
-                                {formatCurrency(productData?.price || 0)}
+                    {/* Price - Premium Style */}
+                    <Animated.View
+                        className="mb-6"
+                        style={{
+                            opacity: fadeAnim,
+                            transform: [{ translateY: priceSlideAnim }]
+                        }}
+                    >
+                        <View className="flex-row items-baseline mb-1">
+                            <Text
+                                className="font-bold"
+                                style={{
+                                    fontSize: 32,
+                                    color: '#00A86B',
+                                    letterSpacing: -0.5,
+                                }}
+                            >
+                                {(productData?.price || 0).toLocaleString('vi-VN')}
+                            </Text>
+                            <Text
+                                style={{
+                                    fontSize: 20,
+                                    color: '#00A86B',
+                                    opacity: 0.7,
+                                    marginLeft: 2,
+                                }}
+                            >
+                                ₫
                             </Text>
                             {productData?.unit && (
-                                <Text className="text-lg text-neutral-500">/{productData?.unit}</Text>
+                                <Text
+                                    className="ml-2"
+                                    style={{
+                                        fontSize: 16,
+                                        color: '#6B7280',
+                                        fontWeight: '400',
+                                    }}
+                                >
+                                    /{productData?.unit}
+                                </Text>
                             )}
                         </View>
 
                         {hasDiscount && (
-                            <View className="flex-row items-center space-x-3">
-                                <Text className="text-lg text-neutral-400 line-through">
-                                    {formatCurrency(productData?.originalPrice || 0)}
+                            <View className="flex-row items-center mt-1">
+                                <Text
+                                    className="line-through mr-2"
+                                    style={{
+                                        fontSize: 16,
+                                        color: '#9CA3AF',
+                                    }}
+                                >
+                                    {(productData?.originalPrice || 0).toLocaleString('vi-VN')}₫
                                 </Text>
-                                <Badge text={`Tiết kiệm ${discountPercent}%`} variant="error" size="sm" />
+                                <View
+                                    className="px-2 py-1 rounded-full"
+                                    style={{ backgroundColor: '#FEE2E2' }}
+                                >
+                                    <Text style={{ fontSize: 12, color: '#DC2626', fontWeight: '600' }}>
+                                        Tiết kiệm {discountPercent}%
+                                    </Text>
+                                </View>
                             </View>
                         )}
-                    </View>
 
-                    {/* Product Details */}
-                    <Card className="mb-6" padding="lg">
-                        <Text className="text-lg font-semibold text-neutral-900 mb-3">
-                            Thông tin sản phẩm
-                        </Text>
+                        {averageRating > 0 && (
+                            <View className="mt-3">
+                                <RatingDisplay
+                                    rating={averageRating}
+                                    reviewCount={feedbacks.length}
+                                    size="sm"
+                                />
+                            </View>
+                        )}
+                    </Animated.View>
+
+                    {/* Premium Product Details Card */}
+                    <View
+                        className="mb-6 p-5"
+                        style={{
+                            backgroundColor: '#FFFFFF',
+                            borderRadius: 20,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.05,
+                            shadowRadius: 10,
+                            elevation: 2,
+                        }}
+                    >
+                        <View className="flex-row items-center mb-4">
+                            <Text
+                                className="font-semibold flex-1"
+                                style={{
+                                    fontSize: 18,
+                                    color: '#111827',
+                                    letterSpacing: -0.3,
+                                }}
+                            >
+                                Thông tin sản phẩm
+                            </Text>
+                            <Text style={{ fontSize: 20 }}>🍃</Text>
+                        </View>
+
+                        {productData?.description && (
+                            <Text
+                                className="mb-4 leading-6"
+                                style={{
+                                    fontSize: 15,
+                                    color: '#4B5563',
+                                    lineHeight: 24,
+                                }}
+                            >
+                                {productData?.description}
+                            </Text>
+                        )}
 
                         <View className="space-y-3">
                             {productData.origin && (
-                                <View className="flex-row items-center">
-                                    <Ionicons name="location-outline" size={18} color="#6b7280" />
-                                    <Text className="ml-3 text-neutral-800">
-                                        Xuất xứ: {productData.origin}
-                                    </Text>
+                                <View className="flex-row items-center py-1.5">
+                                    <View
+                                        className="w-9 h-9 rounded-full items-center justify-center mr-3"
+                                        style={{ backgroundColor: '#F3F4F6' }}
+                                    >
+                                        <Ionicons name="location" size={18} color="#00A86B" />
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 2 }}>
+                                            Xuất xứ
+                                        </Text>
+                                        <Text style={{ fontSize: 15, color: '#111827', fontWeight: '500' }}>
+                                            {productData.origin}
+                                        </Text>
+                                    </View>
                                 </View>
                             )}
 
                             {productData.harvestDate && (
-                                <View className="flex-row items-center">
-                                    <Ionicons name="calendar-outline" size={18} color="#6b7280" />
-                                    <Text className="ml-3 text-neutral-800">
-                                        Ngày thu hoạch:{" "}
-                                        {new Date(productData.harvestDate).toLocaleDateString("vi-VN")}
-                                    </Text>
+                                <View className="flex-row items-center py-1.5">
+                                    <View
+                                        className="w-9 h-9 rounded-full items-center justify-center mr-3"
+                                        style={{ backgroundColor: '#F3F4F6' }}
+                                    >
+                                        <Ionicons name="calendar" size={18} color="#00A86B" />
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 2 }}>
+                                            Ngày thu hoạch
+                                        </Text>
+                                        <Text style={{ fontSize: 15, color: '#111827', fontWeight: '500' }}>
+                                            {new Date(productData.harvestDate).toLocaleDateString("vi-VN")}
+                                        </Text>
+                                    </View>
                                 </View>
                             )}
 
                             {productData.soldCount && (
-                                <View className="flex-row items-center">
-                                    <Ionicons name="checkmark-circle" size={18} color="#16a34a" />
-                                    <Text className="ml-3 text-neutral-800">
-                                        Đã bán: {productData.soldCount.toLocaleString()}
-                                    </Text>
-                                </View>
-                            )}
-
-                            {productData.certifications?.length > 0 && (
-                                <View className="flex-row items-center">
-                                    <Ionicons name="shield-checkmark" size={18} color="#2563eb" />
-                                    <Text className="ml-3 text-neutral-800">
-                                        Chứng nhận: {productData.certifications.join(", ")}
-                                    </Text>
+                                <View className="flex-row items-center py-1.5">
+                                    <View
+                                        className="w-9 h-9 rounded-full items-center justify-center mr-3"
+                                        style={{ backgroundColor: '#F0FDF4' }}
+                                    >
+                                        <Ionicons name="checkmark-circle" size={18} color="#00A86B" />
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 2 }}>
+                                            Đã bán
+                                        </Text>
+                                        <Text style={{ fontSize: 15, color: '#111827', fontWeight: '500' }}>
+                                            {productData.soldCount.toLocaleString()} sản phẩm
+                                        </Text>
+                                    </View>
                                 </View>
                             )}
                         </View>
+                    </View>
 
-                        {productData?.description && (
-                            <View className="mt-4 pt-4 border-t border-neutral-200">
-                                <Text className="text-neutral-800 leading-6">
-                                    {productData?.description}
-                                </Text>
-                            </View>
-                        )}
-                    </Card>
-
-                    {/* Quantity & Add to Cart */}
-                    <Card className="mb-6" padding="lg">
-                        <Text className="text-lg font-semibold text-neutral-900 mb-4">
+                    {/* Premium Quantity Selector */}
+                    <View
+                        className="mb-6 p-5"
+                        style={{
+                            backgroundColor: '#FFFFFF',
+                            borderRadius: 20,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.05,
+                            shadowRadius: 10,
+                            elevation: 2,
+                        }}
+                    >
+                        <Text
+                            className="font-semibold mb-4"
+                            style={{
+                                fontSize: 18,
+                                color: '#111827',
+                                letterSpacing: -0.3,
+                            }}
+                        >
                             Chọn số lượng
                         </Text>
 
-                        <View className="flex-row items-center justify-between">
-                            <QuantityStepper
-                                value={quantity}
-                                onValueChange={setQuantity}
-                                min={1}
-                                max={productData?.stock || 99}
-                            />
-
-                            <View className="flex-1 ml-4">
-                                <Button
-                                    title={`Thêm vào giỏ`}
-                                    onPress={handleAddToCart}
-                                    disabled={productData?.isInStock === false}
-                                    className="bg-primary-500"
+                        {/* Custom Quantity Stepper */}
+                        <View className="flex-row items-center mb-4">
+                            <Pressable
+                                onPress={() => quantity > 1 && handleQuantityChange(quantity - 1)}
+                                disabled={quantity <= 1}
+                                className="w-11 h-11 rounded-full items-center justify-center"
+                                style={{
+                                    backgroundColor: quantity <= 1 ? '#F3F4F6' : '#FFFFFF',
+                                    borderWidth: 1,
+                                    borderColor: quantity <= 1 ? '#E5E7EB' : '#D1D5DB',
+                                }}
+                            >
+                                <Ionicons
+                                    name="remove"
+                                    size={20}
+                                    color={quantity <= 1 ? '#9CA3AF' : '#111827'}
                                 />
-                            </View>
+                            </Pressable>
+
+                            <Animated.View
+                                className="flex-1 items-center justify-center mx-4"
+                                style={{ transform: [{ scale: quantityScaleAnim }] }}
+                            >
+                                <Text
+                                    className="font-semibold"
+                                    style={{
+                                        fontSize: 24,
+                                        color: '#111827',
+                                    }}
+                                >
+                                    {quantity}
+                                </Text>
+                            </Animated.View>
+
+                            <Pressable
+                                onPress={() => handleQuantityChange(quantity + 1)}
+                                disabled={quantity >= (productData?.stock || 99)}
+                                className="w-11 h-11 rounded-full items-center justify-center"
+                                style={{
+                                    backgroundColor: quantity >= (productData?.stock || 99) ? '#F3F4F6' : '#00A86B',
+                                    borderWidth: 1,
+                                    borderColor: quantity >= (productData?.stock || 99) ? '#E5E7EB' : '#00A86B',
+                                }}
+                            >
+                                <Ionicons
+                                    name="add"
+                                    size={20}
+                                    color={quantity >= (productData?.stock || 99) ? '#9CA3AF' : '#FFFFFF'}
+                                />
+                            </Pressable>
                         </View>
 
-                        {productData?.stock && productData.stock < 10 && (
-                            <Text className="text-orange-600 text-sm mt-2">
-                                ⚠️ Chỉ còn {productData.stock} sản phẩm
-                            </Text>
-                        )}
-                    </Card>
-
-                    {/* Reviews Section */}
-                    <Card className="mb-6" padding="lg">
-                        <View className="flex-row items-center justify-between mb-4">
-                            <Text className="text-lg font-semibold text-neutral-900">
-                                Đánh giá sản phẩm ({feedbacks.length})
-                            </Text>
-                            <TouchableOpacity
-                                onPress={handleWriteFeedback}
-                                className="bg-primary-500 px-4 py-2 rounded-lg"
+                        {/* Premium Add to Cart Button */}
+                        <Animated.View style={{ transform: [{ scale: cartButtonScaleAnim }] }}>
+                            <Pressable
+                                onPress={handleAddToCart}
+                                disabled={productData?.isInStock === false}
+                                style={{
+                                    height: 52,
+                                    borderRadius: 26,
+                                    overflow: 'hidden',
+                                }}
                             >
-                                <Text className="text-white font-medium">Viết đánh giá</Text>
-                            </TouchableOpacity>
+                                <LinearGradient
+                                    colors={addedToCart ? ['#00A86B', '#00A86B'] : ['#00A86B', '#009E60']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    className="flex-1 flex-row items-center justify-center"
+                                >
+                                    <Ionicons
+                                        name={addedToCart ? "checkmark-circle" : "cart"}
+                                        size={20}
+                                        color="#FFFFFF"
+                                    />
+                                    <Text
+                                        className="ml-2 font-semibold"
+                                        style={{
+                                            fontSize: 16,
+                                            color: '#FFFFFF',
+                                            letterSpacing: 0.2,
+                                        }}
+                                    >
+                                        {addedToCart ? 'Đã thêm vào giỏ ✓' : 'Thêm vào giỏ'}
+                                    </Text>
+                                </LinearGradient>
+                            </Pressable>
+                        </Animated.View>
+
+                        {productData?.stock && productData.stock < 10 && (
+                            <View className="mt-3 flex-row items-center">
+                                <Ionicons name="alert-circle" size={16} color="#F59E0B" />
+                                <Text
+                                    className="ml-2"
+                                    style={{
+                                        fontSize: 13,
+                                        color: '#F59E0B',
+                                    }}
+                                >
+                                    Chỉ còn {productData.stock} sản phẩm
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Premium Reviews Section */}
+                    <View
+                        className="mb-6 p-5"
+                        style={{
+                            backgroundColor: '#FFFFFF',
+                            borderRadius: 20,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.05,
+                            shadowRadius: 10,
+                            elevation: 2,
+                        }}
+                    >
+                        <View className="flex-row items-center justify-between mb-4">
+                            <View className="flex-row items-center flex-1">
+                                <Text
+                                    className="font-semibold"
+                                    style={{
+                                        fontSize: 18,
+                                        color: '#111827',
+                                        letterSpacing: -0.3,
+                                    }}
+                                >
+                                    Đánh giá sản phẩm
+                                </Text>
+                            </View>
+
+                            <Pressable
+                                onPress={handleWriteFeedback}
+                                className="px-4 py-2 rounded-full"
+                                style={{
+                                    borderWidth: 1.5,
+                                    borderColor: '#00A86B',
+                                }}
+                            >
+                                <Text
+                                    className="font-semibold"
+                                    style={{
+                                        fontSize: 13,
+                                        color: '#00A86B',
+                                    }}
+                                >
+                                    Viết đánh giá
+                                </Text>
+                            </Pressable>
                         </View>
 
                         {isFeedbackLoading ? (
-                            <View className="py-8 items-center">
-                                <ActivityIndicator size="small" color="#059669" />
-                                <Text className="text-neutral-500 mt-2">Đang tải đánh giá...</Text>
+                            <View className="py-12 items-center">
+                                <ActivityIndicator size="small" color="#00A86B" />
+                                <Text
+                                    className="mt-3"
+                                    style={{
+                                        fontSize: 14,
+                                        color: '#9CA3AF',
+                                    }}
+                                >
+                                    Đang tải đánh giá...
+                                </Text>
+                            </View>
+                        ) : feedbacks.length === 0 ? (
+                            <View className="py-12 items-center">
+                                <View
+                                    className="w-16 h-16 rounded-full items-center justify-center mb-3"
+                                    style={{ backgroundColor: '#F9FAFB' }}
+                                >
+                                    <Ionicons name="chatbubble-outline" size={28} color="#9CA3AF" />
+                                </View>
+                                <Text
+                                    className="mb-2"
+                                    style={{
+                                        fontSize: 15,
+                                        color: '#6B7280',
+                                        fontWeight: '500',
+                                    }}
+                                >
+                                    Chưa có đánh giá nào
+                                </Text>
+                                <Text
+                                    style={{
+                                        fontSize: 13,
+                                        color: '#9CA3AF',
+                                    }}
+                                >
+                                    Hãy là người đầu tiên đánh giá sản phẩm này
+                                </Text>
                             </View>
                         ) : (
                             <FeedbackList
@@ -479,9 +906,9 @@ export default function ProductDetailScreen() {
                                 }}
                             />
                         )}
-                    </Card>
+                    </View>
                 </View>
-            </ScrollView>
+            </Animated.ScrollView>
 
             {/* Feedback Modal */}
             <FeedbackFormModal
@@ -491,26 +918,70 @@ export default function ProductDetailScreen() {
                 submitting={createFeedbackMutation.isPending}
             />
 
-            {/* Bottom Action Bar */}
-            <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-200 px-5 py-4">
+            {/* Premium Floating Bottom Bar */}
+            <View
+                className="absolute bottom-0 left-0 right-0"
+                style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    borderTopLeftRadius: 24,
+                    borderTopRightRadius: 24,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: -4 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 12,
+                    elevation: 8,
+                }}
+            >
                 <SafeAreaView edges={["bottom"]}>
-                    <View className="flex-row space-x-3">
-                        <TouchableOpacity
-                            onPress={() => router.push("/(app)/(tabs)/cart")}
-                            className="w-12 h-12 bg-neutral-100 rounded-xl items-center justify-center"
-                        >
-                            <Ionicons name="basket-outline" size={24} color="#374151" />
-                        </TouchableOpacity>
+                    <View className="px-6 py-4">
+                        <View className="flex-row items-center">
+                            {/* Cart Icon Button */}
+                            <Pressable
+                                onPress={() => router.push("/(app)/(tabs)/cart")}
+                                className="w-14 h-14 rounded-full items-center justify-center mr-3"
+                                style={{
+                                    backgroundColor: '#F3F4F6',
+                                }}
+                            >
+                                <Ionicons name="cart-outline" size={26} color="#111827" />
+                            </Pressable>
 
-                        <Button
-                            title="Mua ngay"
-                            onPress={() => {
-                                handleAddToCart();
-                                router.push("/(app)/(tabs)/cart");
-                            }}
-                            disabled={productData.isInStock === false}
-                            className="flex-1 bg-primary-500"
-                        />
+                            {/* Buy Now Button - Premium Gradient */}
+                            <Pressable
+                                onPress={() => {
+                                    handleAddToCart();
+                                    router.push("/(app)/(tabs)/cart");
+                                }}
+                                disabled={productData.isInStock === false}
+                                className="flex-1"
+                                style={{
+                                    height: 56,
+                                    borderRadius: 28,
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                <LinearGradient
+                                    colors={productData.isInStock === false
+                                        ? ['#D1D5DB', '#9CA3AF']
+                                        : ['#00A86B', '#009E60']
+                                    }
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    className="flex-1 items-center justify-center"
+                                >
+                                    <Text
+                                        className="font-bold"
+                                        style={{
+                                            fontSize: 17,
+                                            color: '#FFFFFF',
+                                            letterSpacing: 0.3,
+                                        }}
+                                    >
+                                        {productData.isInStock === false ? 'Hết hàng' : 'Mua ngay'}
+                                    </Text>
+                                </LinearGradient>
+                            </Pressable>
+                        </View>
                     </View>
                 </SafeAreaView>
             </View>

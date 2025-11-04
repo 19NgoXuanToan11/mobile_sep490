@@ -846,6 +846,7 @@ export const ordersApi = {
       const payload = res?.data ?? res;
       // Handle the new API response structure
       const list: any[] = payload?.items ?? payload?.data ?? [];
+
       const totalCount =
         payload?.totalItemCount ??
         payload?.totalCount ??
@@ -857,84 +858,101 @@ export const ordersApi = {
           (params?.pageIndex ?? 1) * (params?.pageSize ?? 10) < totalCount
       );
 
-      const mapped: Order[] = list.map((o: any, idx: number) => ({
-        id: String(o.orderId ?? o.id ?? idx),
-        orderNumber:
-          o.orderNumber ?? `ORD-${String(o.orderId ?? idx).padStart(2, "0")}`,
-        userId: String(o.userId ?? o.customerId ?? ""),
-        items: (o.orderItems ?? o.orderDetails ?? []).map((item: any) => ({
-          id: String(item.id ?? item.orderDetailId ?? idx),
-          productId: String(item.productId ?? ""),
-          quantity: Number(item.quantity ?? item.stockQuantity ?? 1),
-          price: Number(item.price ?? item.unitPrice ?? 0),
-          product: {
-            id: String(item.productId ?? ""),
-            name: String(item.productName ?? "Sản phẩm"),
-            images: item.productImages ? [item.productImages] : [],
-            tags: [],
+      const mapped: Order[] = list.map((o: any, idx: number) => {
+        // Extract images từ orderItems (backend trả về images trong orderItems, không phải ở order level)
+        const orderItemsImages = (o.orderItems ?? o.orderDetails ?? [])
+          .map((item: any) => item.images)
+          .filter((img: any) => img && img.trim() !== "");
+
+        return {
+          id: String(o.orderId ?? o.id ?? idx),
+          orderNumber:
+            o.orderNumber ?? `ORD-${String(o.orderId ?? idx).padStart(2, "0")}`,
+          userId: String(o.userId ?? o.customerId ?? ""),
+          items: (o.orderItems ?? o.orderDetails ?? []).map((item: any) => ({
+            id: String(item.id ?? item.orderDetailId ?? idx),
+            productId: String(item.productId ?? ""),
+            quantity: Number(item.quantity ?? item.stockQuantity ?? 1),
             price: Number(item.price ?? item.unitPrice ?? 0),
-            description: "",
-            category: {
-              id: "",
-              name: "",
-              slug: "",
+            product: {
+              id: String(item.productId ?? ""),
+              name: String(item.productName ?? "Sản phẩm"),
+              images: item.images
+                ? [item.images]
+                : item.productImages
+                ? [item.productImages]
+                : [],
+              tags: [],
+              price: Number(item.price ?? item.unitPrice ?? 0),
               description: "",
-              image: "",
+              category: {
+                id: "",
+                name: "",
+                slug: "",
+                description: "",
+                image: "",
+                isActive: true,
+              },
               isActive: true,
+              stock: 0,
+              rating: 0,
+              reviewCount: 0,
+              discount: 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
             },
-            isActive: true,
-            stock: 0,
-            rating: 0,
-            reviewCount: 0,
-            discount: 0,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+          })),
+          status:
+            String(o.status ?? "1") === "1"
+              ? "PLACED"
+              : String(o.status ?? "2") === "2"
+              ? "CONFIRMED"
+              : String(o.status ?? "3") === "3"
+              ? "PACKED"
+              : String(o.status ?? "4") === "4"
+              ? "SHIPPED"
+              : String(o.status ?? "5") === "5"
+              ? "DELIVERED"
+              : String(o.status ?? "0") === "0"
+              ? "CANCELLED"
+              : "PLACED",
+          statusHistory: [],
+          shippingAddress: {
+            id: "",
+            customerName: "",
+            phoneNumber: "",
+            province: "",
+            district: "",
+            street: String(o.shippingAddress ?? ""),
+            ward: "",
+            isDefault: false,
+            // Legacy fields for backward compatibility
+            name: "",
+            phone: "",
+            city: "",
           },
-        })),
-        status:
-          String(o.status ?? "1") === "1"
-            ? "PLACED"
-            : String(o.status ?? "2") === "2"
-            ? "CONFIRMED"
-            : String(o.status ?? "3") === "3"
-            ? "PACKED"
-            : String(o.status ?? "4") === "4"
-            ? "SHIPPED"
-            : String(o.status ?? "5") === "5"
-            ? "DELIVERED"
-            : String(o.status ?? "0") === "0"
-            ? "CANCELLED"
-            : "PLACED",
-        statusHistory: [],
-        shippingAddress: {
-          id: "",
-          name: "",
-          phone: "",
-          street: String(o.shippingAddress ?? ""),
-          ward: "",
-          district: "",
-          city: "",
-          isDefault: false,
-          type: "OTHER",
-        },
-        paymentMethod: {
-          id: "cod",
-          type: "COD",
-          name: "Thanh toán khi nhận hàng",
-          description: "",
-          isActive: true,
-        },
-        itemCount: Number(o.orderItems?.length ?? o.orderDetails?.length ?? 1),
-        subtotal: Number(o.totalPrice ?? o.total ?? 0),
-        shippingFee: 0,
-        discount: 0,
-        total: Number(o.totalPrice ?? o.total ?? 0),
-        notes: o.notes ?? undefined,
-        estimatedDelivery: o.estimatedDelivery ?? undefined,
-        trackingNumber: o.trackingNumber ?? undefined,
-        createdAt: o.createdAt ?? new Date().toISOString(),
-        updatedAt: o.updatedAt ?? new Date().toISOString(),
-      }));
+          paymentMethod: {
+            id: "cod",
+            type: "COD",
+            name: "Thanh toán khi nhận hàng",
+            description: "",
+            isActive: true,
+          },
+          itemCount: Number(
+            o.orderItems?.length ?? o.orderDetails?.length ?? 1
+          ),
+          subtotal: Number(o.totalPrice ?? o.total ?? 0),
+          shippingFee: 0,
+          discount: 0,
+          total: Number(o.totalPrice ?? o.total ?? 0),
+          notes: o.notes ?? undefined,
+          estimatedDelivery: o.estimatedDelivery ?? undefined,
+          trackingNumber: o.trackingNumber ?? undefined,
+          images: orderItemsImages.length > 0 ? orderItemsImages : undefined,
+          createdAt: o.createdAt ?? new Date().toISOString(),
+          updatedAt: o.updatedAt ?? new Date().toISOString(),
+        };
+      });
 
       return {
         success: true,
@@ -1263,14 +1281,17 @@ export const ordersApi = {
         statusHistory: [],
         shippingAddress: {
           id: "",
-          name: "",
-          phone: "",
+          customerName: "",
+          phoneNumber: "",
+          province: "",
+          district: "",
           street: String(o.shippingAddress ?? ""),
           ward: "",
-          district: "",
-          city: "",
           isDefault: false,
-          type: "OTHER",
+          // Legacy fields for backward compatibility
+          name: "",
+          phone: "",
+          city: "",
         },
         paymentMethod: {
           id: "cod",
@@ -1333,29 +1354,280 @@ export const ordersApi = {
 // Addresses API
 export const addressesApi = {
   async getAll(): Promise<ApiResponse<Address[]>> {
-    // No backend endpoint → return empty list
-    return { success: true, data: [] };
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: [],
+          message: "Not authenticated",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      const result = await __request(OpenAPI, {
+        method: "GET",
+        url: "/api/v1/Address",
+      });
+
+      const response = (result as any)?.data ?? result;
+
+      // Check if response has data array
+      const addressList = response?.data ?? response ?? [];
+
+      const addresses: Address[] = Array.isArray(addressList)
+        ? addressList.map((addr: any) => ({
+            id: String(addr.addressId ?? addr.id ?? ""),
+            customerName: addr.customerName ?? "",
+            phoneNumber: addr.phoneNumber ?? "",
+            province: addr.province ?? "",
+            district: addr.district ?? "",
+            ward: addr.ward ?? "",
+            street: addr.street ?? "",
+            isDefault: Boolean(addr.isDefault ?? false),
+            latitude: addr.latitude,
+            longitude: addr.longitude,
+            // Legacy support
+            name: addr.customerName,
+            phone: addr.phoneNumber,
+            city: addr.province,
+          }))
+        : [];
+
+      return { success: true, data: addresses };
+    } catch (error) {
+      console.error("❌ [ADDRESSES] Error fetching addresses:", error);
+      return {
+        success: true,
+        data: [],
+        message: "Failed to fetch addresses",
+      };
+    }
   },
 
   async getById(id: string): Promise<ApiResponse<Address>> {
-    return { success: false, data: null as any, message: "Address not found" };
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: null as any,
+          message: "Not authenticated",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      const result = await __request(OpenAPI, {
+        method: "GET",
+        url: `/api/v1/Address/${id}`,
+      });
+
+      const response = (result as any)?.data ?? result;
+      const addr = response?.data ?? response;
+
+      const address: Address = {
+        id: String(addr.addressId ?? addr.id ?? id),
+        customerName: addr.customerName ?? "",
+        phoneNumber: addr.phoneNumber ?? "",
+        province: addr.province ?? "",
+        district: addr.district ?? "",
+        ward: addr.ward ?? "",
+        street: addr.street ?? "",
+        isDefault: Boolean(addr.isDefault ?? false),
+        latitude: addr.latitude,
+        longitude: addr.longitude,
+        // Legacy support
+        name: addr.customerName,
+        phone: addr.phoneNumber,
+        city: addr.province,
+      };
+
+      return { success: true, data: address };
+    } catch (error) {
+      return {
+        success: false,
+        data: null as any,
+        message: "Address not found",
+      };
+    }
   },
 
   async create(
     addressData: Omit<Address, "id">
   ): Promise<ApiResponse<Address>> {
-    return { success: false, data: null as any, message: "Not supported" };
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: null as any,
+          message: "Not authenticated",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      const requestBody = {
+        customerName: addressData.customerName,
+        phoneNumber: addressData.phoneNumber,
+        province: addressData.province,
+        district: addressData.district,
+        ward: addressData.ward,
+        street: addressData.street,
+        isDefault: addressData.isDefault ?? false,
+        latitude: addressData.latitude,
+        longitude: addressData.longitude,
+      };
+
+      const result = await __request(OpenAPI, {
+        method: "POST",
+        url: "/api/v1/Address",
+        body: requestBody,
+        mediaType: "application/json",
+      });
+
+      const response = (result as any)?.data ?? result;
+      const addr = response?.data ?? response;
+
+      const address: Address = {
+        id: String(addr.addressId ?? addr.id ?? ""),
+        customerName: addr.customerName ?? addressData.customerName,
+        phoneNumber: addr.phoneNumber ?? addressData.phoneNumber,
+        province: addr.province ?? addressData.province,
+        district: addr.district ?? addressData.district,
+        ward: addr.ward ?? addressData.ward,
+        street: addr.street ?? addressData.street,
+        isDefault: Boolean(addr.isDefault ?? addressData.isDefault),
+        latitude: addr.latitude ?? addressData.latitude,
+        longitude: addr.longitude ?? addressData.longitude,
+        // Legacy support
+        name: addr.customerName ?? addressData.customerName,
+        phone: addr.phoneNumber ?? addressData.phoneNumber,
+        city: addr.province ?? addressData.province,
+      };
+
+      return { success: true, data: address };
+    } catch (error) {
+      console.error("❌ [ADDRESSES] Error creating address:", error);
+      return {
+        success: false,
+        data: null as any,
+        message:
+          error instanceof Error ? error.message : "Failed to create address",
+      };
+    }
   },
 
   async update(
     id: string,
     addressData: Partial<Address>
   ): Promise<ApiResponse<Address>> {
-    return { success: false, data: null as any, message: "Not supported" };
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: null as any,
+          message: "Not authenticated",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      const requestBody: any = {};
+
+      if (addressData.customerName !== undefined)
+        requestBody.customerName = addressData.customerName;
+      if (addressData.phoneNumber !== undefined)
+        requestBody.phoneNumber = addressData.phoneNumber;
+      if (addressData.province !== undefined)
+        requestBody.province = addressData.province;
+      if (addressData.district !== undefined)
+        requestBody.district = addressData.district;
+      if (addressData.ward !== undefined) requestBody.ward = addressData.ward;
+      if (addressData.street !== undefined)
+        requestBody.street = addressData.street;
+      if (addressData.isDefault !== undefined)
+        requestBody.isDefault = addressData.isDefault;
+      if (addressData.latitude !== undefined)
+        requestBody.latitude = addressData.latitude;
+      if (addressData.longitude !== undefined)
+        requestBody.longitude = addressData.longitude;
+
+      const result = await __request(OpenAPI, {
+        method: "PUT",
+        url: `/api/v1/Address/${id}`,
+        body: requestBody,
+        mediaType: "application/json",
+      });
+
+      const response = (result as any)?.data ?? result;
+      const addr = response?.data ?? response;
+
+      const address: Address = {
+        id: String(addr.addressId ?? addr.id ?? id),
+        customerName: addr.customerName ?? addressData.customerName ?? "",
+        phoneNumber: addr.phoneNumber ?? addressData.phoneNumber ?? "",
+        province: addr.province ?? addressData.province ?? "",
+        district: addr.district ?? addressData.district ?? "",
+        ward: addr.ward ?? addressData.ward ?? "",
+        street: addr.street ?? addressData.street ?? "",
+        isDefault: Boolean(addr.isDefault ?? addressData.isDefault ?? false),
+        latitude: addr.latitude ?? addressData.latitude,
+        longitude: addr.longitude ?? addressData.longitude,
+        // Legacy support
+        name: addr.customerName ?? addressData.customerName,
+        phone: addr.phoneNumber ?? addressData.phoneNumber,
+        city: addr.province ?? addressData.province,
+      };
+
+      return { success: true, data: address };
+    } catch (error) {
+      console.error("❌ [ADDRESSES] Error updating address:", error);
+      return {
+        success: false,
+        data: null as any,
+        message:
+          error instanceof Error ? error.message : "Failed to update address",
+      };
+    }
   },
 
   async delete(id: string): Promise<ApiResponse<null>> {
-    return { success: false, data: null, message: "Not supported" };
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: null,
+          message: "Not authenticated",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      await __request(OpenAPI, {
+        method: "DELETE",
+        url: `/api/v1/Address/${id}`,
+      });
+
+      return { success: true, data: null };
+    } catch (error) {
+      console.error("❌ [ADDRESSES] Error deleting address:", error);
+      return {
+        success: false,
+        data: null,
+        message:
+          error instanceof Error ? error.message : "Failed to delete address",
+      };
+    }
   },
 };
 

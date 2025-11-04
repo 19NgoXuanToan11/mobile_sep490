@@ -1,9 +1,12 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ViewProps } from "react-native";
+import { View, Text, TouchableOpacity, ViewProps, Animated } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
+import { appleDesign } from "../lib/theme";
 import { Card } from "./card";
 
 const categoryCardVariants = cva("", {
@@ -52,14 +55,46 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   const containerSize =
     size === "sm" ? "w-16 h-16" : size === "md" ? "w-20 h-20" : "w-24 h-24";
 
+  // Apple-style animations
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.spring(fadeAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+    }).start();
+  }, []);
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.94,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
+
   const renderIcon = () => {
     if (category.image) {
       return (
         <View
-          className={cn(
-            "rounded-2xl overflow-hidden bg-primary-50",
-            containerSize
-          )}
+          className={cn("overflow-hidden bg-primary-50", containerSize)}
+          style={{
+            borderRadius: appleDesign.radius.lg,
+            ...appleDesign.shadows.soft,
+          }}
         >
           <Image
             source={{ uri: category.image }}
@@ -71,62 +106,106 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
     }
 
     const iconName = category.icon || "leaf-outline";
-    const backgroundColor = category.color || "#f0f9f5";
 
     return (
       <View
-        className={cn(
-          "rounded-2xl items-center justify-center shadow-sm",
-          containerSize
-        )}
-        style={{ backgroundColor }}
+        className={cn("overflow-hidden", containerSize)}
+        style={{
+          borderRadius: appleDesign.radius.lg,
+          ...appleDesign.shadows.medium,
+        }}
       >
-        <Ionicons name={iconName as any} size={iconSize} color="#00623A" />
+        {/* Glass morphism background */}
+        <LinearGradient
+          colors={["rgba(0,168,107,0.12)", "rgba(0,168,107,0.08)"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="flex-1 items-center justify-center"
+        >
+          <View
+            className="items-center justify-center"
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(255,255,255,0.7)",
+            }}
+          >
+            <Ionicons name={iconName as any} size={iconSize} color="#00A86B" />
+          </View>
+        </LinearGradient>
       </View>
     );
   };
 
   return (
-    <TouchableOpacity
-      className={cn(categoryCardVariants({ size, layout }), className)}
-      onPress={onPress}
-      activeOpacity={0.7}
+    <Animated.View
+      style={{
+        opacity: fadeAnim,
+        transform: [
+          { scale: scaleAnim },
+          {
+            translateY: fadeAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [20, 0],
+            }),
+          },
+        ],
+      }}
     >
-      <View
-        className={cn(
-          "space-y-3",
-          isHorizontal ? "flex-row space-y-0 space-x-3" : "flex-col space-y-3"
-        )}
+      <TouchableOpacity
+        className={cn(categoryCardVariants({ size, layout }), className)}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={1}
       >
-        {renderIcon()}
-
         <View
           className={cn(
-            "items-center",
-            isHorizontal ? "items-start flex-1" : "items-center"
+            "space-y-3",
+            isHorizontal ? "flex-row space-y-0 space-x-3" : "flex-col space-y-3"
           )}
         >
-          <Text
-            className={cn(
-              "font-semibold text-neutral-800 text-center leading-tight",
-              size === "sm"
-                ? "text-xs"
-                : size === "md"
-                ? "text-sm"
-                : "text-base"
-            )}
-            numberOfLines={isHorizontal ? 1 : 2}
-          >
-            {category.name}
-          </Text>
+          {renderIcon()}
 
-          {showCount && category.count !== undefined && (
-            <Text className="text-xs text-neutral-500 mt-1 font-medium">
-              {category.count} sản phẩm
+          <View
+            className={cn(
+              "items-center",
+              isHorizontal ? "items-start flex-1" : "items-center"
+            )}
+          >
+            <Text
+              className={cn(
+                "font-semibold leading-tight",
+                isHorizontal ? "text-left" : "text-center"
+              )}
+              style={{
+                color: appleDesign.colors.text.primary,
+                fontSize: size === "sm"
+                  ? appleDesign.typography.caption1.fontSize
+                  : size === "md"
+                    ? appleDesign.typography.footnote.fontSize
+                    : appleDesign.typography.subheadline.fontSize,
+              }}
+              numberOfLines={isHorizontal ? 1 : 2}
+            >
+              {category.name}
             </Text>
-          )}
+
+            {showCount && category.count !== undefined && (
+              <Text
+                className="mt-1"
+                style={{
+                  color: appleDesign.colors.text.secondary,
+                  fontSize: appleDesign.typography.caption2.fontSize,
+                  fontWeight: "500",
+                }}
+              >
+                {category.count} sản phẩm
+              </Text>
+            )}
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };

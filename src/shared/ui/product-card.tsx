@@ -1,9 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ViewProps } from "react-native";
+import { View, Text, TouchableOpacity, ViewProps, Animated } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
+import { appleDesign } from "../lib/theme";
 import { Card } from "./card";
 import { Badge } from "./badge";
 import { RatingDisplay } from "./rating-stars";
@@ -65,6 +67,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   className,
   ...props
 }) => {
+  // Animation for press feedback
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
   const hasDiscount =
     product.originalPrice && product.originalPrice > product.price;
   const discountPercent = hasDiscount
@@ -74,11 +79,32 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     )
     : 0;
 
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
+
   const renderImage = () => {
     const imageUrl = product.images && product.images.length > 0 ? product.images[0] : null;
 
     return (
-      <View className="relative bg-neutral-100 rounded-xl overflow-hidden w-full h-36">
+      <View
+        className="relative bg-neutral-100 overflow-hidden w-full h-36"
+        style={{ borderRadius: appleDesign.radius.md }}
+      >
         {imageUrl ? (
           <Image
             source={{ uri: imageUrl }}
@@ -132,10 +158,32 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </View>
         )}
 
-        {/* Out of stock overlay */}
+        {/* Out of stock overlay - Apple style */}
         {product.isInStock === false && (
-          <View className="absolute inset-0 bg-black/60 items-center justify-center rounded-xl">
-            <Text className="text-white text-xs font-semibold">Hết hàng</Text>
+          <View
+            className="absolute inset-0 items-center justify-center"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.92)",
+              borderRadius: appleDesign.radius.md,
+            }}
+          >
+            <View
+              className="px-4 py-2"
+              style={{
+                backgroundColor: "#FEE2E2",
+                borderRadius: appleDesign.radius.xs,
+              }}
+            >
+              <Text
+                className="font-semibold"
+                style={{
+                  color: "#B91C1C",
+                  fontSize: appleDesign.typography.caption1.fontSize,
+                }}
+              >
+                Hết hàng
+              </Text>
+            </View>
           </View>
         )}
       </View>
@@ -245,19 +293,34 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </View>
 
-        {/* CTA Button */}
+        {/* Apple-style Gradient CTA Button */}
         {showAddToCart && product.isInStock !== false && (
           <TouchableOpacity
-            className="bg-primary-500 rounded-xl py-2.5 items-center justify-center shadow-sm"
             onPress={onAddToCart}
-            activeOpacity={0.8}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            activeOpacity={0.9}
+            style={{ borderRadius: appleDesign.radius.sm }}
           >
-            <View className="flex-row items-center gap-1.5">
-              <Ionicons name="basket-outline" size={14} color="white" />
-              <Text className="text-white text-sm font-semibold">
-                Thêm vào giỏ
-              </Text>
-            </View>
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <LinearGradient
+                colors={appleDesign.gradients.primary}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{
+                  borderRadius: appleDesign.radius.sm,
+                  paddingVertical: 10,
+                  ...appleDesign.shadows.soft,
+                }}
+              >
+                <View className="flex-row items-center justify-center gap-1.5">
+                  <Ionicons name="basket-outline" size={14} color="white" />
+                  <Text className="text-white text-sm font-semibold">
+                    Thêm vào giỏ
+                  </Text>
+                </View>
+              </LinearGradient>
+            </Animated.View>
           </TouchableOpacity>
         )}
       </View>
@@ -265,17 +328,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   );
 
   return (
-    <Card
-      variant="product"
-      padding="md"
+    <TouchableOpacity
       onPress={onPress}
-      className={cn(productCardVariants({ size }), "shadow-sm", className)}
-      {...props}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={1}
     >
-      <View className="flex-col space-y-3">
-        {renderImage()}
-        {renderContent()}
-      </View>
-    </Card>
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <Card
+          variant="product"
+          padding="md"
+          className={cn(productCardVariants({ size }), className)}
+          style={appleDesign.shadows.soft}
+          {...props}
+        >
+          <View className="flex-col space-y-3">
+            {renderImage()}
+            {renderContent()}
+          </View>
+        </Card>
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
