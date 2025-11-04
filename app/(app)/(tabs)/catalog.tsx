@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,12 +8,16 @@ import {
   Modal,
   Animated,
   Dimensions,
+  ScrollView,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import {
   Button,
   Card,
@@ -36,6 +40,7 @@ import {
 } from "../../../src/shared/hooks";
 import { formatCurrency } from "../../../src/shared/lib/utils";
 import { useToast } from "../../../src/shared/ui/toast";
+import { appleDesign } from "../../../src/shared/lib/theme";
 
 export default function CatalogScreen() {
   const { t } = useLocalization();
@@ -47,7 +52,14 @@ export default function CatalogScreen() {
     "name" | "price_asc" | "price_desc" | "newest"
   >("newest");
   const [showFilters, setShowFilters] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const debouncedQuery = useDebounce(searchQuery, 300);
+
+  // Apple-style Animation References
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const searchBarAnim = useRef(new Animated.Value(1)).current;
+  const filterButtonScale = useRef(new Animated.Value(1)).current;
+  const modalSlideAnim = useRef(new Animated.Value(0)).current;
 
   // Localize category names from English to Vietnamese
   const getLocalizedCategoryName = (categoryName: string): string => {
@@ -105,212 +117,537 @@ export default function CatalogScreen() {
     { id: "name", label: "Tên A-Z" },
   ];
 
-  const renderProductGrid = ({ item: product }: { item: any }) => (
-    <View className="w-[48%] mb-4">
-      <ProductCard
-        product={product}
-        size="full"
-        onPress={() =>
-          router.push({
-            pathname: "/(app)/product/[id]",
-            params: { id: product.id },
-          })
-        }
-        onAddToCart={() => handleAddToCart(product.id, product.name)}
-      />
-    </View>
-  );
+  // ✨ Premium Shimmer Loader - Apple Style
+  const ShimmerProductCard = () => {
+    const shimmerAnim = useRef(new Animated.Value(0)).current;
 
-  const FilterModal = () => {
-    const screenWidth = Dimensions.get("window").width;
-    const modalWidth = Math.min(screenWidth - 32, 380);
+    useEffect(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(shimmerAnim, {
+            toValue: 1,
+            duration: 1200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(shimmerAnim, {
+            toValue: 0,
+            duration: 1200,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }, []);
+
+    const opacity = shimmerAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.3, 0.7],
+    });
 
     return (
-      <View className="flex-1 items-center justify-center px-4">
-        <View
+      <View
+        className="w-[48%] mb-4 bg-white p-3"
+        style={{
+          borderRadius: appleDesign.radius.lg,
+          ...appleDesign.shadows.soft,
+        }}
+      >
+        {/* Image Placeholder */}
+        <Animated.View
+          className="w-full h-36 mb-3"
           style={{
-            width: modalWidth,
-            backgroundColor: "rgba(255, 255, 255, 0.98)",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 20 },
-            shadowOpacity: 0.25,
-            shadowRadius: 25,
-            elevation: 20,
+            backgroundColor: "#F0F0F0",
+            borderRadius: appleDesign.radius.md,
+            opacity,
           }}
-          className="rounded-3xl overflow-hidden"
+        />
+
+        {/* Title Lines */}
+        <Animated.View
+          className="h-4 mb-2"
+          style={{
+            backgroundColor: "#F0F0F0",
+            borderRadius: 4,
+            width: "80%",
+            opacity,
+          }}
+        />
+        <Animated.View
+          className="h-4 mb-3"
+          style={{
+            backgroundColor: "#F0F0F0",
+            borderRadius: 4,
+            width: "60%",
+            opacity,
+          }}
+        />
+
+        {/* Price */}
+        <Animated.View
+          className="h-5 mb-3"
+          style={{
+            backgroundColor: "#E0F2E9",
+            borderRadius: 4,
+            width: "50%",
+            opacity,
+          }}
+        />
+
+        {/* Button */}
+        <Animated.View
+          className="h-10"
+          style={{
+            backgroundColor: "#F0F0F0",
+            borderRadius: appleDesign.radius.sm,
+            opacity,
+          }}
+        />
+      </View>
+    );
+  };
+
+  // ✨ Product Grid Item Component (with Fade-Up Animation)
+  const ProductGridItem = React.memo(({ product, index }: { product: any; index: number }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const translateY = useRef(new Animated.Value(30)).current;
+
+    useEffect(() => {
+      // Stagger animation for each card
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          delay: index * 50, // Stagger delay
+          useNativeDriver: true,
+        }),
+        Animated.spring(translateY, {
+          toValue: 0,
+          delay: index * 50,
+          tension: 50,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
+    return (
+      <Animated.View
+        className="w-[48%] mb-4"
+        style={{
+          opacity: fadeAnim,
+          transform: [{ translateY }],
+        }}
+      >
+        <ProductCard
+          product={product}
+          size="full"
+          onPress={() =>
+            router.push({
+              pathname: "/(app)/product/[id]",
+              params: { id: product.id },
+            })
+          }
+          onAddToCart={() => handleAddToCart(product.id, product.name)}
+        />
+      </Animated.View>
+    );
+  });
+
+  // ✨ Category Pill Component (with Scale Animation)
+  const CategoryPill = React.memo(({
+    item,
+    isSelected,
+    onPress,
+    getLocalizedCategoryName
+  }: {
+    item: any;
+    isSelected: boolean;
+    onPress: () => void;
+    getLocalizedCategoryName: (name: string) => string;
+  }) => {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const handlePress = () => {
+      // Animation on press
+      Animated.sequence([
+        Animated.spring(scaleAnim, {
+          toValue: 0.92,
+          useNativeDriver: true,
+          speed: 100,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          speed: 100,
+        }),
+      ]).start();
+      onPress();
+    };
+
+    return (
+      <TouchableOpacity onPress={handlePress} activeOpacity={1}>
+        <Animated.View
+          className="px-5 py-2.5"
+          style={{
+            borderRadius: 24,
+            borderWidth: 1,
+            borderColor: isSelected ? "#00A86B" : "#E5E7EB",
+            backgroundColor: isSelected
+              ? "rgba(0, 168, 107, 0.08)"
+              : "#FFFFFF",
+            transform: [{ scale: scaleAnim }],
+          }}
         >
-          {/* Clean Header */}
-          <View className="px-6 pt-8 pb-2">
-            <View className="items-center mb-6">
-              <Text
-                className="text-2xl text-neutral-900 mb-2"
-                style={{
-                  fontWeight: "600",
-                  letterSpacing: -0.5,
-                }}
-              >
-                Sắp xếp
-              </Text>
-              <View className="w-12 h-1 bg-neutral-200 rounded-full" />
-            </View>
+          <Text
+            style={{
+              fontSize: appleDesign.typography.footnote.fontSize,
+              fontWeight: isSelected ? "600" : "400",
+              color: isSelected ? "#00A86B" : "#6B7280",
+              letterSpacing: -0.2,
+            }}
+          >
+            {item.id === null
+              ? item.name
+              : getLocalizedCategoryName(item.name)}
+          </Text>
+        </Animated.View>
+      </TouchableOpacity>
+    );
+  });
+
+  // ✨ Filter Option Component (with Ripple Animation)
+  const FilterOption = React.memo(({
+    option,
+    isSelected,
+    onPress
+  }: {
+    option: { id: string; label: string };
+    isSelected: boolean;
+    onPress: () => void;
+  }) => {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const handlePress = () => {
+      // Ripple animation
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 0.96,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 100,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      onPress();
+    };
+
+    return (
+      <TouchableOpacity onPress={handlePress} activeOpacity={1}>
+        <Animated.View
+          className="py-4 px-4 flex-row items-center justify-between"
+          style={{
+            transform: [{ scale: scaleAnim }],
+            backgroundColor: isSelected
+              ? "rgba(0, 168, 107, 0.08)"
+              : "transparent",
+            borderRadius: appleDesign.radius.sm,
+            marginVertical: 2,
+          }}
+        >
+          <Text
+            className="text-neutral-900"
+            style={{
+              fontSize: appleDesign.typography.body.fontSize,
+              fontWeight: isSelected ? "600" : "400",
+              letterSpacing: -0.3,
+              color: isSelected ? "#00A86B" : "#1D1D1F",
+            }}
+          >
+            {option.label}
+          </Text>
+          {isSelected && (
+            <Ionicons
+              name="checkmark-circle"
+              size={24}
+              color="#00A86B"
+            />
+          )}
+        </Animated.View>
+      </TouchableOpacity>
+    );
+  });
+
+  const renderProductGrid = ({ item: product, index }: { item: any; index: number }) => {
+    return <ProductGridItem product={product} index={index} />;
+  };
+
+  // ✨ Apple Premium Filter Modal - Bottom Sheet Style
+  const FilterModal = () => {
+    const screenHeight = Dimensions.get("window").height;
+
+    useEffect(() => {
+      if (showFilters) {
+        Animated.spring(modalSlideAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 65,
+          friction: 11,
+        }).start();
+      } else {
+        Animated.spring(modalSlideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 65,
+          friction: 11,
+        }).start();
+      }
+    }, [showFilters]);
+
+    const translateY = modalSlideAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [screenHeight, 0],
+    });
+
+    return (
+      <Animated.View
+        className="absolute bottom-0 left-0 right-0"
+        style={{
+          transform: [{ translateY }],
+        }}
+      >
+        <View
+          className="bg-white overflow-hidden"
+          style={{
+            borderTopLeftRadius: appleDesign.radius.xl,
+            borderTopRightRadius: appleDesign.radius.xl,
+            ...appleDesign.shadows.strong,
+          }}
+        >
+          {/* Handle Bar */}
+          <View className="items-center pt-3 pb-2">
+            <View
+              className="bg-neutral-300"
+              style={{
+                width: 40,
+                height: 5,
+                borderRadius: appleDesign.radius.full,
+              }}
+            />
           </View>
 
-          {/* Sort Options - Clean List Style */}
-          <View className="px-6 pb-6">
-            {filterOptions.map((option, index) => (
-              <TouchableOpacity
+          {/* Header */}
+          <View className="px-6 pt-4 pb-3">
+            <Text
+              className="text-center text-neutral-900"
+              style={{
+                fontSize: appleDesign.typography.title3.fontSize,
+                fontWeight: "600",
+                letterSpacing: -0.5,
+              }}
+            >
+              Sắp xếp
+            </Text>
+          </View>
+
+          {/* Sort Options - Apple List Style */}
+          <View className="px-5 py-2">
+            {filterOptions.map((option) => (
+              <FilterOption
                 key={option.id}
-                onPress={() => {
-                  setSortBy(option.id as any);
-                  setShowFilters(false);
-                }}
-                className="py-4 border-b border-neutral-100"
-                style={{
-                  borderBottomWidth:
-                    index === filterOptions.length - 1 ? 0 : 0.5,
-                }}
-                activeOpacity={0.6}
-              >
-                <View className="flex-row items-center justify-between">
-                  <Text
-                    className="text-neutral-900 text-lg"
-                    style={{
-                      fontWeight: sortBy === option.id ? "600" : "400",
-                      letterSpacing: -0.3,
-                    }}
-                  >
-                    {option.label}
-                  </Text>
-                  {sortBy === option.id && (
-                    <Ionicons
-                      name="checkmark"
-                      size={22}
-                      color="#007AFF"
-                      style={{ fontWeight: "600" }}
-                    />
-                  )}
-                </View>
-              </TouchableOpacity>
+                option={option}
+                isSelected={sortBy === option.id}
+                onPress={() => setSortBy(option.id as any)}
+              />
             ))}
           </View>
 
           {/* Bottom Actions */}
-          <View className="px-6 pb-8 pt-4 border-t border-neutral-100">
-            <View className="space-y-3">
-              <TouchableOpacity
-                onPress={() => setShowFilters(false)}
-                className="w-full py-4 rounded-2xl"
+          <View className="px-6 pt-6 pb-8" style={{ gap: 12 }}>
+            {/* Done Button - Gradient */}
+            <TouchableOpacity
+              onPress={() => setShowFilters(false)}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={["#00A86B", "#009E60"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
                 style={{
-                  backgroundColor: "#16a34a",
+                  borderRadius: appleDesign.radius.md,
+                  paddingVertical: 16,
+                  ...appleDesign.shadows.soft,
                 }}
-                activeOpacity={0.8}
               >
                 <Text
-                  className="text-center text-white text-lg"
+                  className="text-center text-white"
                   style={{
+                    fontSize: appleDesign.typography.body.fontSize,
                     fontWeight: "600",
                     letterSpacing: -0.3,
                   }}
                 >
                   Xong
                 </Text>
-              </TouchableOpacity>
+              </LinearGradient>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => {
-                  setSortBy("newest");
-                  setSelectedCategory(null);
-                  setShowFilters(false);
+            {/* Reset Button */}
+            <TouchableOpacity
+              onPress={() => {
+                setSortBy("newest");
+                setSelectedCategory(null);
+                setShowFilters(false);
+              }}
+              className="py-3"
+              activeOpacity={0.6}
+            >
+              <Text
+                className="text-center"
+                style={{
+                  fontSize: appleDesign.typography.callout.fontSize,
+                  fontWeight: "400",
+                  letterSpacing: -0.2,
+                  color: appleDesign.colors.text.secondary,
                 }}
-                className="w-full py-3"
-                activeOpacity={0.6}
               >
-                <Text
-                  className="text-center text-neutral-600 text-base"
-                  style={{
-                    fontWeight: "400",
-                    letterSpacing: -0.2,
-                  }}
-                >
-                  Đặt lại
-                </Text>
-              </TouchableOpacity>
-            </View>
+                Đặt lại
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </Animated.View>
     );
   };
 
   return (
-    <View className="flex-1 bg-neutral-50">
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent
-      />
+    <View className="flex-1" style={{ backgroundColor: "#FFFFFF" }}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {/* Search & Controls - Edge to Edge */}
-      <View className="bg-white shadow-sm border-b border-neutral-100 pt-12">
-        <View className="px-4 pb-3">
-          <View className="flex-row items-center space-x-3">
-            <SearchBar
-              placeholder="Tìm kiếm sản phẩm..."
+      {/* ✨ Premium Search Bar - Apple Style */}
+      <Animated.View
+        className="bg-white pt-12 pb-4 px-4"
+        style={{
+          ...appleDesign.shadows.soft,
+        }}
+      >
+        <View className="flex-row items-center" style={{ gap: 12 }}>
+          {/* Search Input Container */}
+          <View
+            className="flex-1 flex-row items-center bg-white px-4 py-3"
+            style={{
+              borderRadius: 18,
+              borderWidth: searchFocused ? 1.5 : 0,
+              borderColor: searchFocused ? "#00A86B" : "transparent",
+              backgroundColor: searchFocused ? "#F8FFF9" : "#F5F5F7",
+              ...appleDesign.shadows.soft,
+            }}
+          >
+            <Ionicons
+              name="search-outline"
+              size={20}
+              color={searchFocused ? "#00A86B" : "#9CA3AF"}
+              style={{ marginRight: 8 }}
+            />
+            <TextInput
+              placeholder="Tìm kiếm sản phẩm…"
+              placeholderTextColor="#9CA3AF"
               value={searchQuery}
               onChangeText={setSearchQuery}
-              onSubmit={handleSearch}
-              variant="filled"
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
               className="flex-1"
+              style={{
+                fontSize: appleDesign.typography.callout.fontSize,
+                fontWeight: "400",
+                color: "#1D1D1F",
+                letterSpacing: -0.2,
+              }}
             />
-            <TouchableOpacity
-              onPress={() => setShowFilters(true)}
-              className="w-10 h-10 bg-neutral-100 rounded-full items-center justify-center"
-            >
-              <Ionicons name="options-outline" size={20} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      {/* Categories Filter */}
-      <View className="bg-white border-b border-neutral-100 py-3">
-        <View className="px-4">
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={[{ id: null, name: "Tất cả" }, ...categories]}
-            keyExtractor={(item) => item.id || "all"}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => setSelectedCategory(item.id)}
-                className={`mr-3 px-4 py-2 rounded-full border ${
-                  selectedCategory === item.id
-                    ? "border-primary-500 bg-primary-50"
-                    : "border-neutral-200 bg-white"
-                }`}
-              >
-                <Text
-                  className={`font-medium ${
-                    selectedCategory === item.id
-                      ? "text-primary-700"
-                      : "text-neutral-600"
-                  }`}
-                >
-                  {item.id === null
-                    ? item.name
-                    : getLocalizedCategoryName(item.name)}
-                </Text>
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={20} color="#9CA3AF" />
               </TouchableOpacity>
             )}
-          />
+          </View>
+
+          {/* Filter Button - Glass Blur */}
+          <TouchableOpacity
+            onPress={() => setShowFilters(true)}
+            onPressIn={() => {
+              Animated.spring(filterButtonScale, {
+                toValue: 0.9,
+                useNativeDriver: true,
+                speed: 50,
+              }).start();
+            }}
+            onPressOut={() => {
+              Animated.spring(filterButtonScale, {
+                toValue: 1,
+                useNativeDriver: true,
+                speed: 50,
+              }).start();
+            }}
+            activeOpacity={1}
+          >
+            <Animated.View
+              className="w-12 h-12 items-center justify-center"
+              style={{
+                borderRadius: appleDesign.radius.full,
+                backgroundColor: "rgba(245, 245, 247, 0.9)",
+                ...appleDesign.shadows.soft,
+                transform: [{ scale: filterButtonScale }],
+              }}
+            >
+              <Ionicons
+                name="options-outline"
+                size={22}
+                color={searchFocused ? "#00A86B" : "#6B7280"}
+              />
+            </Animated.View>
+          </TouchableOpacity>
         </View>
+      </Animated.View>
+
+      {/* ✨ Category Pills - Apple Style with Fade Edges */}
+      <View
+        className="bg-white py-4"
+        style={{
+          borderBottomWidth: 0.5,
+          borderBottomColor: "rgba(0,0,0,0.05)",
+        }}
+      >
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            gap: 10,
+          }}
+          decelerationRate="fast"
+        >
+          {[{ id: null, name: "Tất cả" }, ...categories].map((item) => (
+            <CategoryPill
+              key={item.id || "all"}
+              item={item}
+              isSelected={selectedCategory === item.id}
+              onPress={() => setSelectedCategory(item.id)}
+              getLocalizedCategoryName={getLocalizedCategoryName}
+            />
+          ))}
+        </ScrollView>
       </View>
 
-      {/* Products Grid */}
-      <View className="flex-1">
+      {/* ✨ Products Grid with Premium Loading */}
+      <View className="flex-1" style={{ backgroundColor: "#F9FAFB" }}>
         {isLoading ? (
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-neutral-600">Đang tải sản phẩm...</Text>
+          <View className="flex-1 px-4 pt-4">
+            <View className="flex-row flex-wrap justify-between">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <ShimmerProductCard key={i} />
+              ))}
+            </View>
           </View>
         ) : products.length === 0 ? (
           <EmptyState
@@ -331,28 +668,31 @@ export default function CatalogScreen() {
             }}
             columnWrapperStyle={{ justifyContent: "space-between" }}
             showsVerticalScrollIndicator={false}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: false }
+            )}
           />
         )}
       </View>
 
-      {/* Filter Modal - Apple Style */}
+      {/* ✨ Filter Modal - Apple Style Bottom Sheet */}
       <Modal
         visible={showFilters}
         transparent={true}
-        animationType="slide"
+        animationType="none"
         onRequestClose={() => setShowFilters(false)}
         presentationStyle="overFullScreen"
       >
-        <View
-          className="flex-1"
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
-          }}
-        >
+        <View className="flex-1">
+          {/* Backdrop with fade animation */}
           <TouchableOpacity
             className="absolute inset-0"
             onPress={() => setShowFilters(false)}
             activeOpacity={1}
+            style={{
+              backgroundColor: "rgba(0, 0, 0, 0.4)",
+            }}
           />
           <FilterModal />
         </View>

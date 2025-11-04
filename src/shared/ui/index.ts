@@ -48,3 +48,11 @@ export type { CategoryCardProps } from "./category-card";
 
 export { SearchBar } from "./search-bar";
 export type { SearchBarProps } from "./search-bar";
+
+export {
+  ShimmerLoader,
+  ProductCardSkeleton,
+  CategoryCardSkeleton,
+} from "./shimmer-loader";
+
+export { RecommendationSection } from "./recommendation-section";

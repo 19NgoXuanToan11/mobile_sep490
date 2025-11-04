@@ -29,22 +29,11 @@ const AddressCard: React.FC<{
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center flex-wrap gap-2 flex-1 pr-3">
             <Text className="font-semibold text-neutral-900 text-lg">
-              {address.name}
+              {address.customerName || address.name}
             </Text>
             {address.isDefault && (
               <Badge text="Mặc định" size="sm" variant="success" />
             )}
-            <Badge
-              text={
-                address.type === "HOME"
-                  ? "Nhà"
-                  : address.type === "OFFICE"
-                  ? "Văn phòng"
-                  : "Khác"
-              }
-              size="sm"
-              variant="outline"
-            />
           </View>
 
           <View className="flex-row space-x-2 mr-1">
@@ -67,7 +56,9 @@ const AddressCard: React.FC<{
         <View className="space-y-2.5">
           <View className="flex-row items-center space-x-2">
             <Ionicons name="call-outline" size={16} color="#6b7280" />
-            <Text className="text-neutral-700">{address.phone}</Text>
+            <Text className="text-neutral-700">
+              {address.phoneNumber || address.phone}
+            </Text>
           </View>
 
           <View className="flex-row items-start space-x-2">
@@ -78,8 +69,7 @@ const AddressCard: React.FC<{
               className="mt-1"
             />
             <Text className="text-neutral-800 leading-5 flex-1">
-              {address.street}, {address.ward}, {address.district},{" "}
-              {address.city}
+              {address.street}, {address.ward}, {address.province || address.city}
             </Text>
           </View>
         </View>

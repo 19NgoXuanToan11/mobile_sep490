@@ -143,27 +143,118 @@ export const elevation = {
   },
 };
 
-// E-commerce specific design tokens
+// Apple-style design tokens for premium UI
+export const appleDesign = {
+  // Soft, elegant shadows
+  shadows: {
+    soft: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    medium: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+    strong: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.12,
+      shadowRadius: 16,
+      elevation: 6,
+    },
+  },
+  // Smooth gradients
+  gradients: {
+    primary: ["#00A86B", "#009E60"] as const,
+    header: ["#FFFFFF", "#F6FFF8"] as const,
+    glass: ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.7)"] as const,
+    overlay: ["rgba(0,0,0,0)", "rgba(0,0,0,0.6)"] as const,
+  },
+  // Typography scales
+  typography: {
+    largeTitle: { fontSize: 34, fontWeight: "700" as const, lineHeight: 41 },
+    title1: { fontSize: 28, fontWeight: "700" as const, lineHeight: 34 },
+    title2: { fontSize: 22, fontWeight: "600" as const, lineHeight: 28 },
+    title3: { fontSize: 20, fontWeight: "600" as const, lineHeight: 25 },
+    headline: { fontSize: 17, fontWeight: "600" as const, lineHeight: 22 },
+    body: { fontSize: 17, fontWeight: "400" as const, lineHeight: 22 },
+    callout: { fontSize: 16, fontWeight: "400" as const, lineHeight: 21 },
+    subheadline: { fontSize: 15, fontWeight: "400" as const, lineHeight: 20 },
+    footnote: { fontSize: 13, fontWeight: "400" as const, lineHeight: 18 },
+    caption1: { fontSize: 12, fontWeight: "400" as const, lineHeight: 16 },
+    caption2: { fontSize: 11, fontWeight: "400" as const, lineHeight: 13 },
+  },
+  // Refined colors
+  colors: {
+    text: {
+      primary: "#1D1D1F",
+      secondary: "#6E6E73",
+      tertiary: "#86868B",
+      quaternary: "#D1D1D6",
+    },
+    background: {
+      primary: "#FFFFFF",
+      secondary: "#F5F5F7",
+      tertiary: "#FAFAFA",
+      elevated: "#FFFFFF",
+    },
+    green: {
+      primary: "#00A86B",
+      light: "#34D399",
+      lighter: "#A7F3D0",
+      dark: "#065F46",
+    },
+  },
+  // Spacing based on 8pt grid
+  spacing: {
+    xxs: 4,
+    xs: 8,
+    sm: 12,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+    xxxl: 64,
+  },
+  // Smooth corner radius
+  radius: {
+    xs: 8,
+    sm: 12,
+    md: 16,
+    lg: 20,
+    xl: 24,
+    xxl: 28,
+    full: 999,
+  },
+};
+
+// E-commerce specific design tokens (updated with Apple style)
 export const farmingTheme = {
   productCard: {
-    borderRadius: borderRadius["2xl"],
-    padding: spacing.md,
-    shadow: elevation.md,
+    borderRadius: appleDesign.radius.lg,
+    padding: appleDesign.spacing.md,
+    shadow: appleDesign.shadows.soft,
   },
   categoryIcon: {
     size: 48,
-    borderRadius: borderRadius.xl,
+    borderRadius: appleDesign.radius.lg,
     backgroundColor: colors.primary[50],
   },
   actionButton: {
-    borderRadius: borderRadius.xl,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    shadow: elevation.lg,
+    borderRadius: appleDesign.radius.xl,
+    paddingVertical: appleDesign.spacing.sm,
+    paddingHorizontal: appleDesign.spacing.lg,
+    shadow: appleDesign.shadows.medium,
   },
   searchBar: {
-    borderRadius: borderRadius.xl,
+    borderRadius: appleDesign.radius.md,
     backgroundColor: colors.neutral[50],
-    padding: spacing.md,
+    padding: appleDesign.spacing.md,
   },
 };

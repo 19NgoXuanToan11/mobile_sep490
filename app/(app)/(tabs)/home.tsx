@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StatusBar,
   Animated,
-  Easing,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -16,33 +15,25 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import {
-  Button,
-  Card,
-  Badge,
-  Skeleton,
   ProductCard,
-  CategoryCard,
-  SearchBar,
+  ProductCardSkeleton,
 } from "../../../src/shared/ui";
 import {
   bannersApi,
-  categoriesApi,
   productsApi,
 } from "../../../src/shared/data/api";
-import { useAuth, useLocalization, useCart } from "../../../src/shared/hooks";
-import { formatCurrency } from "../../../src/shared/lib/utils";
+import { useAuth, useCart } from "../../../src/shared/hooks";
 import { useToast } from "../../../src/shared/ui/toast";
+import { appleDesign } from "../../../src/shared/lib/theme";
 
 export default function HomeScreen() {
-  const { t } = useLocalization();
   const { user } = useAuth();
   const toast = useToast();
   const { addItem } = useCart();
   const [refreshing, setRefreshing] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("");
 
   // Animation values
-  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const scrollY = React.useRef(new Animated.Value(0)).current;
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -53,7 +44,20 @@ export default function HomeScreen() {
     }).start();
   }, []);
 
-  // Get personalized greeting with emoji
+  // Header parallax effect
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [1, 0.3],
+    extrapolate: "clamp",
+  });
+
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [0, -20],
+    extrapolate: "clamp",
+  });
+
+  // Get personalized greeting
   const getPersonalizedGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Chào buổi sáng";
@@ -61,46 +65,17 @@ export default function HomeScreen() {
     return "Chào buổi tối";
   };
 
-  // Modern category icon mapping
-  const getCategoryIcon = (categoryName: string): string => {
-    const name = categoryName.toLowerCase();
-    if (name.includes("rau") || name.includes("vegetable"))
-      return "leaf-outline";
-    if (name.includes("quả") || name.includes("fruit"))
-      return "nutrition-outline";
-    if (name.includes("thịt") || name.includes("meat")) return "fish-outline";
-    if (name.includes("sữa") || name.includes("milk")) return "wine-outline";
-    if (name.includes("gạo") || name.includes("rice")) return "grid-outline";
-    return "basket-outline";
-  };
-
-  // Localize category names from English to Vietnamese
-  const getLocalizedCategoryName = (categoryName: string): string => {
-    const name = categoryName.toLowerCase();
-    if (name.includes("vegetable")) return "Rau củ";
-    if (name.includes("fruit")) return "Trái cây";
-    if (name.includes("grain") || name.includes("rice")) return "Ngũ cốc";
-    if (name.includes("dairy") || name.includes("milk")) return "Sữa";
-    if (name.includes("meat") || name.includes("poultry")) return "Thịt";
-    return categoryName; // Fallback to original name if no match
-  };
-
-  const { data: banners = [] } = useQuery({
+  const { data: banners = [], isLoading: bannersLoading } = useQuery({
     queryKey: ["banners"],
     queryFn: () => bannersApi.getActive().then((res) => res.data),
   });
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => categoriesApi.getAll().then((res) => res.data.slice(0, 8)),
-  });
-
-  const { data: featuredProducts = [] } = useQuery({
+  const { data: featuredProducts = [], isLoading: featuredLoading } = useQuery({
     queryKey: ["featured-products"],
     queryFn: () => productsApi.getFeatured(6).then((res) => res.data),
   });
 
-  const { data: trendingProducts = [] } = useQuery({
+  const { data: trendingProducts = [], isLoading: trendingLoading } = useQuery({
     queryKey: ["trending-products"],
     queryFn: () => productsApi.getFeatured(4).then((res) => res.data),
   });
@@ -109,16 +84,6 @@ export default function HomeScreen() {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 1000);
   }, []);
-
-  const handleSearch = (query: string) => {
-    if (query.trim()) {
-      router.push(`/(public)/search?q=${encodeURIComponent(query)}`);
-    }
-  };
-
-  const handleSearchFocus = () => {
-    router.push("/(public)/search");
-  };
 
   const handleAddToCart = async (productId: string, productName: string) => {
     await addItem(productId, 1);
@@ -129,145 +94,237 @@ export default function HomeScreen() {
   };
 
   return (
-    <View className="flex-1 bg-neutral-50">
+    <View className="flex-1" style={{ backgroundColor: appleDesign.colors.background.secondary }}>
       <StatusBar
         barStyle="dark-content"
         backgroundColor="transparent"
         translucent
       />
 
-      {/* Minimal Header */}
-      <View className="bg-white pt-12">
-        <View className="px-5 pb-4">
-          <Animated.View
-            className="flex-row items-center justify-between"
-            style={{ opacity: fadeAnim }}
-          >
-            <View>
-              <Text className="text-[13px] text-neutral-500 font-normal tracking-tight">
-                {getPersonalizedGreeting()}
-              </Text>
-              <Text className="text-[22px] font-medium text-neutral-900 mt-1">
-                {user?.name || "Khách hàng"}
-              </Text>
-            </View>
+      {/* Apple-style Gradient Header */}
+      <Animated.View
+        style={{
+          opacity: headerOpacity,
+          transform: [{ translateY: headerTranslateY }],
+        }}
+      >
+        <LinearGradient
+          colors={appleDesign.gradients.header}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+        >
+          <SafeAreaView edges={["top"]}>
+            <View style={{ paddingTop: appleDesign.spacing.lg, paddingBottom: appleDesign.spacing.md }}>
+              <Animated.View
+                className="px-5 flex-row items-center justify-between"
+                style={{ opacity: fadeAnim }}
+              >
+                <View className="flex-1">
+                  <Text
+                    className="tracking-tight"
+                    style={{
+                      color: appleDesign.colors.text.secondary,
+                      fontSize: appleDesign.typography.footnote.fontSize,
+                      fontWeight: "400",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {getPersonalizedGreeting()} 🌿
+                  </Text>
+                  <Text
+                    className="font-semibold"
+                    style={{
+                      color: appleDesign.colors.text.primary,
+                      fontSize: appleDesign.typography.title2.fontSize,
+                      lineHeight: appleDesign.typography.title2.lineHeight,
+                    }}
+                  >
+                    {user?.name || "Khách hàng"}
+                  </Text>
+                </View>
 
-            <TouchableOpacity
-              className="w-11 h-11 rounded-full items-center justify-center"
-              onPress={() => router.push("/(app)/(tabs)/account")}
-              style={{
-                backgroundColor: "#ffffff",
-                shadowColor: "#000",
-                shadowOpacity: 0.08,
-                shadowRadius: 16,
-                shadowOffset: { width: 0, height: 6 },
-                elevation: 3,
-                borderWidth: 1,
-                borderColor: "rgba(0,0,0,0.06)",
-              }}
-            >
-              <Ionicons name="person-outline" size={20} color="#6b7280" />
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
-      </View>
+                <TouchableOpacity
+                  onPress={() => router.push("/(app)/(tabs)/account")}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    backgroundColor: "#FFFFFF",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    ...appleDesign.shadows.soft,
+                  }}
+                >
+                  <Ionicons
+                    name="person-outline"
+                    size={20}
+                    color={appleDesign.colors.text.secondary}
+                  />
+                </TouchableOpacity>
+              </Animated.View>
+            </View>
+          </SafeAreaView>
+        </LinearGradient>
+      </Animated.View>
 
       <ScrollView
-        className="flex-1 mt-4"
+        className="flex-1"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 110 }}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
       >
-        {/* Featured Banners with CTAs */}
+        {/* Featured Banners */}
         {banners.length > 0 && (
-          <View className="px-5 mb-8">
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={{ marginBottom: appleDesign.spacing.lg, marginTop: appleDesign.spacing.md }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="px-5"
+              contentContainerStyle={{ paddingRight: 20 }}
+            >
               {banners.map((banner, index) => (
-                <TouchableOpacity key={banner.id} className="mr-4">
-                  <Card className="w-80 h-40" padding="none" variant="elevated">
-                    <View className="flex-1 rounded-[20px] overflow-hidden">
-                      <Image
-                        source={{ uri: banner.image }}
-                        style={{ width: "100%", height: "100%" }}
-                        contentFit="cover"
-                      />
-                      <LinearGradient
-                        colors={["rgba(0,0,0,0.2)", "rgba(0,0,0,0.8)"]}
-                        className="absolute inset-0"
-                      />
+                <TouchableOpacity
+                  key={banner.id}
+                  style={{ marginRight: appleDesign.spacing.md }}
+                >
+                  <View
+                    className="w-80 h-44 overflow-hidden"
+                    style={{
+                      borderRadius: appleDesign.radius.lg,
+                      ...appleDesign.shadows.medium,
+                    }}
+                  >
+                    <Image
+                      source={{ uri: banner.image }}
+                      style={{ width: "100%", height: "100%" }}
+                      contentFit="cover"
+                    />
+                    <LinearGradient
+                      colors={appleDesign.gradients.overlay}
+                      className="absolute inset-0"
+                    />
 
-                      {/* Content */}
-                      <View className="absolute inset-0 p-4 justify-between">
-                        {/* Top: Discount Badge */}
-                        {index === 0 && (
-                          <View className="self-start">
-                            <Badge
-                              text="GIẢM 30%"
-                              variant="warning"
-                              size="sm"
-                              className="bg-yellow-500"
-                            />
-                          </View>
-                        )}
-
-                        {/* Bottom: Title & CTA */}
-                        <View className="space-y-4">
-                          <View>
-                            <Text
-                              className="text-white text-lg font-bold"
-                              numberOfLines={1}
-                            >
-                              {banner.title}
-                            </Text>
-                            {banner.subtitle && (
-                              <Text
-                                className="text-white/90 text-sm"
-                                numberOfLines={2}
-                              >
-                                {banner.subtitle}
-                              </Text>
-                            )}
-                          </View>
-
-                          {/* Enhanced CTA Button */}
-                          <TouchableOpacity
-                            className="bg-white/90 px-4 py-2 rounded-full flex-row items-center self-start space-x-2"
-                            onPress={() => router.push("/(app)/(tabs)/catalog")}
+                    {/* Content */}
+                    <View className="absolute inset-0 p-5 justify-between">
+                      {/* Top: Discount Badge */}
+                      {index === 0 && (
+                        <View className="self-start">
+                          <View
+                            className="px-3 py-1.5"
+                            style={{
+                              backgroundColor: "#FCD34D",
+                              borderRadius: appleDesign.radius.xs,
+                            }}
                           >
-                            <Text className="text-primary-700 font-medium text-sm">
-                              {index === 0 ? "Mua ngay" : "Khám phá"}
+                            <Text
+                              className="font-bold"
+                              style={{
+                                color: "#78350F",
+                                fontSize: appleDesign.typography.caption1.fontSize,
+                              }}
+                            >
+                              GIẢM 30%
                             </Text>
-                            <Ionicons
-                              name="arrow-forward"
-                              size={16}
-                              color="#065f46"
-                            />
-                          </TouchableOpacity>
+                          </View>
                         </View>
+                      )}
+
+                      {/* Bottom: Title & CTA */}
+                      <View className="space-y-3">
+                        <View>
+                          <Text
+                            className="text-white font-bold mb-1"
+                            style={{ fontSize: appleDesign.typography.title3.fontSize }}
+                            numberOfLines={1}
+                          >
+                            {banner.title}
+                          </Text>
+                          {banner.subtitle && (
+                            <Text
+                              className="text-white/90"
+                              style={{ fontSize: appleDesign.typography.subheadline.fontSize }}
+                              numberOfLines={2}
+                            >
+                              {banner.subtitle}
+                            </Text>
+                          )}
+                        </View>
+
+                        {/* Apple-style CTA Button */}
+                        <TouchableOpacity
+                          onPress={() => router.push("/(app)/(tabs)/catalog")}
+                          style={{
+                            backgroundColor: "rgba(255,255,255,0.92)",
+                            paddingVertical: 10,
+                            paddingHorizontal: 16,
+                            borderRadius: appleDesign.radius.full,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            alignSelf: "flex-start",
+                            gap: 6,
+                          }}
+                        >
+                          <Text
+                            className="font-semibold"
+                            style={{
+                              color: appleDesign.colors.green.dark,
+                              fontSize: appleDesign.typography.subheadline.fontSize,
+                            }}
+                          >
+                            {index === 0 ? "Mua ngay" : "Khám phá"}
+                          </Text>
+                          <Ionicons
+                            name="arrow-forward"
+                            size={16}
+                            color={appleDesign.colors.green.dark}
+                          />
+                        </TouchableOpacity>
                       </View>
                     </View>
-                  </Card>
+                  </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
         )}
 
-        {/* Categories */}
-        <View className="mb-10">
+        {/* Featured Products Section */}
+        <View style={{ marginTop: appleDesign.spacing.md, marginBottom: appleDesign.spacing.xl }}>
           <View className="px-5 mb-4 flex-row items-center justify-between">
-            <Text className="text-[18px] font-medium text-neutral-900 tracking-tight">
-              Danh Mục Sản Phẩm
+            <Text
+              className="font-semibold"
+              style={{
+                color: appleDesign.colors.text.primary,
+                fontSize: appleDesign.typography.headline.fontSize,
+              }}
+            >
+              Sản Phẩm Nổi Bật 🔥
             </Text>
             <TouchableOpacity
               onPress={() => router.push("/(app)/(tabs)/catalog")}
-              className="px-3 py-1.5 rounded-full"
+              className="flex-row items-center gap-1"
             >
-              <Text className="text-primary-700 font-medium text-sm">
+              <Text
+                className="font-medium"
+                style={{
+                  color: appleDesign.colors.green.primary,
+                  fontSize: appleDesign.typography.subheadline.fontSize,
+                }}
+              >
                 Xem tất cả
               </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={appleDesign.colors.green.primary}
+              />
             </TouchableOpacity>
           </View>
 
@@ -277,98 +334,90 @@ export default function HomeScreen() {
             className="px-5"
             contentContainerStyle={{ paddingRight: 20 }}
           >
-            <View className="flex-row space-x-5">
-              {categories.map((category) => (
-                <CategoryCard
-                  key={category.id}
-                  category={{
-                    id: category.id,
-                    name: getLocalizedCategoryName(category.name),
-                    image: category.image,
-                    icon: getCategoryIcon(category.name),
-                  }}
-                  size="lg"
-                  onPress={() =>
-                    router.push(`/(app)/(tabs)/catalog?category=${category.id}`)
-                  }
-                />
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* Featured Products with Filters */}
-        <View className="mb-10">
-          <View className="px-5 mb-4">
-            <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-[18px] font-medium text-neutral-900">
-                Sản Phẩm Nổi Bật Hôm Nay
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push("/(app)/(tabs)/catalog")}
-              >
-                <Text className="text-primary-700 font-medium">Xem tất cả</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="px-5"
-          >
-            <View className="flex-row space-x-4">
-              {featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  size="md"
-                  onPress={() =>
-                    router.push({
-                      pathname: "/(app)/product/[id]",
-                      params: { id: product.id },
-                    })
-                  }
-                  onAddToCart={() => handleAddToCart(product.id, product.name)}
-                  showQuickView={true}
-                />
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* Trending Products Grid */}
-        {trendingProducts.length > 0 && (
-          <View className="px-5 mb-12">
-            <View className="mb-3 flex-row items-center justify-between">
-              <Text className="text-[18px] font-medium text-neutral-900">
-                Xu Hướng Mua Sắm
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push("/(app)/(tabs)/catalog")}
-              >
-                <Text className="text-primary-700 font-medium">Xem tất cả</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View className="flex-row flex-wrap justify-between">
-              {trendingProducts.map((product) => (
-                <View key={product.id} className="w-[48%] mb-4">
+            <View className="flex-row gap-4">
+              {featuredLoading
+                ? Array.from({ length: 3 }).map((_, i) => (
+                  <View key={i} style={{ width: 192 }}>
+                    <ProductCardSkeleton />
+                  </View>
+                ))
+                : featuredProducts.map((product) => (
                   <ProductCard
+                    key={product.id}
                     product={product}
-                    size="full"
+                    size="md"
                     onPress={() =>
                       router.push({
                         pathname: "/(app)/product/[id]",
                         params: { id: product.id },
                       })
                     }
-                    onAddToCart={() =>
-                      handleAddToCart(product.id, product.name)
-                    }
+                    onAddToCart={() => handleAddToCart(product.id, product.name)}
+                    showQuickView={true}
                   />
-                </View>
-              ))}
+                ))}
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Trending Products Grid */}
+        {trendingProducts.length > 0 && (
+          <View className="px-5" style={{ marginBottom: appleDesign.spacing.xl }}>
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text
+                className="font-semibold"
+                style={{
+                  color: appleDesign.colors.text.primary,
+                  fontSize: appleDesign.typography.headline.fontSize,
+                }}
+              >
+                Xu Hướng Mua Sắm 📈
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push("/(app)/(tabs)/catalog")}
+                className="flex-row items-center gap-1"
+              >
+                <Text
+                  className="font-medium"
+                  style={{
+                    color: appleDesign.colors.green.primary,
+                    fontSize: appleDesign.typography.subheadline.fontSize,
+                  }}
+                >
+                  Xem tất cả
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={appleDesign.colors.green.primary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-row flex-wrap justify-between">
+              {trendingLoading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                  <View key={i} className="w-[48%] mb-4">
+                    <ProductCardSkeleton />
+                  </View>
+                ))
+                : trendingProducts.map((product) => (
+                  <View key={product.id} className="w-[48%] mb-4">
+                    <ProductCard
+                      product={product}
+                      size="full"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/(app)/product/[id]",
+                          params: { id: product.id },
+                        })
+                      }
+                      onAddToCart={() =>
+                        handleAddToCart(product.id, product.name)
+                      }
+                    />
+                  </View>
+                ))}
             </View>
           </View>
         )}
