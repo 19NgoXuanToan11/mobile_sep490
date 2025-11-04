@@ -1,21 +1,17 @@
-import React, { useState, useRef, useCallback } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Animated,
-  Pressable,
-  TextInput,
-} from "react-native";
-import { Link, router } from "expo-router";
+import React, { useRef, useCallback } from "react";
+import { View, Text, TextInput } from "react-native";
+import { router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Ionicons } from "@expo/vector-icons";
-import { Button, Input } from "../../shared/ui";
 import { useAuth } from "../../shared/hooks";
 import { useToast } from "../../shared/ui/toast";
-import { useLocalization } from "../../shared/hooks";
+import {
+  TextField,
+  PasswordField,
+  PrimaryButton,
+  LinkButton,
+} from "./components";
 
 const loginSchema = z.object({
   email: z
@@ -33,7 +29,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export const LoginForm: React.FC = () => {
   const { login } = useAuth();
   const toast = useToast();
-  const { t } = useLocalization();
 
   // Refs for input focus management
   const emailRef = useRef<TextInput>(null);
@@ -58,108 +53,40 @@ export const LoginForm: React.FC = () => {
     []
   );
 
-  const onSubmit = async (data: LoginFormData) => {
-    try {
-      const success = await login(data.email, data.password);
+  const onSubmit = useCallback(
+    async (data: LoginFormData) => {
+      try {
+        const success = await login(data.email, data.password);
 
-      if (success) {
-        toast.success("Chào mừng bạn trở lại!");
-        router.replace("/(app)/(tabs)/catalog");
-      } else {
-        toast.error(
-          "Thông tin đăng nhập không hợp lệ",
-          "Vui lòng kiểm tra email và mật khẩu"
-        );
+        if (success) {
+          toast.success("Chào mừng bạn trở lại!");
+          router.replace("/(app)/(tabs)/catalog");
+        } else {
+          toast.error(
+            "Thông tin đăng nhập không hợp lệ",
+            "Vui lòng kiểm tra email và mật khẩu"
+          );
+        }
+      } catch (error) {
+        toast.error("Đăng nhập thất bại", "Vui lòng thử lại");
       }
-    } catch (error) {
-      toast.error("Đăng nhập thất bại", "Vui lòng thử lại");
-    }
-  };
+    },
+    [login, toast]
+  );
 
-  // Premium button component
-  const PremiumButton = ({
-    title,
-    onPress,
-    loading = false,
-    variant = "primary",
-  }: {
-    title: string;
-    onPress: () => void;
-    loading?: boolean;
-    variant?: "primary" | "secondary";
-  }) => {
-    const [isPressed, setIsPressed] = useState(false);
-    const scaleAnim = useRef(new Animated.Value(1)).current;
-
-    const handlePressIn = () => {
-      setIsPressed(true);
-      Animated.spring(scaleAnim, {
-        toValue: 0.96,
-        tension: 200,
-        friction: 7,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const handlePressOut = () => {
-      setIsPressed(false);
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 200,
-        friction: 7,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const isPrimary = variant === "primary";
-
-    return (
-      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-        <Pressable
-          onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          disabled={loading}
-          className={`flex-row items-center justify-center rounded-2xl py-4 px-8 ${
-            isPrimary ? "bg-primary-500" : "bg-neutral-100"
-          } ${loading ? "opacity-70" : ""}`}
-          style={{
-            shadowColor: isPrimary ? "#00623A" : "#000",
-            shadowOffset: { width: 0, height: isPressed ? 2 : 6 },
-            shadowOpacity: isPressed ? 0.1 : isPrimary ? 0.3 : 0.1,
-            shadowRadius: isPressed ? 4 : 12,
-            elevation: isPressed ? 2 : 8,
-          }}
-        >
-          {loading && (
-            <Ionicons
-              name="refresh"
-              size={20}
-              color={isPrimary ? "white" : "#666"}
-              style={{ marginRight: 8 }}
-            />
-          )}
-          <Text
-            className={`text-lg font-medium tracking-wide ${
-              isPrimary ? "text-white" : "text-neutral-600"
-            }`}
-          >
-            {title}
-          </Text>
-        </Pressable>
-      </Animated.View>
-    );
-  };
+  const handleRegister = useCallback(() => {
+    router.push("/(public)/auth/register");
+  }, []);
 
   return (
-    <View className="justify-center" style={{ minHeight: 320 }}>
+    <View style={{ gap: 20 }}>
       {/* Input Fields */}
       <View style={{ gap: 16 }}>
         <Controller
           control={control}
           name="email"
           render={({ field: { onChange, onBlur, value } }) => (
-            <Input
+            <TextField
               ref={emailRef}
               placeholder="Địa chỉ email"
               value={value}
@@ -172,8 +99,6 @@ export const LoginForm: React.FC = () => {
               textContentType="emailAddress"
               returnKeyType="next"
               onSubmitEditing={() => focusNextField(passwordRef)}
-              size="lg"
-              className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
             />
           )}
         />
@@ -182,69 +107,49 @@ export const LoginForm: React.FC = () => {
           control={control}
           name="password"
           render={({ field: { onChange, onBlur, value } }) => (
-            <Input
+            <PasswordField
               ref={passwordRef}
               placeholder="Mật khẩu"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
               error={errors.password?.message}
-              secureTextEntry
               autoComplete="current-password"
               textContentType="password"
               returnKeyType="done"
               onSubmitEditing={handleSubmit(onSubmit)}
-              size="lg"
-              className="bg-neutral-50 border-0 rounded-2xl text-base py-4 px-5"
             />
           )}
         />
       </View>
 
       {/* Sign In Button */}
-      <View style={{ marginTop: 28 }}>
-        <PremiumButton
-          title="Đăng Nhập"
-          onPress={handleSubmit(onSubmit)}
-          loading={isSubmitting}
-          variant="primary"
-        />
-      </View>
-
-      {/* Forgot Password */}
-      <View style={{ marginTop: 20 }}>
-        <TouchableOpacity className="items-center">
-          <Text className="text-primary-500 text-sm font-medium">
-            Quên mật khẩu?
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <PrimaryButton
+        title="Đăng Nhập"
+        onPress={handleSubmit(onSubmit)}
+        loading={isSubmitting}
+      />
 
       {/* Divider */}
       <View
-        className="flex-row items-center"
-        style={{ marginTop: 24, gap: 16 }}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 16,
+          marginTop: 8,
+        }}
       >
-        <View className="flex-1 h-px bg-neutral-200" />
-        <Text className="text-neutral-500 text-sm">hoặc</Text>
-        <View className="flex-1 h-px bg-neutral-200" />
+        <View style={{ flex: 1, height: 1, backgroundColor: "#E5E7EB" }} />
+        <Text style={{ fontSize: 14, color: "#6B7280" }}>hoặc</Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: "#E5E7EB" }} />
       </View>
 
       {/* Sign Up Link */}
-      <View
-        className="items-center"
-        style={{ marginTop: 20, marginBottom: 20 }}
-      >
-        <Text className="text-neutral-600 text-sm mb-2">
+      <View style={{ alignItems: "center", marginTop: 4 }}>
+        <Text style={{ fontSize: 14, color: "#6B7280", marginBottom: 8 }}>
           Chưa có tài khoản?
         </Text>
-        <Link href="/(public)/auth/register" asChild>
-          <TouchableOpacity>
-            <Text className="text-primary-500 text-base font-medium">
-              Tạo tài khoản
-            </Text>
-          </TouchableOpacity>
-        </Link>
+        <LinkButton title="Tạo tài khoản" onPress={handleRegister} />
       </View>
     </View>
   );
