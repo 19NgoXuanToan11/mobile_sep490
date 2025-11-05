@@ -1,101 +1,41 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
-  ScrollView,
-  TouchableOpacity,
+  FlatList,
   StatusBar,
-  Alert,
+  StyleSheet,
+  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
-import { Card, Badge } from "../../../src/shared/ui";
 import { addressesApi } from "../../../src/shared/data/api";
 import { useToast } from "../../../src/shared/ui/toast";
 import { Address } from "../../../src/types";
+import {
+  AddressCard,
+  AddNewButton,
+  EmptyAddressState,
+  ConfirmDialog,
+} from "../../../src/features/address/components";
 
-const AddressCard: React.FC<{
-  address: Address;
-  onEdit: () => void;
-  onDelete: () => void;
-  onSetDefault: () => void;
-}> = ({ address, onEdit, onDelete, onSetDefault }) => {
-  return (
-    <Card variant="elevated" padding="lg" className="mb-4">
-      <View className="space-y-5">
-        {/* Header */}
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center flex-wrap gap-2 flex-1 pr-3">
-            <Text className="font-semibold text-neutral-900 text-lg">
-              {address.customerName || address.name}
-            </Text>
-            {address.isDefault && (
-              <Badge text="Mặc định" size="sm" variant="success" />
-            )}
-          </View>
+interface DialogState {
+  visible: boolean;
+  type: "delete" | "setDefault" | null;
+  address: Address | null;
+}
 
-          <View className="flex-row space-x-2 mr-1">
-            <TouchableOpacity
-              onPress={onEdit}
-              className="w-8 h-8 bg-neutral-100 rounded-full items-center justify-center"
-            >
-              <Ionicons name="pencil-outline" size={16} color="#6b7280" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={onDelete}
-              className="w-8 h-8 bg-red-50 rounded-full items-center justify-center"
-            >
-              <Ionicons name="trash-outline" size={16} color="#ef4444" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Contact Info */}
-        <View className="space-y-2.5">
-          <View className="flex-row items-center space-x-2">
-            <Ionicons name="call-outline" size={16} color="#6b7280" />
-            <Text className="text-neutral-700">
-              {address.phoneNumber || address.phone}
-            </Text>
-          </View>
-
-          <View className="flex-row items-start space-x-2">
-            <Ionicons
-              name="location-outline"
-              size={16}
-              color="#6b7280"
-              className="mt-1"
-            />
-            <Text className="text-neutral-800 leading-5 flex-1">
-              {address.street}, {address.ward}, {address.province || address.city}
-            </Text>
-          </View>
-        </View>
-
-        {/* Actions */}
-        {!address.isDefault && (
-          <View className="pt-4 border-t border-neutral-100">
-            <TouchableOpacity
-              onPress={onSetDefault}
-              className="flex-row items-center space-x-2"
-            >
-              <Ionicons name="star-outline" size={16} color="#00623A" />
-              <Text className="text-primary-600 font-medium">
-                Đặt làm mặc định
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-    </Card>
-  );
-};
-
-export default function AddressListScreen() {
+export default function MyAddressScreen() {
   const toast = useToast();
   const queryClient = useQueryClient();
+  const [dialog, setDialog] = useState<DialogState>({
+    visible: false,
+    type: null,
+    address: null,
+  });
 
   const { data: addresses = [], isLoading } = useQuery({
     queryKey: ["addresses"],
@@ -106,10 +46,10 @@ export default function AddressListScreen() {
     mutationFn: addressesApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
-      toast.success("Thành công", "Địa chỉ đã được xóa");
+      toast.success("Cập nhật thành công 🎉", "Địa chỉ đã được xóa");
     },
     onError: () => {
-      toast.error("Có lỗi xảy ra", "Vui lòng thử lại");
+      toast.error("Thao tác thất bại", "Vui lòng thử lại");
     },
   });
 
@@ -118,123 +58,202 @@ export default function AddressListScreen() {
       addressesApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
-      toast.success("Thành công", "Đã cập nhật địa chỉ mặc định");
+      toast.success("Cập nhật thành công 🎉", "Địa chỉ mặc định đã được đặt");
     },
     onError: () => {
-      toast.error("Có lỗi xảy ra", "Vui lòng thử lại");
+      toast.error("Thao tác thất bại", "Vui lòng thử lại");
     },
   });
 
-  const handleDeleteAddress = (address: Address) => {
-    Alert.alert(
-      "Xác nhận xóa",
-      `Bạn có chắc muốn xóa địa chỉ "${address.name}"?`,
-      [
-        { text: "Hủy", style: "cancel" },
-        {
-          text: "Xóa",
-          style: "destructive",
-          onPress: () => deleteAddressMutation.mutate(address.id),
-        },
-      ]
-    );
-  };
+  const handleAddAddress = useCallback(() => {
+    router.push("/(app)/address/add");
+  }, []);
 
-  const handleSetDefaultAddress = (address: Address) => {
-    updateAddressMutation.mutate({
-      id: address.id,
-      data: { isDefault: true },
-    });
-  };
-
-  const handleEditAddress = (address: Address) => {
-    // TODO: Implement edit screen
+  const handleEditAddress = useCallback((address: Address) => {
     router.push(`/(app)/address/edit/${address.id}` as any);
-  };
+  }, []);
+
+  const handleDeletePress = useCallback((address: Address) => {
+    setDialog({
+      visible: true,
+      type: "delete",
+      address,
+    });
+  }, []);
+
+  const handleSetDefaultPress = useCallback((address: Address) => {
+    setDialog({
+      visible: true,
+      type: "setDefault",
+      address,
+    });
+  }, []);
+
+  const handleDialogCancel = useCallback(() => {
+    setDialog({
+      visible: false,
+      type: null,
+      address: null,
+    });
+  }, []);
+
+  const handleDialogConfirm = useCallback(() => {
+    if (!dialog.address) return;
+
+    if (dialog.type === "delete") {
+      deleteAddressMutation.mutate(dialog.address.id);
+    } else if (dialog.type === "setDefault") {
+      updateAddressMutation.mutate({
+        id: dialog.address.id,
+        data: { isDefault: true },
+      });
+    }
+
+    handleDialogCancel();
+  }, [dialog, deleteAddressMutation, updateAddressMutation, handleDialogCancel]);
+
+  const renderAddressCard = useCallback(
+    ({ item }: { item: Address }) => (
+      <AddressCard
+        address={item}
+        onEdit={() => handleEditAddress(item)}
+        onDelete={() => handleDeletePress(item)}
+        onSetDefault={() => handleSetDefaultPress(item)}
+      />
+    ),
+    [handleEditAddress, handleDeletePress, handleSetDefaultPress]
+  );
+
+  const renderHeader = useCallback(() => {
+    if (addresses.length === 0) return null;
+
+    return (
+      <Text style={styles.addressCount}>
+        {addresses.length} địa chỉ
+      </Text>
+    );
+  }, [addresses.length]);
+
+  const renderEmpty = useCallback(
+    () => <EmptyAddressState onAddAddress={handleAddAddress} />,
+    [handleAddAddress]
+  );
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-neutral-50">
-        <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
-        <View className="flex-1 items-center justify-center">
-          <View className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-          <Text className="text-neutral-600 mt-4">Đang tải...</Text>
+      <SafeAreaView style={styles.loadingContainer} edges={["top"]}>
+        <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
+        <View style={styles.loadingContent}>
+          <ActivityIndicator size="large" color="#00A86B" />
+          <Text style={styles.loadingText}>Đang tải...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50">
-      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
-      <View className="px-4 py-3 flex-row items-center justify-between">
-        <TouchableOpacity
-          onPress={() => router.push("/(app)/address/add")}
-          className="bg-primary-500 px-4 py-2 rounded-xl absolute right-4"
-          style={{
-            shadowColor: "#00623A",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 3,
-          }}
-        >
-          <Text className="text-white font-medium">Thêm mới</Text>
-        </TouchableOpacity>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Địa Chỉ Của Tôi</Text>
+        <AddNewButton onPress={handleAddAddress} />
       </View>
 
-      <ScrollView
-        className="flex-1"
+      {/* Address List */}
+      <FlatList
+        data={addresses}
+        renderItem={renderAddressCard}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmpty}
+        contentContainerStyle={[
+          styles.listContent,
+          addresses.length === 0 && styles.listContentEmpty,
+        ]}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
-        <View className="p-4">
-          {addresses.length === 0 ? (
-            <View className="items-center justify-center py-20">
-              <View className="w-24 h-24 bg-neutral-100 rounded-full items-center justify-center mb-4">
-                <Ionicons name="location-outline" size={48} color="#9ca3af" />
-              </View>
-              <Text className="text-xl font-semibold text-neutral-900 mb-2">
-                Chưa có địa chỉ nào
-              </Text>
-              <Text className="text-neutral-600 text-center mb-6">
-                Thêm địa chỉ để thuận tiện hơn khi đặt hàng
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push("/(app)/address/add")}
-                className="bg-primary-500 px-6 py-3 rounded-xl"
-                style={{
-                  shadowColor: "#00623A",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 4,
-                  elevation: 3,
-                }}
-              >
-                <Text className="text-white font-medium">
-                  Thêm địa chỉ đầu tiên
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View>
-              <Text className="text-sm text-neutral-500 mb-4">
-                {addresses.length} địa chỉ
-              </Text>
-              {addresses.map((address) => (
-                <AddressCard
-                  key={address.id}
-                  address={address}
-                  onEdit={() => handleEditAddress(address)}
-                  onDelete={() => handleDeleteAddress(address)}
-                  onSetDefault={() => handleSetDefaultAddress(address)}
-                />
-              ))}
-            </View>
-          )}
-        </View>
-      </ScrollView>
+      />
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        visible={dialog.visible}
+        title={
+          dialog.type === "delete"
+            ? "Xác nhận xóa"
+            : "Đặt làm địa chỉ mặc định?"
+        }
+        message={
+          dialog.type === "delete"
+            ? `Bạn có chắc muốn xóa địa chỉ "${dialog.address?.name || dialog.address?.customerName}"?`
+            : "Địa chỉ này sẽ được sử dụng làm địa chỉ giao hàng mặc định"
+        }
+        confirmText={dialog.type === "delete" ? "Xóa" : "Đồng ý"}
+        cancelText="Hủy"
+        confirmColor={dialog.type === "delete" ? "danger" : "primary"}
+        onConfirm={handleDialogConfirm}
+        onCancel={handleDialogCancel}
+      />
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+  },
+  loadingContent: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+    color: "#6B7280",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 20,
+  },
+  listContentEmpty: {
+    flexGrow: 1,
+  },
+  addressCount: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 8,
+  },
+});

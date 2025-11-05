@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,61 +6,47 @@ import {
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
+  StyleSheet,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Button, Card } from "../../../src/shared/ui";
 import { useAuth } from "../../../src/shared/hooks";
 import { profileApi, ProfileData } from "../../../src/shared/data/api";
+import {
+  ProfileSummaryCard,
+  InfoRow,
+  QuickActionItem,
+} from "../../../src/features/profile/components";
 
-interface InfoItemProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  value: string;
-  subtitle?: string;
-}
-
-const InfoItem: React.FC<InfoItemProps> = ({
-  icon,
-  label,
-  value,
-  subtitle,
-}) => (
-  <View className="flex-row items-start space-x-4 py-4">
-    <View className="w-10 h-10 bg-neutral-100 rounded-full items-center justify-center mt-1">
-      <Ionicons name={icon} size={20} color="#6b7280" />
-    </View>
-
-    <View className="flex-1">
-      <Text className="text-sm font-medium text-neutral-600 mb-1">{label}</Text>
-      <Text className="text-base text-neutral-900 font-medium">{value}</Text>
-      {subtitle && (
-        <Text className="text-sm text-neutral-500 mt-1">{subtitle}</Text>
-      )}
-    </View>
-  </View>
-);
-
-interface SectionProps {
+interface InfoSectionProps {
   title: string;
   children: React.ReactNode;
   onEdit?: () => void;
 }
 
-const Section: React.FC<SectionProps> = ({ title, children, onEdit }) => (
-  <Card className="mx-4 mt-6" padding="lg" variant="elevated">
-    <View className="flex-row items-center justify-between mb-6">
-      <Text className="text-lg font-semibold text-neutral-900">{title}</Text>
-      {onEdit && (
-        <TouchableOpacity onPress={onEdit} className="p-1">
-          <Ionicons name="pencil" size={20} color="#059669" />
-        </TouchableOpacity>
-      )}
+const InfoSection = React.memo<InfoSectionProps>(
+  ({ title, children, onEdit }) => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        {onEdit && (
+          <TouchableOpacity
+            onPress={onEdit}
+            style={styles.editIconButton}
+            activeOpacity={0.6}
+          >
+            <Ionicons name="pencil" size={18} color="#00A86B" />
+          </TouchableOpacity>
+        )}
+      </View>
+      <View style={styles.sectionContent}>{children}</View>
     </View>
-    {children}
-  </Card>
+  )
 );
+
+InfoSection.displayName = "InfoSection";
 
 export default function PersonalInfoScreen() {
   const { user } = useAuth();
@@ -83,15 +69,6 @@ export default function PersonalInfoScreen() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
   };
 
   const getRoleText = (role?: string) => {
@@ -119,8 +96,16 @@ export default function PersonalInfoScreen() {
     }
   };
 
+  const handleEditProfile = useCallback(() => {
+    router.push("/profile/edit");
+  }, []);
+
+  const handleChangePassword = useCallback(() => {
+    // router.push("/(app)/profile/change-password");
+  }, []);
+
   return (
-    <View className="flex-1 bg-neutral-50">
+    <View style={styles.container}>
       <StatusBar
         barStyle="dark-content"
         backgroundColor="transparent"
@@ -128,168 +113,145 @@ export default function PersonalInfoScreen() {
       />
 
       {/* Header */}
-      <SafeAreaView
-        edges={["top"]}
-        className="bg-white border-b border-neutral-200"
-      >
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-            <Ionicons name="arrow-back" size={24} color="#374151" />
+      <SafeAreaView edges={["top"]} style={styles.header}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+            activeOpacity={0.6}
+          >
+            <Ionicons name="arrow-back" size={24} color="#111827" />
           </TouchableOpacity>
 
-          <Text className="text-lg font-semibold text-neutral-900">
-            Thông tin cá nhân
-          </Text>
+          <Text style={styles.headerTitle}>Thông tin cá nhân</Text>
 
-          <View className="w-8" />
+          <View style={styles.headerSpacer} />
         </View>
       </SafeAreaView>
 
       <ScrollView
-        className="flex-1"
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 0 }}
+        contentContainerStyle={styles.scrollContent}
       >
         {loading ? (
-          <View className="flex-1 items-center justify-center py-20">
-            <ActivityIndicator size="large" color="#059669" />
-            <Text className="text-neutral-500 mt-4">Đang tải thông tin...</Text>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#00A86B" />
+            <Text style={styles.loadingText}>
+              Đang tải thông tin...
+            </Text>
           </View>
         ) : (
           <>
-            {/* Profile Overview */}
-            <Card className="mx-4 mt-6" padding="lg" variant="elevated">
-              <View className="items-center space-y-4">
-                <View className="w-24 h-24 bg-primary-100 rounded-full items-center justify-center">
-                  {profileData?.images ? (
-                    <Text className="text-3xl font-bold text-primary-600">
-                      {profileData?.fullname?.charAt(0).toUpperCase() || "N"}
-                    </Text>
-                  ) : (
-                    <Text className="text-3xl font-bold text-primary-600">
-                      {profileData?.fullname?.charAt(0).toUpperCase() ||
-                        user?.name?.charAt(0).toUpperCase() ||
-                        "N"}
-                    </Text>
-                  )}
-                </View>
+            {/* Profile Summary Card */}
+            <ProfileSummaryCard
+              fullName={
+                profileData?.fullname ||
+                user?.name ||
+                "Chưa cập nhật"
+              }
+              email={
+                profileData?.email ||
+                user?.email ||
+                "Chưa cập nhật"
+              }
+              role={getRoleText(profileData?.role || user?.role)}
+            />
 
-                <View className="items-center space-y-1">
-                  <Text className="text-xl font-semibold text-neutral-900">
-                    {profileData?.fullname || user?.name || "Chưa cập nhật"}
-                  </Text>
-                  <Text className="text-neutral-600">
-                    {profileData?.email || user?.email || "Chưa cập nhật"}
-                  </Text>
-                  <View className="bg-primary-50 px-3 py-1 rounded-full mt-2">
-                    <Text className="text-primary-600 text-sm font-medium">
-                      {getRoleText(profileData?.role || user?.role)}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </Card>
-
-            {/* Personal Information */}
-            <Section
+            {/* Personal Information Section */}
+            <InfoSection
               title="Thông tin cá nhân"
-              onEdit={() => router.push("/profile/edit")}
+              onEdit={handleEditProfile}
             >
-              <View className="space-y-1">
-                <InfoItem
-                  icon="person-outline"
-                  label="Họ và tên"
-                  value={profileData?.fullname || user?.name || "Chưa cập nhật"}
-                />
+              <InfoRow
+                icon="person-outline"
+                label="Họ và tên"
+                value={
+                  profileData?.fullname ||
+                  user?.name ||
+                  "Chưa cập nhật"
+                }
+              />
 
-                <InfoItem
-                  icon="mail-outline"
-                  label="Email"
-                  value={profileData?.email || user?.email || "Chưa cập nhật"}
-                  subtitle="Email này được sử dụng để đăng nhập"
-                />
+              <InfoRow
+                icon="mail-outline"
+                label="Email"
+                value={
+                  profileData?.email ||
+                  user?.email ||
+                  "Chưa cập nhật"
+                }
+                subtitle="Email này được sử dụng để đăng nhập"
+              />
 
-                <InfoItem
-                  icon="call-outline"
-                  label="Số điện thoại"
-                  value={profileData?.phone || user?.phone || "Chưa cập nhật"}
-                  subtitle={
-                    profileData?.phone || user?.phone
-                      ? "Đã xác thực"
-                      : "Chưa thêm số điện thoại"
-                  }
-                />
+              <InfoRow
+                icon="call-outline"
+                label="Số điện thoại"
+                value={
+                  profileData?.phone ||
+                  user?.phone ||
+                  "Chưa cập nhật"
+                }
+                subtitle={
+                  profileData?.phone || user?.phone
+                    ? "Đã xác thực"
+                    : "Chưa thêm số điện thoại"
+                }
+              />
 
-                <InfoItem
-                  icon="transgender-outline"
-                  label="Giới tính"
-                  value={getGenderText(profileData?.gender)}
-                />
+              <InfoRow
+                icon="transgender-outline"
+                label="Giới tính"
+                value={getGenderText(profileData?.gender)}
+              />
 
-                <InfoItem
-                  icon="location-outline"
-                  label="Địa chỉ"
-                  value={profileData?.address || "Chưa cập nhật"}
-                />
-              </View>
-            </Section>
+              <InfoRow
+                icon="location-outline"
+                label="Địa chỉ"
+                value={profileData?.address || "Chưa cập nhật"}
+                isLast
+              />
+            </InfoSection>
 
-            {/* Quick Actions */}
-            <Card className="mx-4 mt-6" padding="lg" variant="elevated">
-              <Text className="text-lg font-semibold text-neutral-900 mb-4">
+            {/* Quick Actions Section */}
+            <View style={styles.quickActionsSection}>
+              <Text style={styles.quickActionsTitle}>
                 Hành động nhanh
               </Text>
 
-              <View className="space-y-3">
-                <TouchableOpacity
-                  onPress={() => router.push("/profile/edit")}
-                  className="flex-row items-center space-x-3 py-3 px-1"
-                >
-                  <View className="w-10 h-10 bg-primary-100 rounded-full items-center justify-center">
-                    <Ionicons name="pencil" size={20} color="#059669" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="font-medium text-neutral-900">
-                      Chỉnh sửa thông tin
-                    </Text>
-                    <Text className="text-sm text-neutral-500">
-                      Cập nhật thông tin cá nhân
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-                </TouchableOpacity>
+              <View style={styles.quickActionsContent}>
+                <QuickActionItem
+                  icon="pencil"
+                  iconColor="#00A86B"
+                  iconBackground="#E8F9F1"
+                  title="Chỉnh sửa thông tin"
+                  subtitle="Cập nhật thông tin cá nhân"
+                  onPress={handleEditProfile}
+                />
 
-                <TouchableOpacity
-                  onPress={() => {
-                    // Navigate to change password screen
-                    // router.push("/(app)/profile/change-password");
-                  }}
-                  className="flex-row items-center space-x-3 py-3 px-1"
-                >
-                  <View className="w-10 h-10 bg-amber-100 rounded-full items-center justify-center">
-                    <Ionicons name="lock-closed" size={20} color="#d97706" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="font-medium text-neutral-900">
-                      Đổi mật khẩu
-                    </Text>
-                    <Text className="text-sm text-neutral-500">
-                      Thay đổi mật khẩu đăng nhập
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-                </TouchableOpacity>
+                <QuickActionItem
+                  icon="lock-closed"
+                  iconColor="#D97706"
+                  iconBackground="#FEF3C7"
+                  title="Đổi mật khẩu"
+                  subtitle="Thay đổi mật khẩu đăng nhập"
+                  onPress={handleChangePassword}
+                  isLast
+                />
               </View>
-            </Card>
+            </View>
 
-            {/* Edit Button */}
-            <View className="mx-4 mt-8 mb-8">
-              <Button
-                title="Chỉnh sửa thông tin"
-                onPress={() => router.push("/profile/edit")}
-                fullWidth
-                size="lg"
-              />
+            {/* Bottom Edit Button */}
+            <View style={styles.bottomButtonContainer}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={handleEditProfile}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.editButtonText}>
+                  Chỉnh sửa thông tin
+                </Text>
+              </TouchableOpacity>
             </View>
           </>
         )}
@@ -297,3 +259,146 @@ export default function PersonalInfoScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+  },
+  header: {
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backButton: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+    letterSpacing: 0.3,
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 120,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 80,
+  },
+  loadingText: {
+    fontSize: 15,
+    color: "#6B7280",
+    marginTop: 16,
+    letterSpacing: 0.1,
+  },
+  section: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    letterSpacing: 0.2,
+  },
+  editIconButton: {
+    padding: 4,
+  },
+  sectionContent: {
+    // Content container
+  },
+  quickActionsSection: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  quickActionsTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    letterSpacing: 0.2,
+    marginBottom: 12,
+  },
+  quickActionsContent: {
+    // Content container
+  },
+  bottomButtonContainer: {
+    marginTop: 32,
+    marginHorizontal: 16,
+    marginBottom: 24,
+  },
+  editButton: {
+    backgroundColor: "#00A86B",
+    borderRadius: 24,
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#00A86B",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  editButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
+  },
+});
