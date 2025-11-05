@@ -58,7 +58,7 @@ export default function AppLayout() {
       <Stack.Screen
         name="address/index"
         options={{
-          title: "Địa Chỉ Của Tôi",
+          headerShown: false,
         }}
       />
       <Stack.Screen

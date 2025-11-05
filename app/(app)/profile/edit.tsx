@@ -5,20 +5,25 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  Alert,
   Platform,
   TextInput,
-  Modal,
-  Pressable,
+  StyleSheet,
+  KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { Button, Card, Input } from "../../../src/shared/ui";
 import { useAuth } from "../../../src/shared/hooks";
-import { User } from "../../../src/types";
 import { profileApi } from "../../../src/shared/data/api";
+import {
+  AvatarEditCard,
+  FormInput,
+  GenderPicker,
+  SaveButton,
+  Toast,
+} from "../../../src/features/profile/components";
+import { useToast } from "../../../src/features/profile/hooks/useToast";
 
 interface EditProfileForm {
   name: string;
@@ -31,6 +36,7 @@ interface EditProfileForm {
 
 export default function EditProfileScreen() {
   const { user } = useAuth();
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<EditProfileForm>({
     name: user?.name || "",
@@ -45,7 +51,6 @@ export default function EditProfileScreen() {
 
   // Refs for input focus management
   const nameRef = useRef<TextInput>(null);
-  const emailRef = useRef<TextInput>(null);
   const phoneRef = useRef<TextInput>(null);
   const addressRef = useRef<TextInput>(null);
 
@@ -75,7 +80,7 @@ export default function EditProfileScreen() {
       formData.phone &&
       !/^[0-9]{10,11}$/.test(formData.phone.replace(/\s/g, ""))
     ) {
-      newErrors.phone = "Số điện thoại không hợp lệ";
+      newErrors.phone = "Số điện thoại phải có 10-11 chữ số";
     }
 
     if (formData.address && formData.address.length > 255) {
@@ -88,6 +93,7 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!validateForm()) {
+      showToast("Vui lòng kiểm tra lại thông tin", "error");
       return;
     }
 
@@ -103,33 +109,30 @@ export default function EditProfileScreen() {
       });
 
       if (response.success) {
-        Alert.alert(
-          "Thành công",
-          "Thông tin cá nhân đã được cập nhật thành công",
-          [{ text: "OK", onPress: () => router.back() }]
-        );
+        showToast("Cập nhật thành công 🎉", "success");
+        // Wait for toast to show before navigating back
+        setTimeout(() => {
+          router.back();
+        }, 1500);
       } else {
-        Alert.alert(
-          "Lỗi",
-          response.message || "Có lỗi xảy ra khi cập nhật thông tin"
+        showToast(
+          response.message || "Không thể cập nhật, vui lòng thử lại",
+          "error"
         );
       }
     } catch (error) {
-      Alert.alert("Lỗi", "Có lỗi xảy ra khi cập nhật thông tin");
+      showToast("Có lỗi xảy ra, vui lòng thử lại", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePickImage = async () => {
+  const handlePickImage = useCallback(async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert(
-        "Thông báo",
-        "Ứng dụng cần quyền truy cập thư viện ảnh để đổi avatar"
-      );
+      showToast("Cần quyền truy cập thư viện ảnh", "error");
       return;
     }
 
@@ -145,18 +148,27 @@ export default function EditProfileScreen() {
         ...prev,
         avatar: result.assets[0].uri,
       }));
+      showToast("Ảnh đã được chọn", "success");
     }
-  };
+  }, [showToast]);
 
-  const updateField = (
-    field: keyof EditProfileForm,
-    value: string | number
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
+  const updateField = useCallback(
+    (field: keyof EditProfileForm, value: string | number) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+      }
+    },
+    [errors]
+  );
+
+  const handleGenderSelect = useCallback(
+    (value: number) => {
+      updateField("gender", value);
+      setShowGenderPicker(false);
+    },
+    [updateField]
+  );
 
   const getGenderLabel = (value: number): string => {
     switch (value) {
@@ -167,11 +179,6 @@ export default function EditProfileScreen() {
       default:
         return "Không xác định";
     }
-  };
-
-  const handleGenderSelect = (value: number) => {
-    updateField("gender", value);
-    setShowGenderPicker(false);
   };
 
   // Load profile data on component mount
@@ -198,261 +205,306 @@ export default function EditProfileScreen() {
   }, [user]);
 
   return (
-    <View className="flex-1 bg-neutral-50">
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* Toast Notification */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
       />
 
       {/* Header */}
-      <SafeAreaView
-        edges={["top"]}
-        className="bg-white border-b border-neutral-200"
-      >
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-            <Ionicons name="arrow-back" size={24} color="#374151" />
+      <SafeAreaView edges={["top"]} style={styles.header}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="arrow-back" size={24} color="#111827" />
           </TouchableOpacity>
 
-          <Text className="text-lg font-semibold text-neutral-900">
-            Chỉnh sửa thông tin
-          </Text>
-          <View className="w-8" />
+          <Text style={styles.headerTitle}>Chỉnh sửa thông tin</Text>
+
+          <View style={styles.headerRight} />
         </View>
       </SafeAreaView>
 
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 110, flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-        bounces={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        {/* Avatar Section */}
-        <Card className="mx-4 mt-6" padding="lg" variant="elevated">
-          <View className="items-center space-y-4">
-            <View className="relative">
-              <View className="w-24 h-24 bg-primary-100 rounded-full items-center justify-center overflow-hidden">
-                {formData.avatar ? (
-                  // In a real app, you'd use an Image component here
-                  <Text className="text-3xl font-bold text-primary-600">
-                    {formData.name.charAt(0).toUpperCase() || "N"}
-                  </Text>
-                ) : (
-                  <Text className="text-3xl font-bold text-primary-600">
-                    {formData.name.charAt(0).toUpperCase() || "N"}
-                  </Text>
-                )}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bounces={true}
+        >
+          {/* Avatar Section */}
+          <AvatarEditCard
+            fullName={formData.name}
+            avatarUri={formData.avatar}
+            onPress={handlePickImage}
+          />
+
+          {/* Form Section */}
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>Thông tin cá nhân</Text>
+
+            <View style={styles.formContent}>
+              {/* Name Input */}
+              <FormInput
+                ref={nameRef}
+                label="Họ và tên"
+                icon="person-outline"
+                placeholder="Nhập họ và tên"
+                value={formData.name}
+                onChangeText={(text) => updateField("name", text)}
+                error={errors.name}
+                required
+                autoCapitalize="words"
+                autoComplete="name"
+                returnKeyType="next"
+                onSubmitEditing={() => focusNextField(phoneRef)}
+              />
+
+              {/* Email Input (Disabled) */}
+              <FormInput
+                label="Email"
+                icon="mail-outline"
+                placeholder="Email đăng nhập"
+                value={formData.email}
+                disabled
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+
+              {/* Phone Input */}
+              <FormInput
+                ref={phoneRef}
+                label="Số điện thoại"
+                icon="call-outline"
+                placeholder="Nhập số điện thoại"
+                value={formData.phone}
+                onChangeText={(text) => updateField("phone", text)}
+                error={errors.phone}
+                keyboardType="phone-pad"
+                autoComplete="tel"
+                returnKeyType="next"
+                onSubmitEditing={() => focusNextField(addressRef)}
+              />
+
+              {/* Address Input */}
+              <FormInput
+                ref={addressRef}
+                label="Địa chỉ"
+                icon="location-outline"
+                placeholder="Nhập địa chỉ (tối đa 255 ký tự)"
+                value={formData.address}
+                onChangeText={(text) => updateField("address", text)}
+                error={errors.address}
+                multiline
+                numberOfLines={3}
+                maxLength={255}
+                returnKeyType="done"
+              />
+
+              {/* Gender Picker */}
+              <View style={styles.genderContainer}>
+                <Text style={styles.genderLabel}>Giới tính</Text>
+                <TouchableOpacity
+                  onPress={() => setShowGenderPicker(true)}
+                  activeOpacity={0.7}
+                  style={styles.genderButton}
+                >
+                  <View style={styles.genderButtonContent}>
+                    <Ionicons
+                      name="transgender-outline"
+                      size={20}
+                      color="#6B7280"
+                      style={styles.genderIcon}
+                    />
+                    <Text style={styles.genderValue}>
+                      {getGenderLabel(formData.gender)}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+                </TouchableOpacity>
               </View>
-
-              <TouchableOpacity
-                onPress={handlePickImage}
-                className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-600 rounded-full items-center justify-center"
-              >
-                <Ionicons name="camera" size={16} color="white" />
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity onPress={handlePickImage}>
-              <Text className="text-primary-600 font-medium">
-                Thay đổi ảnh đại diện
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </Card>
-
-        {/* Form Section */}
-        <Card className="mx-4 mt-6" padding="lg" variant="elevated">
-          <Text className="text-lg font-semibold text-neutral-900 mb-6">
-            Thông tin cá nhân
-          </Text>
-
-          <View className="space-y-6">
-            <Input
-              ref={nameRef}
-              label="Họ và tên"
-              placeholder="Nhập họ và tên"
-              value={formData.name}
-              onChangeText={(text) => updateField("name", text)}
-              error={errors.name}
-              required
-              leftIcon="person-outline"
-              autoCapitalize="words"
-              autoComplete="name"
-              size="lg"
-              returnKeyType="next"
-              onSubmitEditing={() => focusNextField(emailRef)}
-            />
-
-            <Input
-              ref={emailRef}
-              label="Email"
-              placeholder="Nhập địa chỉ email"
-              value={formData.email}
-              onChangeText={(text) => updateField("email", text)}
-              error={errors.email}
-              required
-              leftIcon="mail-outline"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              size="lg"
-              returnKeyType="next"
-              onSubmitEditing={() => focusNextField(phoneRef)}
-            />
-
-            <Input
-              ref={phoneRef}
-              label="Số điện thoại"
-              placeholder="Nhập số điện thoại"
-              value={formData.phone}
-              onChangeText={(text) => updateField("phone", text)}
-              error={errors.phone}
-              required
-              leftIcon="call-outline"
-              keyboardType="phone-pad"
-              autoComplete="tel"
-              size="lg"
-              returnKeyType="next"
-              onSubmitEditing={() => focusNextField(addressRef)}
-            />
-
-            <Input
-              ref={addressRef}
-              label="Địa chỉ"
-              placeholder="Nhập địa chỉ (tối đa 255 ký tự)"
-              value={formData.address}
-              onChangeText={(text) => updateField("address", text)}
-              error={errors.address}
-              leftIcon="location-outline"
-              multiline
-              numberOfLines={3}
-              size="lg"
-              maxLength={255}
-              returnKeyType="done"
-            />
-
-            <View>
-              <Text className="text-sm font-medium text-neutral-700 mb-2">
-                Giới tính
-              </Text>
-              <TouchableOpacity
-                onPress={() => setShowGenderPicker(true)}
-                className="border border-neutral-300 rounded-lg bg-white px-4 py-3 flex-row items-center justify-between"
-              >
-                <Text className="text-base text-neutral-900">
-                  {getGenderLabel(formData.gender)}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#6B7280" />
-              </TouchableOpacity>
             </View>
           </View>
-        </Card>
+        </ScrollView>
 
-        {/* Save Button */}
-        <View className="mx-4 mt-8 mb-8">
-          <Button
-            title={loading ? "Đang lưu..." : "Lưu thay đổi"}
+        {/* Bottom Save Button */}
+        <View style={styles.bottomButtonContainer}>
+          <SaveButton
             onPress={handleSave}
+            loading={loading}
             disabled={loading}
-            fullWidth
-            size="lg"
-            variant="primary"
           />
         </View>
-      </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Gender Picker Modal */}
-      <Modal
+      <GenderPicker
         visible={showGenderPicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowGenderPicker(false)}
-      >
-        <Pressable
-          className="flex-1 bg-black/50 justify-end"
-          onPress={() => setShowGenderPicker(false)}
-        >
-          <Pressable
-            className="bg-white rounded-t-3xl"
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View className="px-4 py-6">
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-lg font-semibold text-neutral-900">
-                  Chọn giới tính
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setShowGenderPicker(false)}
-                  className="p-2"
-                >
-                  <Ionicons name="close" size={24} color="#6B7280" />
-                </TouchableOpacity>
-              </View>
-
-              <View className="space-y-2">
-                <TouchableOpacity
-                  onPress={() => handleGenderSelect(0)}
-                  className={`p-4 rounded-lg border ${
-                    formData.gender === 0
-                      ? "bg-primary-50 border-primary-600"
-                      : "bg-white border-neutral-200"
-                  }`}
-                >
-                  <Text
-                    className={`text-base font-medium ${
-                      formData.gender === 0
-                        ? "text-primary-600"
-                        : "text-neutral-900"
-                    }`}
-                  >
-                    Không xác định
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => handleGenderSelect(1)}
-                  className={`p-4 rounded-lg border ${
-                    formData.gender === 1
-                      ? "bg-primary-50 border-primary-600"
-                      : "bg-white border-neutral-200"
-                  }`}
-                >
-                  <Text
-                    className={`text-base font-medium ${
-                      formData.gender === 1
-                        ? "text-primary-600"
-                        : "text-neutral-900"
-                    }`}
-                  >
-                    Nam
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => handleGenderSelect(2)}
-                  className={`p-4 rounded-lg border ${
-                    formData.gender === 2
-                      ? "bg-primary-50 border-primary-600"
-                      : "bg-white border-neutral-200"
-                  }`}
-                >
-                  <Text
-                    className={`text-base font-medium ${
-                      formData.gender === 2
-                        ? "text-primary-600"
-                        : "text-neutral-900"
-                    }`}
-                  >
-                    Nữ
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        selectedValue={formData.gender}
+        onSelect={handleGenderSelect}
+        onClose={() => setShowGenderPicker(false)}
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+  },
+  header: {
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backButton: {
+    padding: 4,
+    marginLeft: -4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+    letterSpacing: 0.3,
+  },
+  headerRight: {
+    width: 32,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100,
+  },
+  formSection: {
+    marginTop: 20,
+    marginHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 20,
+    letterSpacing: 0.3,
+  },
+  formContent: {
+    gap: 4,
+  },
+  genderContainer: {
+    marginBottom: 20,
+  },
+  genderLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#374151",
+    marginBottom: 8,
+    letterSpacing: 0.2,
+  },
+  genderButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#E5E7EB",
+    paddingHorizontal: 14,
+    minHeight: 52,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
+  },
+  genderButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  genderIcon: {
+    marginRight: 10,
+  },
+  genderValue: {
+    fontSize: 16,
+    fontWeight: "400",
+    color: "#111827",
+    letterSpacing: 0.3,
+  },
+  bottomButtonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === "ios" ? 34 : 20,
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000000",
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+});
