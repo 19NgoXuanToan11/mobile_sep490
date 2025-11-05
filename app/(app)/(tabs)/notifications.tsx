@@ -1,171 +1,102 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
     View,
     Text,
-    ScrollView,
-    TouchableOpacity,
+    FlatList,
     StatusBar,
     RefreshControl,
+    StyleSheet,
+    ListRenderItemInfo,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { Button, Card, Badge, EmptyState } from "../../../src/shared/ui";
+import { EmptyState } from "../../../src/shared/ui";
 import { useNotifications, Notification } from "../../../src/shared/hooks";
+import {
+    NotificationCard,
+    NotificationTabs,
+    NotificationSkeleton,
+    NotificationHeader,
+    NotificationFilter,
+} from "../../../src/features/notifications/components";
 
-// Notification badge component - matches bottom navigation style
-const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
-    if (count === 0) return null;
-
-    return (
-        <View className="bg-error-500 rounded-full min-w-[20px] h-[20px] items-center justify-center px-1">
-            <Text className="text-white text-xs font-bold">
-                {count > 99 ? "99+" : count}
-            </Text>
-        </View>
-    );
-};
-
-interface NotificationItemProps {
-    notification: Notification;
-    onPress: (notification: Notification) => void;
+// Group notifications by time
+interface GroupedNotification {
+    type: "header" | "item";
+    id: string;
+    title?: string;
+    notification?: Notification;
 }
 
-const NotificationItem: React.FC<NotificationItemProps> = ({
-    notification,
-    onPress,
-}) => {
-    const getIcon = () => {
-        switch (notification.type) {
-            case "order":
-                return "bag-outline";
-            case "promotion":
-                return "pricetag-outline";
-            case "system":
-                return "settings-outline";
-            case "payment":
-                return "card-outline";
-            case "delivery":
-                return "car-outline";
-            default:
-                return "notifications-outline";
-        }
-    };
+const getTimeGroup = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-    const getIconColor = () => {
-        switch (notification.type) {
-            case "order":
-                return "#059669";
-            case "promotion":
-                return "#dc2626";
-            case "system":
-                return "#7c3aed";
-            case "payment":
-                return "#ea580c";
-            case "delivery":
-                return "#2563eb";
-            default:
-                return "#6b7280";
-        }
-    };
+    // Today
+    if (diffInHours < 24 && date.getDate() === now.getDate()) {
+        return "Hôm nay";
+    }
 
-    const getTypeText = () => {
-        switch (notification.type) {
-            case "order":
-                return "Đơn hàng";
-            case "promotion":
-                return "Khuyến mãi";
-            case "system":
-                return "Hệ thống";
-            case "payment":
-                return "Thanh toán";
-            case "delivery":
-                return "Giao hàng";
-            default:
-                return "Thông báo";
-        }
-    };
+    // Yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.getDate() === yesterday.getDate() && diffInHours < 48) {
+        return "Hôm qua";
+    }
 
-    const formatTime = (timestamp: string) => {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    // This week
+    if (diffInHours < 7 * 24) {
+        return "Tuần này";
+    }
 
-        if (diffInHours < 1) {
-            const diffInMinutes = Math.floor(diffInHours * 60);
-            return `${diffInMinutes} phút trước`;
-        } else if (diffInHours < 24) {
-            return `${Math.floor(diffInHours)} giờ trước`;
-        } else {
-            const diffInDays = Math.floor(diffInHours / 24);
-            if (diffInDays === 1) return "Hôm qua";
-            if (diffInDays < 7) return `${diffInDays} ngày trước`;
-
-            return date.toLocaleDateString("vi-VN");
-        }
-    };
-
-    return (
-        <TouchableOpacity
-            onPress={() => onPress(notification)}
-            className={`mx-4 mb-3 rounded-lg border ${notification.isRead
-                    ? "bg-white border-neutral-200"
-                    : "bg-green-50 border-green-200"
-                }`}
-        >
-            <View className="p-4">
-                <View className="flex-row space-x-3">
-                    <View className="shrink-0">
-                        <View
-                            className="w-10 h-10 rounded-full items-center justify-center"
-                            style={{ backgroundColor: `${getIconColor()}20` }}
-                        >
-                            <Ionicons name={getIcon()} size={20} color={getIconColor()} />
-                        </View>
-                    </View>
-
-                    <View className="flex-1 min-w-0">
-                        <View className="flex-row items-center justify-between mb-1">
-                            <View className="flex-row items-center space-x-2 flex-1 min-w-0">
-                                <Badge variant="secondary" size="sm">
-                                    {getTypeText()}
-                                </Badge>
-                            </View>
-                            <Text className="text-xs text-neutral-500 shrink-0 ml-2">
-                                {formatTime(notification.timestamp)}
-                            </Text>
-                        </View>
-
-                        <Text
-                            className={`font-medium mb-1 ${notification.isRead ? "text-neutral-700" : "text-neutral-900"
-                                }`}
-                        >
-                            {notification.title}
-                        </Text>
-
-                        <Text
-                            className={`text-sm leading-5 ${notification.isRead ? "text-neutral-500" : "text-neutral-600"
-                                }`}
-                        >
-                            {notification.message}
-                        </Text>
-                    </View>
-                </View>
-            </View>
-        </TouchableOpacity>
-    );
+    // Earlier
+    return "Trước đó";
 };
 
-const FILTER_TABS = [
-    { key: "all", label: "Tất cả" },
-    { key: "unread", label: "Chưa đọc" },
-    { key: "order", label: "Đơn hàng" },
-    { key: "promotion", label: "Khuyến mãi" },
-] as const;
+const groupNotificationsByTime = (
+    notifications: Notification[]
+): GroupedNotification[] => {
+    const groups: { [key: string]: Notification[] } = {};
+
+    // Group notifications
+    notifications.forEach((notification) => {
+        const group = getTimeGroup(notification.timestamp);
+        if (!groups[group]) {
+            groups[group] = [];
+        }
+        groups[group].push(notification);
+    });
+
+    // Convert to flat list with headers
+    const result: GroupedNotification[] = [];
+    const groupOrder = ["Hôm nay", "Hôm qua", "Tuần này", "Trước đó"];
+
+    groupOrder.forEach((groupTitle) => {
+        if (groups[groupTitle] && groups[groupTitle].length > 0) {
+            // Add header
+            result.push({
+                type: "header",
+                id: `header-${groupTitle}`,
+                title: groupTitle,
+            });
+
+            // Add items
+            groups[groupTitle].forEach((notification) => {
+                result.push({
+                    type: "item",
+                    id: notification.id,
+                    notification,
+                });
+            });
+        }
+    });
+
+    return result;
+};
 
 export default function NotificationsScreen() {
-    const [activeFilter, setActiveFilter] =
-        useState<(typeof FILTER_TABS)[number]["key"]>("all");
+    const [activeFilter, setActiveFilter] = useState<NotificationFilter>("all");
     const [refreshing, setRefreshing] = useState(false);
 
     const {
@@ -176,39 +107,131 @@ export default function NotificationsScreen() {
         loadNotifications,
     } = useNotifications();
 
-    const filteredNotifications = notifications.filter((notification) => {
-        switch (activeFilter) {
-            case "unread":
-                return !notification.isRead;
-            case "order":
-                return notification.type === "order";
-            case "promotion":
-                return notification.type === "promotion";
-            default:
-                return true;
-        }
-    });
+    // Filter notifications
+    const filteredNotifications = useMemo(() => {
+        return notifications.filter((notification) => {
+            switch (activeFilter) {
+                case "unread":
+                    return !notification.isRead;
+                case "order":
+                    return notification.type === "order";
+                case "promotion":
+                    return notification.type === "promotion";
+                case "payment":
+                    return notification.type === "payment";
+                case "delivery":
+                    return notification.type === "delivery";
+                default:
+                    return true;
+            }
+        });
+    }, [notifications, activeFilter]);
 
+    // Group notifications by time
+    const groupedData = useMemo(() => {
+        return groupNotificationsByTime(filteredNotifications);
+    }, [filteredNotifications]);
+
+    // Handlers
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
         await loadNotifications();
         setRefreshing(false);
     }, [loadNotifications]);
 
-    const handleNotificationPress = (notification: Notification) => {
-        // Mark as read when pressed
-        if (!notification.isRead) {
-            markAsRead(notification.id);
+    const handleNotificationPress = useCallback(
+        (notification: Notification) => {
+            // Mark as read when pressed
+            if (!notification.isRead) {
+                markAsRead(notification.id);
+            }
+
+            // Navigate to specific screen if needed
+            if (notification.actionUrl) {
+                // router.push(notification.actionUrl);
+            }
+        },
+        [markAsRead]
+    );
+
+    const handleFilterChange = useCallback((filter: NotificationFilter) => {
+        setActiveFilter(filter);
+    }, []);
+
+    // FlatList optimization
+    const keyExtractor = useCallback(
+        (item: GroupedNotification) => item.id,
+        []
+    );
+
+    const renderItem = useCallback(
+        ({ item }: ListRenderItemInfo<GroupedNotification>) => {
+            if (item.type === "header") {
+                return (
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionHeaderText}>{item.title}</Text>
+                    </View>
+                );
+            }
+
+            if (item.notification) {
+                return (
+                    <NotificationCard
+                        notification={item.notification}
+                        onPress={handleNotificationPress}
+                    />
+                );
+            }
+
+            return null;
+        },
+        [handleNotificationPress]
+    );
+
+    const getItemLayout = useCallback(
+        (_: any, index: number) => ({
+            length: 120, // Approximate item height
+            offset: 120 * index,
+            index,
+        }),
+        []
+    );
+
+    const ListHeaderComponent = useMemo(
+        () => (
+            <NotificationTabs
+                activeFilter={activeFilter}
+                onFilterChange={handleFilterChange}
+                unreadCount={unreadCount}
+            />
+        ),
+        [activeFilter, handleFilterChange, unreadCount]
+    );
+
+    const ListEmptyComponent = useMemo(() => {
+        if (isLoading) {
+            return <NotificationSkeleton count={3} />;
         }
 
-        // Navigate to specific screen if needed
-        if (notification.actionUrl) {
-            // router.push(notification.actionUrl);
-        }
-    };
+        return (
+            <EmptyState
+                icon="notifications-outline"
+                title={
+                    activeFilter === "unread"
+                        ? "Không có thông báo chưa đọc"
+                        : "Không có thông báo"
+                }
+                description={
+                    activeFilter === "unread"
+                        ? "Tất cả thông báo đã được đọc"
+                        : "Chưa có thông báo nào được gửi đến bạn"
+                }
+            />
+        );
+    }, [isLoading, activeFilter]);
 
     return (
-        <View className="flex-1 bg-neutral-50">
+        <View style={styles.container}>
             <StatusBar
                 barStyle="dark-content"
                 backgroundColor="transparent"
@@ -216,91 +239,61 @@ export default function NotificationsScreen() {
             />
 
             {/* Header */}
-            <SafeAreaView
-                edges={["top"]}
-                className="bg-white border-b border-neutral-200"
-            >
-                <View className="px-4 py-3">
-                    <View className="flex-row items-center justify-center">
-                        <Text className="text-lg font-semibold text-neutral-900">
-                            Thông báo
-                        </Text>
-                        <View className="ml-2">
-                            <NotificationBadge count={unreadCount} />
-                        </View>
-                    </View>
-                </View>
-
-                {/* Filter Tabs */}
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    className="px-4 pb-3"
-                    contentContainerStyle={{ gap: 8 }}
-                >
-                    {FILTER_TABS.map((tab) => (
-                        <TouchableOpacity
-                            key={tab.key}
-                            onPress={() => setActiveFilter(tab.key)}
-                            className={`px-4 py-2 rounded-full border ${activeFilter === tab.key
-                                    ? "bg-primary-600 border-primary-600"
-                                    : "bg-white border-neutral-300"
-                                }`}
-                        >
-                            <View className="flex-row items-center space-x-2">
-                                <Text
-                                    className={`font-medium ${activeFilter === tab.key ? "text-white" : "text-neutral-700"
-                                        }`}
-                                >
-                                    {tab.label}
-                                </Text>
-                                {tab.key === "unread" && unreadCount > 0 && (
-                                    <View className="bg-error-500 rounded-full min-w-[18px] h-[18px] items-center justify-center px-1">
-                                        <Text className="text-white text-xs font-bold">
-                                            {unreadCount > 99 ? "99+" : unreadCount}
-                                        </Text>
-                                    </View>
-                                )}
-                            </View>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
+            <SafeAreaView edges={["top"]} style={styles.safeArea}>
+                <NotificationHeader />
             </SafeAreaView>
 
             {/* Content */}
-            <ScrollView
-                className="flex-1"
+            <FlatList
+                data={groupedData}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                ListHeaderComponent={ListHeaderComponent}
+                ListEmptyComponent={ListEmptyComponent}
+                contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingTop: 16, paddingBottom: 110 }}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                }
-            >
-                {filteredNotifications.length === 0 ? (
-                    <EmptyState
-                        icon="notifications-outline"
-                        title={
-                            activeFilter === "unread"
-                                ? "Không có thông báo chưa đọc"
-                                : "Không có thông báo"
-                        }
-                        description={
-                            activeFilter === "unread"
-                                ? "Tất cả thông báo đã được đọc"
-                                : "Chưa có thông báo nào được gửi đến bạn"
-                        }
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor="#00A86B"
+                        colors={["#00A86B"]}
                     />
-                ) : (
-                    filteredNotifications.map((notification) => (
-                        <NotificationItem
-                            key={notification.id}
-                            notification={notification}
-                            onPress={handleNotificationPress}
-                        />
-                    ))
-                )}
-            </ScrollView>
+                }
+                // Performance optimizations
+                initialNumToRender={8}
+                maxToRenderPerBatch={8}
+                windowSize={7}
+                removeClippedSubviews={true}
+                getItemLayout={getItemLayout}
+            />
         </View>
     );
 }
 
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#F8FAFC",
+    },
+    safeArea: {
+        backgroundColor: "#FFFFFF",
+    },
+    listContent: {
+        paddingTop: 16,
+        paddingBottom: 110,
+        flexGrow: 1,
+    },
+    sectionHeader: {
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        marginBottom: 8,
+    },
+    sectionHeaderText: {
+        fontSize: 13,
+        fontWeight: "600",
+        color: "#9CA3AF",
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
+    },
+});
