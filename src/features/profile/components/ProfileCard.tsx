@@ -8,22 +8,19 @@ import {
     Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 interface ProfileCardProps {
     name?: string;
     email?: string;
     onEditPress: () => void;
 }
-
 export const ProfileCard = React.memo<ProfileCardProps>(
     ({ name = "Người dùng", email = "", onEditPress }) => {
         const fadeAnim = useRef(new Animated.Value(0)).current;
         const scaleAnim = useRef(new Animated.Value(0.95)).current;
         const avatarBounce = useRef(new Animated.Value(0)).current;
         const buttonScale = useRef(new Animated.Value(1)).current;
-
         useEffect(() => {
-            // Fade in and scale animation
+
             Animated.parallel([
                 Animated.timing(fadeAnim, {
                     toValue: 1,
@@ -38,7 +35,6 @@ export const ProfileCard = React.memo<ProfileCardProps>(
                 }),
             ]).start();
 
-            // Avatar gentle bounce
             Animated.sequence([
                 Animated.delay(80),
                 Animated.spring(avatarBounce, {
@@ -49,7 +45,6 @@ export const ProfileCard = React.memo<ProfileCardProps>(
                 }),
             ]).start();
         }, [fadeAnim, scaleAnim, avatarBounce]);
-
         const handlePressIn = () => {
             Animated.spring(buttonScale, {
                 toValue: 0.98,
@@ -57,7 +52,6 @@ export const ProfileCard = React.memo<ProfileCardProps>(
                 useNativeDriver: true,
             }).start();
         };
-
         const handlePressOut = () => {
             Animated.spring(buttonScale, {
                 toValue: 1,
@@ -65,7 +59,6 @@ export const ProfileCard = React.memo<ProfileCardProps>(
                 useNativeDriver: true,
             }).start();
         };
-
         const getInitials = (name: string) => {
             const parts = name.trim().split(" ");
             if (parts.length >= 2) {
@@ -76,12 +69,10 @@ export const ProfileCard = React.memo<ProfileCardProps>(
             }
             return name.charAt(0).toUpperCase();
         };
-
         const avatarScale = avatarBounce.interpolate({
             inputRange: [0, 1],
             outputRange: [0.9, 1],
         });
-
         return (
             <Animated.View
                 style={[
@@ -92,7 +83,7 @@ export const ProfileCard = React.memo<ProfileCardProps>(
                     },
                 ]}
             >
-                {/* Avatar */}
+                {}
                 <Animated.View
                     style={[
                         styles.avatarContainer,
@@ -103,8 +94,7 @@ export const ProfileCard = React.memo<ProfileCardProps>(
                         <Text style={styles.avatarText}>{getInitials(name)}</Text>
                     </View>
                 </Animated.View>
-
-                {/* Info */}
+                {}
                 <View style={styles.infoContainer}>
                     <Text style={styles.name} numberOfLines={1}>
                         {name}
@@ -115,8 +105,7 @@ export const ProfileCard = React.memo<ProfileCardProps>(
                         </Text>
                     ) : null}
                 </View>
-
-                {/* Edit Button */}
+                {}
                 <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
                     <TouchableOpacity
                         style={styles.editButton}
@@ -138,9 +127,7 @@ export const ProfileCard = React.memo<ProfileCardProps>(
         );
     }
 );
-
 ProfileCard.displayName = "ProfileCard";
-
 const styles = StyleSheet.create({
     container: {
         backgroundColor: "#FFFFFF",
@@ -218,4 +205,3 @@ const styles = StyleSheet.create({
         letterSpacing: 0.2,
     },
 });
-

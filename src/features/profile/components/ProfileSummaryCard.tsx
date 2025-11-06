@@ -6,18 +6,15 @@ import {
     Platform,
     Animated,
 } from "react-native";
-
 interface ProfileSummaryCardProps {
     fullName: string;
     email: string;
     role: string;
 }
-
 export const ProfileSummaryCard = React.memo<ProfileSummaryCardProps>(
     ({ fullName, email, role }) => {
         const fadeAnim = React.useRef(new Animated.Value(0)).current;
         const scaleAnim = React.useRef(new Animated.Value(0.95)).current;
-
         React.useEffect(() => {
             Animated.parallel([
                 Animated.timing(fadeAnim, {
@@ -33,7 +30,6 @@ export const ProfileSummaryCard = React.memo<ProfileSummaryCardProps>(
                 }),
             ]).start();
         }, [fadeAnim, scaleAnim]);
-
         const getInitials = (name: string): string => {
             const words = name.trim().split(/\s+/);
             if (words.length === 1) {
@@ -44,21 +40,18 @@ export const ProfileSummaryCard = React.memo<ProfileSummaryCardProps>(
                 words[words.length - 1].charAt(0).toUpperCase()
             );
         };
-
         const getRoleColor = (roleText: string): string => {
             const lowerRole = roleText.toLowerCase();
             if (lowerRole.includes("admin")) return "#00A86B";
             if (lowerRole.includes("staff")) return "#F59E0B";
             return "#6B7280";
         };
-
         const getRoleBackground = (roleText: string): string => {
             const lowerRole = roleText.toLowerCase();
             if (lowerRole.includes("admin")) return "#E8F9F1";
             if (lowerRole.includes("staff")) return "#FEF3C7";
             return "#F3F4F6";
         };
-
         return (
             <Animated.View
                 style={[
@@ -99,9 +92,7 @@ export const ProfileSummaryCard = React.memo<ProfileSummaryCardProps>(
         );
     }
 );
-
 ProfileSummaryCard.displayName = "ProfileSummaryCard";
-
 const styles = StyleSheet.create({
     container: {
         backgroundColor: "#FFFFFF",

@@ -7,7 +7,6 @@ import {
     Animated,
     StyleSheet,
 } from "react-native";
-
 export type NotificationFilter =
     | "all"
     | "unread"
@@ -15,12 +14,10 @@ export type NotificationFilter =
     | "promotion"
     | "payment"
     | "delivery";
-
 interface Tab {
     key: NotificationFilter;
     label: string;
 }
-
 const TABS: Tab[] = [
     { key: "all", label: "Tất cả" },
     { key: "unread", label: "Chưa đọc" },
@@ -29,24 +26,20 @@ const TABS: Tab[] = [
     { key: "payment", label: "Thanh toán" },
     { key: "delivery", label: "Giao hàng" },
 ];
-
 interface NotificationTabsProps {
     activeFilter: NotificationFilter;
     onFilterChange: (filter: NotificationFilter) => void;
     unreadCount?: number;
 }
-
 export const NotificationTabs = React.memo<NotificationTabsProps>(
     ({ activeFilter, onFilterChange, unreadCount = 0 }) => {
         const scrollViewRef = useRef<ScrollView>(null);
-
         const handleTabPress = useCallback(
             (key: NotificationFilter) => {
                 onFilterChange(key);
             },
             [onFilterChange]
         );
-
         return (
             <View style={styles.container}>
                 <ScrollView
@@ -69,21 +62,17 @@ export const NotificationTabs = React.memo<NotificationTabsProps>(
         );
     }
 );
-
 NotificationTabs.displayName = "NotificationTabs";
-
 interface TabButtonProps {
     tab: Tab;
     isActive: boolean;
     onPress: (key: NotificationFilter) => void;
     unreadCount?: number;
 }
-
 const TabButton = React.memo<TabButtonProps>(
     ({ tab, isActive, onPress, unreadCount }) => {
         const scaleAnim = useRef(new Animated.Value(1)).current;
         const bgAnim = useRef(new Animated.Value(isActive ? 1 : 0)).current;
-
         useEffect(() => {
             Animated.timing(bgAnim, {
                 toValue: isActive ? 1 : 0,
@@ -91,7 +80,6 @@ const TabButton = React.memo<TabButtonProps>(
                 useNativeDriver: false,
             }).start();
         }, [isActive, bgAnim]);
-
         const handlePressIn = useCallback(() => {
             Animated.timing(scaleAnim, {
                 toValue: 0.95,
@@ -99,7 +87,6 @@ const TabButton = React.memo<TabButtonProps>(
                 useNativeDriver: true,
             }).start();
         }, [scaleAnim]);
-
         const handlePressOut = useCallback(() => {
             Animated.timing(scaleAnim, {
                 toValue: 1,
@@ -107,21 +94,17 @@ const TabButton = React.memo<TabButtonProps>(
                 useNativeDriver: true,
             }).start();
         }, [scaleAnim]);
-
         const handlePress = useCallback(() => {
             onPress(tab.key);
         }, [tab.key, onPress]);
-
         const backgroundColor = bgAnim.interpolate({
             inputRange: [0, 1],
             outputRange: ["#FFFFFF", "#F0FDF4"],
         });
-
         const borderColor = bgAnim.interpolate({
             inputRange: [0, 1],
             outputRange: ["#E5E7EB", "#00A86B"],
         });
-
         return (
             <Animated.View
                 style={[
@@ -165,9 +148,7 @@ const TabButton = React.memo<TabButtonProps>(
         );
     }
 );
-
 TabButton.displayName = "TabButton";
-
 const styles = StyleSheet.create({
     container: {
         paddingVertical: 12,
@@ -218,4 +199,3 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
 });
-

@@ -1,25 +1,18 @@
 import React, { useMemo } from "react";
 import { View, Text } from "react-native";
 import { getPasswordStrength } from "../schemas/changePasswordSchema";
-
 interface PasswordStrengthHintProps {
     password: string;
 }
 
-/**
- * Memoized password strength indicator
- * Shows strength level without heavy animations (Apple-style, performance-safe)
- */
 export const PasswordStrengthHint = React.memo<PasswordStrengthHintProps>(
     ({ password }) => {
-        // Don't show hint for empty password - MUST be before any hooks
-        if (!password) return null;
 
+        if (!password) return null;
         const strength = useMemo(
             () => getPasswordStrength(password),
             [password]
         );
-
         const strengthConfig = useMemo(() => {
             switch (strength) {
                 case "weak":
@@ -42,7 +35,6 @@ export const PasswordStrengthHint = React.memo<PasswordStrengthHintProps>(
                     };
             }
         }, [strength]);
-
         return (
             <View
                 style={{
@@ -79,6 +71,4 @@ export const PasswordStrengthHint = React.memo<PasswordStrengthHintProps>(
         );
     }
 );
-
 PasswordStrengthHint.displayName = "PasswordStrengthHint";
-

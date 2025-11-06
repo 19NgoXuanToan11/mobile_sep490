@@ -9,9 +9,7 @@ import Animated, {
     withDelay,
     runOnJS,
 } from "react-native-reanimated";
-
 export type ToastType = "success" | "error" | "info";
-
 interface ToastProps {
     visible: boolean;
     message: string;
@@ -19,13 +17,11 @@ interface ToastProps {
     duration?: number;
     onHide?: () => void;
 }
-
 const ICONS: Record<ToastType, keyof typeof Ionicons.glyphMap> = {
     success: "checkmark-circle",
     error: "close-circle",
     info: "information-circle",
 };
-
 const COLORS: Record<ToastType, { bg: string; border: string; icon: string }> =
 {
     success: {
@@ -44,15 +40,13 @@ const COLORS: Record<ToastType, { bg: string; border: string; icon: string }> =
         icon: "#3B82F6",
     },
 };
-
 export const Toast = React.memo<ToastProps>(
     ({ visible, message, type = "success", duration = 3000, onHide }) => {
         const translateY = useSharedValue(-100);
         const opacity = useSharedValue(0);
-
         useEffect(() => {
             if (visible) {
-                // Show animation
+
                 translateY.value = withSpring(0, {
                     damping: 20,
                     stiffness: 300,
@@ -62,7 +56,6 @@ export const Toast = React.memo<ToastProps>(
                     stiffness: 300,
                 });
 
-                // Auto hide after duration
                 const hideTimer = withDelay(
                     duration,
                     withSequence(
@@ -77,7 +70,6 @@ export const Toast = React.memo<ToastProps>(
                         })
                     )
                 );
-
                 const opacityTimer = withDelay(
                     duration,
                     withSpring(0, {
@@ -85,21 +77,16 @@ export const Toast = React.memo<ToastProps>(
                         stiffness: 300,
                     })
                 );
-
                 translateY.value = hideTimer;
                 opacity.value = opacityTimer;
             }
         }, [visible, duration, onHide]);
-
         const animatedStyle = useAnimatedStyle(() => ({
             transform: [{ translateY: translateY.value }],
             opacity: opacity.value,
         }));
-
         if (!visible) return null;
-
         const colors = COLORS[type];
-
         return (
             <Animated.View style={[styles.container, animatedStyle]}>
                 <View
@@ -127,9 +114,7 @@ export const Toast = React.memo<ToastProps>(
         );
     }
 );
-
 Toast.displayName = "Toast";
-
 const styles = StyleSheet.create({
     container: {
         position: "absolute",
@@ -176,4 +161,3 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
 });
-

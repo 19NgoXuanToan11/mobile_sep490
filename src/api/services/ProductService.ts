@@ -1,7 +1,4 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 import type { CreateProductDTO } from '../models/CreateProductDTO';
 import type { Status } from '../models/Status';
 import type { UpdateProductDTO } from '../models/UpdateProductDTO';
@@ -10,10 +7,7 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class ProductService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1ProductsProductsList({
         pageIndex = 1,
         pageSize = 10,
@@ -30,10 +24,7 @@ export class ProductService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1ProductsProductFilter({
         pageIndex = 1,
         pageSize = 10,
@@ -59,10 +50,7 @@ export class ProductService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1ProductsGetProduct({
         productId,
     }: {
@@ -76,10 +64,7 @@ export class ProductService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1ProductsSearchProduct({
         productName,
         pageIndex = 1,
@@ -101,10 +86,7 @@ export class ProductService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1ProductsCreate({
         requestBody,
     }: {
@@ -117,10 +99,7 @@ export class ProductService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1ProductsUpdate({
         id,
         requestBody,
@@ -138,10 +117,7 @@ export class ProductService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1ProductsChangeProductStatus({
         id,
     }: {
@@ -155,10 +131,7 @@ export class ProductService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1ProductsChangeProductQuantity({
         id,
         requestBody,

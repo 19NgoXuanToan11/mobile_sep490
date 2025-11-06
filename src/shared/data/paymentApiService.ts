@@ -1,13 +1,8 @@
-/**
- * Payment API Service - VNPAY integration
- * Dịch vụ API thanh toán - Tích hợp VNPAY
- */
 
 import { OpenAPI } from "../../api/core/OpenAPI";
 import { request as __request } from "../../api/core/request";
 import { PaymentService } from "../../api/services/PaymentService";
 import env from "../../config/env";
-
 export interface PaymentInformation {
   orderType?: string;
   amount: number;
@@ -15,7 +10,6 @@ export interface PaymentInformation {
   name?: string;
   orderId: number;
 }
-
 export interface PaymentResponse {
   success: boolean;
   data?: {
@@ -31,15 +25,8 @@ export interface PaymentResponse {
   message?: string;
 }
 
-/**
- * VNPAY Payment API Service
- * Dịch vụ API thanh toán VNPAY
- */
 export const vnpayApi = {
-  /**
-   * Create payment URL for VNPAY
-   * Tạo liên kết thanh toán VNPAY
-   */
+
   async createPaymentUrl(
     paymentInfo: PaymentInformation
   ): Promise<PaymentResponse> {
@@ -53,9 +40,7 @@ export const vnpayApi = {
           name: paymentInfo.name ?? "Customer",
         } as any,
       });
-
       const result: any = (response as any)?.data ?? response;
-
       return {
         success: true,
         data: {
@@ -76,19 +61,13 @@ export const vnpayApi = {
     }
   },
 
-  /**
-   * Get payment info by order ID
-   * Lấy thông tin thanh toán theo ID đơn hàng
-   */
   async getPaymentByOrderId(orderId: number): Promise<PaymentResponse> {
     try {
       OpenAPI.BASE = env.API_URL;
       const response = await PaymentService.getApiVnpayPaymentByOrderId({
         orderId,
       });
-
       const result: any = (response as any)?.data ?? response;
-
       return {
         success: true,
         data: {
@@ -113,10 +92,6 @@ export const vnpayApi = {
     }
   },
 
-  /**
-   * Create order payment
-   * Tạo bản ghi thanh toán cho đơn hàng
-   */
   async createOrderPayment(orderId: number): Promise<PaymentResponse> {
     try {
       OpenAPI.BASE = env.API_URL;
@@ -124,9 +99,7 @@ export const vnpayApi = {
         method: "POST",
         url: `/api/v1/Order/createOrderPayment/${orderId}`,
       });
-
       const result: any = (response as any)?.data ?? response;
-
       return {
         success: true,
         data: {
@@ -147,10 +120,6 @@ export const vnpayApi = {
     }
   },
 
-  /**
-   * Process VNPAY callback after payment
-   * Xử lý callback VNPAY sau thanh toán
-   */
   async handleCallback(queryParams: Record<string, string>): Promise<{
     success: boolean;
     orderId?: string;
@@ -158,14 +127,12 @@ export const vnpayApi = {
     message?: string;
   }> {
     try {
-      // Extract important parameters from VNPAY callback
+
       const orderId = queryParams.vnp_TxnRef;
       const responseCode = queryParams.vnp_ResponseCode;
       const transactionStatus = queryParams.vnp_TransactionStatus;
 
-      // Response code "00" means success
       const isSuccess = responseCode === "00" && transactionStatus === "00";
-
       return {
         success: true,
         orderId,

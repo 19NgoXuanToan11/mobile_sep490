@@ -13,25 +13,20 @@ import Animated, {
     useSharedValue,
     withSpring,
 } from "react-native-reanimated";
-
 interface SaveButtonProps {
     onPress: () => void;
     loading?: boolean;
     disabled?: boolean;
     title?: string;
 }
-
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
-
 export const SaveButton = React.memo<SaveButtonProps>(
     ({ onPress, loading = false, disabled = false, title = "Lưu thay đổi" }) => {
         const scale = useSharedValue(1);
-
         const animatedStyle = useAnimatedStyle(() => ({
             transform: [{ scale: scale.value }],
         }));
-
         const handlePressIn = () => {
             if (!loading && !disabled) {
                 scale.value = withSpring(0.97, {
@@ -40,16 +35,13 @@ export const SaveButton = React.memo<SaveButtonProps>(
                 });
             }
         };
-
         const handlePressOut = () => {
             scale.value = withSpring(1, {
                 damping: 15,
                 stiffness: 400,
             });
         };
-
         const isDisabled = loading || disabled;
-
         return (
             <AnimatedTouchable
                 onPress={onPress}
@@ -82,9 +74,7 @@ export const SaveButton = React.memo<SaveButtonProps>(
         );
     }
 );
-
 SaveButton.displayName = "SaveButton";
-
 const styles = StyleSheet.create({
     button: {
         width: "100%",
@@ -123,4 +113,3 @@ const styles = StyleSheet.create({
         marginLeft: 0,
     },
 });
-

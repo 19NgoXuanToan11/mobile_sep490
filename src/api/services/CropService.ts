@@ -1,17 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 import type { CropRequest } from '../models/CropRequest';
 import type { Status } from '../models/Status';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class CropService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1CropGetAll({
         pageIndex = 1,
         pageSize = 10,
@@ -28,20 +22,14 @@ export class CropService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1CropGetAllActive(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/crop/get-all-active',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1CropCreate({
         requestBody,
     }: {
@@ -54,10 +42,7 @@ export class CropService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1CropChangStatus({
         cropId,
         status,
@@ -74,10 +59,7 @@ export class CropService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1CropSearch({
         cropName,
         status,
@@ -100,10 +82,7 @@ export class CropService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1CropUpdate({
         cropId,
         requestBody,
@@ -121,10 +100,7 @@ export class CropService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1CropGetExcludingInactive(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',

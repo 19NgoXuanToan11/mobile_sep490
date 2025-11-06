@@ -2,7 +2,6 @@ import React from "react";
 import { View, Text, TouchableOpacity, ViewProps } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { cn } from "../lib/utils";
-
 export interface QuantityStepperProps extends ViewProps {
   value: number;
   onValueChange: (value: number) => void;
@@ -12,7 +11,6 @@ export interface QuantityStepperProps extends ViewProps {
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
 }
-
 export const QuantityStepper: React.FC<QuantityStepperProps> = ({
   value,
   onValueChange,
@@ -28,15 +26,12 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
     if (disabled || value <= min) return;
     onValueChange(Math.max(min, value - step));
   };
-
   const handleIncrement = () => {
     if (disabled || value >= max) return;
     onValueChange(Math.min(max, value + step));
   };
-
   const canDecrement = !disabled && value > min;
   const canIncrement = !disabled && value < max;
-
   const sizeStyles = {
     sm: {
       container: "h-8 min-w-24",
@@ -60,9 +55,7 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
       quantityContainer: "min-w-16 px-5",
     },
   };
-
   const styles = sizeStyles[size];
-
   return (
     <View
       className={cn(
@@ -88,7 +81,6 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
           color={canDecrement ? "#374151" : "#9ca3af"}
         />
       </TouchableOpacity>
-
       <View
         className={cn("items-center justify-center", styles.quantityContainer)}
       >
@@ -96,7 +88,6 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
           {value}
         </Text>
       </View>
-
       <TouchableOpacity
         onPress={handleIncrement}
         disabled={!canIncrement}

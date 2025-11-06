@@ -10,18 +10,15 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { formatCurrency } from "../../../shared/lib/utils";
 import { CartItem } from "../../../types";
-
 interface CartItemCardProps {
     item: CartItem;
     onUpdateQuantity: (itemId: string, quantity: number) => void;
     onRemove: (itemId: string, itemName: string) => void;
     onToggleSelection: (itemId: string) => void;
 }
-
 export const CartItemCard = React.memo<CartItemCardProps>(
     ({ item, onUpdateQuantity, onRemove, onToggleSelection }) => {
         const scaleAnim = useRef(new Animated.Value(1)).current;
-
         const handlePressIn = useCallback(() => {
             Animated.timing(scaleAnim, {
                 toValue: 0.98,
@@ -29,7 +26,6 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                 useNativeDriver: true,
             }).start();
         }, [scaleAnim]);
-
         const handlePressOut = useCallback(() => {
             Animated.timing(scaleAnim, {
                 toValue: 1,
@@ -37,36 +33,29 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                 useNativeDriver: true,
             }).start();
         }, [scaleAnim]);
-
         const handleIncrement = useCallback(() => {
             if (item.quantity < item.product.stock) {
                 onUpdateQuantity(item.id, item.quantity + 1);
             }
         }, [item.id, item.quantity, item.product.stock, onUpdateQuantity]);
-
         const handleDecrement = useCallback(() => {
             if (item.quantity > 1) {
                 onUpdateQuantity(item.id, item.quantity - 1);
             }
         }, [item.id, item.quantity, onUpdateQuantity]);
-
         const handleRemove = useCallback(() => {
             onRemove(item.id, item.product.name);
         }, [item.id, item.product.name, onRemove]);
-
         const handleToggleSelection = useCallback(() => {
             onToggleSelection(item.id);
         }, [item.id, onToggleSelection]);
-
         const canIncrement = item.quantity < item.product.stock;
         const canDecrement = item.quantity > 1;
 
-        // Format price with smaller currency symbol
         const priceText = formatCurrency(item.price);
         const unitText = item.product.unit && !item.product.unit.startsWith("/")
             ? ` / ${item.product.unit}`
             : "";
-
         return (
             <Animated.View
                 style={{
@@ -82,10 +71,10 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                     elevation: 2,
                 }}
             >
-                {/* Main Content */}
+                {}
                 <View style={{ padding: 16 }}>
                     <View style={{ flexDirection: "row", gap: 12 }}>
-                        {/* Checkbox */}
+                        {}
                         <TouchableOpacity
                             onPress={handleToggleSelection}
                             style={{
@@ -105,8 +94,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                 <Ionicons name="checkmark" size={16} color="#FFFFFF" />
                             )}
                         </TouchableOpacity>
-
-                        {/* Product Image */}
+                        {}
                         <View style={{ position: "relative" }}>
                             <Image
                                 source={{ uri: item.product.images[0] }}
@@ -123,10 +111,9 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                 transition={150}
                             />
                         </View>
-
-                        {/* Product Info */}
+                        {}
                         <View style={{ flex: 1, justifyContent: "space-between" }}>
-                            {/* Top Row: Name */}
+                            {}
                             <Text
                                 style={{
                                     fontSize: 15,
@@ -138,8 +125,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                             >
                                 {item.product.name}
                             </Text>
-
-                            {/* Bottom Row: Price and Unit */}
+                            {}
                             <View
                                 style={{
                                     flexDirection: "row",
@@ -171,8 +157,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                     )}
                                 </View>
                             </View>
-
-                            {/* Stock Info */}
+                            {}
                             <Text
                                 style={{
                                     fontSize: 13,
@@ -185,8 +170,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                         </View>
                     </View>
                 </View>
-
-                {/* Divider */}
+                {}
                 <View
                     style={{
                         height: 1,
@@ -194,8 +178,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                         marginHorizontal: 16,
                     }}
                 />
-
-                {/* Bottom Controls */}
+                {}
                 <View
                     style={{
                         flexDirection: "row",
@@ -204,7 +187,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                         padding: 16,
                     }}
                 >
-                    {/* Quantity Stepper */}
+                    {}
                     <View
                         style={{
                             flexDirection: "row",
@@ -215,7 +198,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                             borderColor: "#E5E7EB",
                         }}
                     >
-                        {/* Minus Button */}
+                        {}
                         <Pressable
                             onPress={handleDecrement}
                             disabled={!canDecrement}
@@ -235,8 +218,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                 color={canDecrement ? "#4B5563" : "#9CA3AF"}
                             />
                         </Pressable>
-
-                        {/* Quantity Display */}
+                        {}
                         <View
                             style={{
                                 minWidth: 32,
@@ -254,8 +236,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                 {item.quantity}
                             </Text>
                         </View>
-
-                        {/* Plus Button */}
+                        {}
                         <Pressable
                             onPress={handleIncrement}
                             disabled={!canIncrement}
@@ -276,8 +257,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                             />
                         </Pressable>
                     </View>
-
-                    {/* Delete Button */}
+                    {}
                     <Pressable
                         onPress={handleRemove}
                         style={({ pressed }) => ({
@@ -307,7 +287,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
         );
     },
     (prevProps, nextProps) => {
-        // Custom comparison for memo optimization
+
         return (
             prevProps.item.id === nextProps.item.id &&
             prevProps.item.quantity === nextProps.item.quantity &&
@@ -316,6 +296,4 @@ export const CartItemCard = React.memo<CartItemCardProps>(
         );
     }
 );
-
 CartItemCard.displayName = "CartItemCard";
-

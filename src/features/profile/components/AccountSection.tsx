@@ -1,17 +1,14 @@
 import React, { useEffect, useRef } from "react";
 import { View, Text, StyleSheet, Animated, Platform } from "react-native";
 import { AccountListItem, AccountListItemProps } from "./AccountListItem";
-
 interface AccountSectionProps {
     title: string;
     items: Omit<AccountListItemProps, "isLast">[];
 }
-
 export const AccountSection = React.memo<AccountSectionProps>(
     ({ title, items }) => {
         const fadeAnim = useRef(new Animated.Value(0)).current;
         const slideAnim = useRef(new Animated.Value(20)).current;
-
         useEffect(() => {
             Animated.parallel([
                 Animated.timing(fadeAnim, {
@@ -28,7 +25,6 @@ export const AccountSection = React.memo<AccountSectionProps>(
                 }),
             ]).start();
         }, [fadeAnim, slideAnim]);
-
         return (
             <Animated.View
                 style={[
@@ -39,10 +35,9 @@ export const AccountSection = React.memo<AccountSectionProps>(
                     },
                 ]}
             >
-                {/* Section Title */}
+                {}
                 <Text style={styles.title}>{title}</Text>
-
-                {/* Items List */}
+                {}
                 <View style={styles.listContainer}>
                     {items.map((item, index) => (
                         <AccountListItem
@@ -56,9 +51,7 @@ export const AccountSection = React.memo<AccountSectionProps>(
         );
     }
 );
-
 AccountSection.displayName = "AccountSection";
-
 const styles = StyleSheet.create({
     container: {
         marginHorizontal: 16,
@@ -90,4 +83,3 @@ const styles = StyleSheet.create({
         }),
     },
 });
-

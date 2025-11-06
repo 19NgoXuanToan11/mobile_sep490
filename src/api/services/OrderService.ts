@@ -1,17 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 import type { CreateOrderDTO } from '../models/CreateOrderDTO';
 import type { PaymentStatus } from '../models/PaymentStatus';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class OrderService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1OrderCreate({
         requestBody,
     }: {
@@ -24,10 +18,7 @@ export class OrderService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1OrderOrderList({
         pageIndex = 1,
         pageSize = 10,
@@ -47,10 +38,7 @@ export class OrderService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1OrderOrderListByCustomer({
         id,
         pageIndex = 1,
@@ -75,10 +63,7 @@ export class OrderService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1OrderOrderListByCurrentAccount({
         pageIndex = 1,
         pageSize = 10,
@@ -98,10 +83,7 @@ export class OrderService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1OrderOrder({
         orderId,
     }: {
@@ -115,10 +97,7 @@ export class OrderService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1OrderOrderListByCustomerName({
         name,
         pageIndex = 1,
@@ -140,10 +119,7 @@ export class OrderService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1OrderOrderListByEmal({
         email,
         status,
@@ -168,10 +144,7 @@ export class OrderService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1OrderOrderListByDate({
         pageIndex = 1,
         pageSize = 10,
@@ -192,10 +165,7 @@ export class OrderService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1OrderUpdateDeliveryStatus({
         orderId,
     }: {
@@ -209,10 +179,7 @@ export class OrderService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1OrderUpdateCompletedStatus({
         orderId,
     }: {
@@ -226,10 +193,7 @@ export class OrderService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1OrderUpdateCancelStatus({
         orderId,
     }: {
@@ -243,10 +207,7 @@ export class OrderService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1OrderCreateOrderPayment({
         orderId,
     }: {

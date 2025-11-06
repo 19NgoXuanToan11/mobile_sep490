@@ -2,7 +2,6 @@ import React from "react";
 import { View, ViewProps, TouchableOpacity } from "react-native";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
-
 const cardVariants = cva(
   "rounded-2xl border bg-white shadow-sm transition-all duration-200",
   {
@@ -35,13 +34,11 @@ const cardVariants = cva(
     },
   }
 );
-
 export interface CardProps
   extends ViewProps,
     VariantProps<typeof cardVariants> {
   onPress?: () => void;
 }
-
 export const Card: React.FC<CardProps> = ({
   variant,
   padding,
@@ -51,7 +48,6 @@ export const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   const Wrapper = onPress ? TouchableOpacity : View;
-
   return (
     <Wrapper
       className={cn(
@@ -69,7 +65,6 @@ export const Card: React.FC<CardProps> = ({
   );
 };
 
-// Card subcomponents
 export const CardHeader: React.FC<ViewProps> = ({ className, ...props }) => {
   return (
     <View
@@ -78,7 +73,6 @@ export const CardHeader: React.FC<ViewProps> = ({ className, ...props }) => {
     />
   );
 };
-
 export const CardTitle: React.FC<ViewProps> = ({ className, ...props }) => {
   return (
     <View
@@ -87,7 +81,6 @@ export const CardTitle: React.FC<ViewProps> = ({ className, ...props }) => {
     />
   );
 };
-
 export const CardDescription: React.FC<ViewProps> = ({
   className,
   ...props
@@ -96,11 +89,9 @@ export const CardDescription: React.FC<ViewProps> = ({
     <View className={cn("text-sm text-neutral-500", className)} {...props} />
   );
 };
-
 export const CardContent: React.FC<ViewProps> = ({ className, ...props }) => {
   return <View className={cn("p-6 pt-0", className)} {...props} />;
 };
-
 export const CardFooter: React.FC<ViewProps> = ({ className, ...props }) => {
   return (
     <View className={cn("flex items-center p-6 pt-0", className)} {...props} />

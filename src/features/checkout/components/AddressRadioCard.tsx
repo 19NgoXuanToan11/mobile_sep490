@@ -2,17 +2,14 @@ import React, { memo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Address } from "../../../types";
-
 interface AddressRadioCardProps {
     address: Address;
     isSelected: boolean;
     onSelect: () => void;
 }
-
 export const AddressRadioCard = memo<AddressRadioCardProps>(
     ({ address, isSelected, onSelect }) => {
         const fullAddress = `${address.street}, ${address.ward}, ${address.district}, ${address.province}`;
-
         return (
             <TouchableOpacity
                 style={[styles.container, isSelected && styles.selectedContainer]}
@@ -28,12 +25,10 @@ export const AddressRadioCard = memo<AddressRadioCardProps>(
                             </View>
                         )}
                     </View>
-
                     <View style={styles.row}>
                         <Ionicons name="call-outline" size={14} color="#8E8E93" />
                         <Text style={styles.phone}>{address.phoneNumber}</Text>
                     </View>
-
                     <View style={styles.row}>
                         <Ionicons name="location-outline" size={14} color="#8E8E93" />
                         <Text style={styles.address} numberOfLines={2}>
@@ -41,7 +36,6 @@ export const AddressRadioCard = memo<AddressRadioCardProps>(
                         </Text>
                     </View>
                 </View>
-
                 <View
                     style={[styles.radio, isSelected && styles.radioSelected]}
                 >
@@ -53,9 +47,7 @@ export const AddressRadioCard = memo<AddressRadioCardProps>(
         );
     }
 );
-
 AddressRadioCard.displayName = "AddressRadioCard";
-
 const styles = StyleSheet.create({
     container: {
         backgroundColor: "#FFFFFF",
@@ -134,4 +126,3 @@ const styles = StyleSheet.create({
         backgroundColor: "#00A86B",
     },
 });
-

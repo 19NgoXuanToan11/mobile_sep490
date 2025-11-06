@@ -1,15 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import { View, Text, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 interface AuthHeaderProps {
     title: string;
     subtitle: string;
 }
-
 export const AuthHeader = React.memo<AuthHeaderProps>(({ title, subtitle }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
-
     useEffect(() => {
         Animated.timing(fadeAnim, {
             toValue: 1,
@@ -17,7 +14,6 @@ export const AuthHeader = React.memo<AuthHeaderProps>(({ title, subtitle }) => {
             useNativeDriver: true,
         }).start();
     }, []);
-
     return (
         <Animated.View
             style={{
@@ -26,7 +22,7 @@ export const AuthHeader = React.memo<AuthHeaderProps>(({ title, subtitle }) => {
                 marginBottom: 32,
             }}
         >
-            {/* Icon圆形容器 */}
+            {}
             <View
                 style={{
                     width: 64,
@@ -47,8 +43,7 @@ export const AuthHeader = React.memo<AuthHeaderProps>(({ title, subtitle }) => {
             >
                 <Ionicons name="leaf" size={28} color="#00A86B" />
             </View>
-
-            {/* 标题 */}
+            {}
             <Text
                 style={{
                     fontSize: 24,
@@ -60,8 +55,7 @@ export const AuthHeader = React.memo<AuthHeaderProps>(({ title, subtitle }) => {
             >
                 {title}
             </Text>
-
-            {/* 副标题 */}
+            {}
             <Text
                 style={{
                     fontSize: 14,
@@ -74,6 +68,4 @@ export const AuthHeader = React.memo<AuthHeaderProps>(({ title, subtitle }) => {
         </Animated.View>
     );
 });
-
 AuthHeader.displayName = "AuthHeader";
-

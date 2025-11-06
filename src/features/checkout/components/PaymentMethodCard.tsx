@@ -2,13 +2,11 @@ import React, { memo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { PaymentMethod } from "../../../types";
-
 interface PaymentMethodCardProps {
     method: PaymentMethod;
     isSelected: boolean;
     onSelect: () => void;
 }
-
 const getPaymentIcon = (type: PaymentMethod["type"]) => {
     switch (type) {
         case "E_WALLET":
@@ -23,7 +21,6 @@ const getPaymentIcon = (type: PaymentMethod["type"]) => {
             return "wallet-outline";
     }
 };
-
 const getPaymentColor = (type: PaymentMethod["type"]) => {
     switch (type) {
         case "E_WALLET":
@@ -38,11 +35,9 @@ const getPaymentColor = (type: PaymentMethod["type"]) => {
             return "#8E8E93";
     }
 };
-
 export const PaymentMethodCard = memo<PaymentMethodCardProps>(
     ({ method, isSelected, onSelect }) => {
         const iconColor = getPaymentColor(method.type);
-
         return (
             <TouchableOpacity
                 style={[styles.container, isSelected && styles.selectedContainer]}
@@ -56,14 +51,12 @@ export const PaymentMethodCard = memo<PaymentMethodCardProps>(
                         color={iconColor}
                     />
                 </View>
-
                 <View style={styles.content}>
                     <Text style={styles.name}>{method.name}</Text>
                     <Text style={styles.description} numberOfLines={1}>
                         {method.description}
                     </Text>
                 </View>
-
                 <View style={[styles.radio, isSelected && styles.radioSelected]}>
                     {isSelected && <View style={styles.radioInner} />}
                 </View>
@@ -71,9 +64,7 @@ export const PaymentMethodCard = memo<PaymentMethodCardProps>(
         );
     }
 );
-
 PaymentMethodCard.displayName = "PaymentMethodCard";
-
 const styles = StyleSheet.create({
     container: {
         backgroundColor: "#FFFFFF",
@@ -131,4 +122,3 @@ const styles = StyleSheet.create({
         backgroundColor: "#00A86B",
     },
 });
-

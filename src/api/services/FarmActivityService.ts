@@ -1,7 +1,4 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 import type { ActivityType } from '../models/ActivityType';
 import type { FarmActivityRequest } from '../models/FarmActivityRequest';
 import type { FarmActivityStatus } from '../models/FarmActivityStatus';
@@ -9,10 +6,7 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class FarmActivityService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1FarmActivityGetAll({
         type,
         status,
@@ -38,10 +32,7 @@ export class FarmActivityService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1FarmActivityGetActive({
         scheduleId,
         pageIndex = 1,
@@ -61,10 +52,7 @@ export class FarmActivityService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1FarmActivityCreate({
         activityType,
         requestBody,
@@ -82,10 +70,7 @@ export class FarmActivityService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1FarmActivityUpdate({
         farmActivityId,
         activityType,
@@ -108,10 +93,7 @@ export class FarmActivityService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1FarmActivityGetById({
         farmActivityId,
     }: {
@@ -125,10 +107,7 @@ export class FarmActivityService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1FarmActivityChangeStatus({
         farmActivityId,
     }: {
@@ -142,10 +121,7 @@ export class FarmActivityService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1FarmActivityComplete({
         id,
         location,
@@ -164,10 +140,7 @@ export class FarmActivityService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1FarmActivityGetByStaff({
         type,
         status,

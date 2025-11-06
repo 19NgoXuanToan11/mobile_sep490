@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import { View, Animated, ViewProps } from "react-native";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
-
 const skeletonVariants = cva("bg-neutral-200 overflow-hidden", {
   variants: {
     variant: {
@@ -15,7 +14,6 @@ const skeletonVariants = cva("bg-neutral-200 overflow-hidden", {
     variant: "rectangular",
   },
 });
-
 export interface SkeletonProps
   extends ViewProps,
     VariantProps<typeof skeletonVariants> {
@@ -23,7 +21,6 @@ export interface SkeletonProps
   height?: number;
   animate?: boolean;
 }
-
 export const Skeleton: React.FC<SkeletonProps> = ({
   variant,
   width,
@@ -34,10 +31,8 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   ...props
 }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
-
   useEffect(() => {
     if (!animate) return;
-
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(animatedValue, {
@@ -52,12 +47,9 @@ export const Skeleton: React.FC<SkeletonProps> = ({
         }),
       ])
     );
-
     animation.start();
-
     return () => animation.stop();
   }, [animate, animatedValue]);
-
   const animatedStyle = animate
     ? {
         opacity: animatedValue.interpolate({
@@ -66,12 +58,10 @@ export const Skeleton: React.FC<SkeletonProps> = ({
         }),
       }
     : {};
-
   const dimensions = {
     width,
     height: variant === "circular" ? width : height,
   };
-
   return (
     <Animated.View
       className={cn(skeletonVariants({ variant }), className)}
@@ -81,7 +71,6 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   );
 };
 
-// Common skeleton patterns
 export const SkeletonText: React.FC<{ lines?: number; className?: string }> = ({
   lines = 1,
   className,
@@ -98,7 +87,6 @@ export const SkeletonText: React.FC<{ lines?: number; className?: string }> = ({
     ))}
   </View>
 );
-
 export const SkeletonCard: React.FC<{ className?: string }> = ({
   className,
 }) => (
@@ -111,7 +99,6 @@ export const SkeletonCard: React.FC<{ className?: string }> = ({
     </View>
   </View>
 );
-
 export const SkeletonAvatar: React.FC<{
   size?: number;
   className?: string;

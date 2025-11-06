@@ -8,24 +8,20 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { formatCurrency } from "../../../shared/lib/utils";
-
 interface BottomActionSheetProps {
-    itemCount: number; // Số lượng items đã chọn
+    itemCount: number;
     subtotal: number;
     total: number;
     onCheckout: () => void;
     isAuthenticated: boolean;
-    hasSelectedItems: boolean; // Có ít nhất 1 item được chọn
+    hasSelectedItems: boolean;
 }
-
 export const BottomActionSheet = React.memo<BottomActionSheetProps>(
     ({ itemCount, subtotal, total, onCheckout, isAuthenticated, hasSelectedItems }) => {
         const [isLoading, setIsLoading] = useState(false);
         const scaleAnim = useRef(new Animated.Value(1)).current;
-
         const handleCheckout = useCallback(async () => {
             if (!hasSelectedItems) return;
-
             setIsLoading(true);
             Animated.sequence([
                 Animated.timing(scaleAnim, {
@@ -40,13 +36,11 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                 }),
             ]).start();
 
-            // Small delay for visual feedback
             setTimeout(() => {
                 setIsLoading(false);
                 onCheckout();
             }, 150);
         }, [onCheckout, scaleAnim, hasSelectedItems]);
-
         return (
             <View
                 style={{
@@ -66,9 +60,9 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                 }}
             >
                 <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16 }}>
-                    {/* Price Breakdown */}
+                    {}
                     <View style={{ gap: 12 }}>
-                        {/* Subtotal */}
+                        {}
                         <View
                             style={{
                                 flexDirection: "row",
@@ -94,8 +88,7 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                                 {formatCurrency(subtotal)}
                             </Text>
                         </View>
-
-                        {/* Divider */}
+                        {}
                         <View
                             style={{
                                 height: 1,
@@ -103,8 +96,7 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                                 marginVertical: 4,
                             }}
                         />
-
-                        {/* Total */}
+                        {}
                         <View
                             style={{
                                 flexDirection: "row",
@@ -132,8 +124,7 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                             </Text>
                         </View>
                     </View>
-
-                    {/* Checkout Button */}
+                    {}
                     <Animated.View
                         style={{
                             marginTop: 20,
@@ -189,6 +180,4 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
         );
     }
 );
-
 BottomActionSheet.displayName = "BottomActionSheet";
-

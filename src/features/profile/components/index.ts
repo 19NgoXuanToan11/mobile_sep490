@@ -1,4 +1,3 @@
-// Account Tab Components
 export { ProfileCard } from "./ProfileCard";
 export { AccountListItem } from "./AccountListItem";
 export type { AccountListItemProps } from "./AccountListItem";
@@ -7,14 +6,12 @@ export { LogoutButton } from "./LogoutButton";
 export { WelcomeProfileCard } from "./WelcomeProfileCard";
 export { WelcomeButtons } from "./WelcomeButtons";
 
-// Personal Info Screen Components
 export { ProfileSummaryCard } from "./ProfileSummaryCard";
 export { InfoRow } from "./InfoRow";
 export type { InfoRowProps } from "./InfoRow";
 export { QuickActionItem } from "./QuickActionItem";
 export type { QuickActionItemProps } from "./QuickActionItem";
 
-// Edit Profile Screen Components
 export { AvatarEditCard } from "./AvatarEditCard";
 export { FormInput } from "./FormInput";
 export { GenderPicker } from "./GenderPicker";

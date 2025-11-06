@@ -14,15 +14,12 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { removeDiacritics } from "../../../shared/utils/addressValidation";
-
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const BOTTOM_SHEET_HEIGHT = SCREEN_HEIGHT * 0.7;
-
 interface LocationItem {
     code: string;
     name: string;
 }
-
 interface LocationPickerProps {
     visible: boolean;
     title: string;
@@ -32,7 +29,6 @@ interface LocationPickerProps {
     onClose: () => void;
     searchPlaceholder?: string;
 }
-
 export const LocationPicker = React.memo<LocationPickerProps>(
     ({
         visible,
@@ -47,7 +43,6 @@ export const LocationPicker = React.memo<LocationPickerProps>(
         const [slideAnim] = useState(new Animated.Value(BOTTOM_SHEET_HEIGHT));
         const [fadeAnim] = useState(new Animated.Value(0));
 
-        // Animate in/out
         useEffect(() => {
             if (visible) {
                 Animated.parallel([
@@ -78,36 +73,29 @@ export const LocationPicker = React.memo<LocationPickerProps>(
             }
         }, [visible]);
 
-        // Filter items based on search (debounced via useMemo)
         const filteredItems = useMemo(() => {
             if (!searchQuery.trim()) return items;
-
             const normalizedQuery = removeDiacritics(searchQuery.toLowerCase());
-
             return items.filter((item) => {
                 const normalizedName = removeDiacritics(item.name.toLowerCase());
                 return normalizedName.includes(normalizedQuery);
             });
         }, [items, searchQuery]);
-
         const handleSelect = useCallback(
             (item: LocationItem) => {
                 onSelect(item);
-                setSearchQuery(""); // Reset search
+                setSearchQuery("");
                 onClose();
             },
             [onSelect, onClose]
         );
-
         const handleClose = useCallback(() => {
-            setSearchQuery(""); // Reset search
+            setSearchQuery("");
             onClose();
         }, [onClose]);
-
         const renderItem = useCallback(
             ({ item }: { item: LocationItem }) => {
                 const isSelected = item.code === selectedCode;
-
                 return (
                     <TouchableOpacity
                         style={[styles.item, isSelected && styles.itemSelected]}
@@ -128,7 +116,6 @@ export const LocationPicker = React.memo<LocationPickerProps>(
             },
             [selectedCode, handleSelect]
         );
-
         const renderEmpty = useCallback(
             () => (
                 <View style={styles.emptyContainer}>
@@ -141,9 +128,7 @@ export const LocationPicker = React.memo<LocationPickerProps>(
             ),
             []
         );
-
         if (!visible) return null;
-
         return (
             <Modal
                 visible={visible}
@@ -162,7 +147,6 @@ export const LocationPicker = React.memo<LocationPickerProps>(
                             style={[styles.backdropAnimated, { opacity: fadeAnim }]}
                         />
                     </TouchableOpacity>
-
                     <Animated.View
                         style={[
                             styles.bottomSheet,
@@ -175,7 +159,7 @@ export const LocationPicker = React.memo<LocationPickerProps>(
                             behavior={Platform.OS === "ios" ? "padding" : undefined}
                             style={styles.container}
                         >
-                            {/* Header */}
+                            {}
                             <View style={styles.header}>
                                 <View style={styles.handleBar} />
                                 <View style={styles.headerContent}>
@@ -189,8 +173,7 @@ export const LocationPicker = React.memo<LocationPickerProps>(
                                     </TouchableOpacity>
                                 </View>
                             </View>
-
-                            {/* Search Bar */}
+                            {}
                             <View style={styles.searchContainer}>
                                 <Ionicons
                                     name="search-outline"
@@ -217,8 +200,7 @@ export const LocationPicker = React.memo<LocationPickerProps>(
                                     </TouchableOpacity>
                                 )}
                             </View>
-
-                            {/* Results Count */}
+                            {}
                             {searchQuery.trim() && (
                                 <View style={styles.countContainer}>
                                     <Text style={styles.countText}>
@@ -226,8 +208,7 @@ export const LocationPicker = React.memo<LocationPickerProps>(
                                     </Text>
                                 </View>
                             )}
-
-                            {/* List */}
+                            {}
                             <FlatList
                                 data={filteredItems}
                                 renderItem={renderItem}
@@ -244,9 +225,7 @@ export const LocationPicker = React.memo<LocationPickerProps>(
         );
     }
 );
-
 LocationPicker.displayName = "LocationPicker";
-
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
@@ -385,4 +364,3 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 });
-

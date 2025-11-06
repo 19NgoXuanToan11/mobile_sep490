@@ -1,14 +1,13 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import * as Localization from "expo-localization";
-import "intl-pluralrules"; // Polyfill for Intl.PluralRules
+import "intl-pluralrules";
 import { storage, STORAGE_KEYS } from "./storage";
 
-// Translation resources
 const resources = {
   en: {
     translation: {
-      // Common
+
       common: {
         ok: "OK",
         cancel: "Cancel",
@@ -37,7 +36,6 @@ const resources = {
         skip: "Skip",
       },
 
-      // Navigation
       nav: {
         home: "Home",
         catalog: "Catalog",
@@ -50,7 +48,6 @@ const resources = {
         onboarding: "Get Started",
       },
 
-      // Authentication
       auth: {
         login: "Login",
         register: "Sign Up",
@@ -70,7 +67,6 @@ const resources = {
         registerSubtitle: "Join us to discover fresh, organic produce",
       },
 
-      // Onboarding
       onboarding: {
         slide1: {
           title: "Fresh Farm Products",
@@ -90,7 +86,6 @@ const resources = {
         getStarted: "Get Started",
       },
 
-      // Product
       product: {
         addToCart: "Add to Cart",
         buyNow: "Buy Now",
@@ -110,7 +105,6 @@ const resources = {
         addedToCart: "Added to cart successfully!",
       },
 
-      // Cart
       cart: {
         title: "Shopping Cart",
         empty: "Your cart is empty",
@@ -127,7 +121,6 @@ const resources = {
         itemCount_plural: "{{count}} items",
       },
 
-      // Orders
       orders: {
         title: "My Orders",
         empty: "No orders yet",
@@ -146,7 +139,6 @@ const resources = {
         orderSummary: "Order Summary",
       },
 
-      // Order Status
       orderStatus: {
         PLACED: "Placed",
         CONFIRMED: "Confirmed",
@@ -156,7 +148,6 @@ const resources = {
         CANCELLED: "Cancelled",
       },
 
-      // Account
       account: {
         title: "Account",
         profile: "Profile",
@@ -171,13 +162,11 @@ const resources = {
         settings: "Settings",
       },
 
-      // Language
       language: {
         english: "English",
         vietnamese: "Vietnamese",
       },
 
-      // Categories
       categories: {
         vegetables: "Vegetables",
         fruits: "Fruits",
@@ -186,7 +175,6 @@ const resources = {
         meat: "Meat & Poultry",
       },
 
-      // Checkout
       checkout: {
         title: "Checkout",
         shippingAddress: "Shipping Address",
@@ -200,7 +188,6 @@ const resources = {
           "Your order has been confirmed and is being processed",
       },
 
-      // Empty States
       emptyState: {
         noProducts: "No products found",
         noProductsDescription: "Try adjusting your search or filter criteria",
@@ -212,7 +199,6 @@ const resources = {
         noResultsDescription: "Try searching with different keywords",
       },
 
-      // Errors
       error: {
         generic: "Something went wrong. Please try again.",
         network: "Network error. Please check your connection.",
@@ -222,7 +208,6 @@ const resources = {
         validationError: "Please check your input and try again.",
       },
 
-      // Success Messages
       success: {
         orderPlaced: "Order placed successfully!",
         profileUpdated: "Profile updated successfully!",
@@ -233,7 +218,7 @@ const resources = {
   },
   vi: {
     translation: {
-      // Common
+
       common: {
         ok: "OK",
         cancel: "Hủy",
@@ -262,7 +247,6 @@ const resources = {
         skip: "Bỏ qua",
       },
 
-      // Navigation
       nav: {
         home: "Trang chủ",
         catalog: "Sản phẩm",
@@ -275,7 +259,6 @@ const resources = {
         onboarding: "Bắt đầu",
       },
 
-      // Authentication
       auth: {
         login: "Đăng nhập",
         register: "Đăng ký",
@@ -295,7 +278,6 @@ const resources = {
         registerSubtitle: "Tham gia để khám phá nông sản hữu cơ tươi ngon",
       },
 
-      // Onboarding
       onboarding: {
         slide1: {
           title: "Nông sản tươi từ trang trại",
@@ -315,7 +297,6 @@ const resources = {
         getStarted: "Bắt đầu",
       },
 
-      // Product
       product: {
         addToCart: "Thêm vào giỏ",
         buyNow: "Mua ngay",
@@ -335,7 +316,6 @@ const resources = {
         addedToCart: "Đã thêm vào giỏ hàng thành công!",
       },
 
-      // Cart
       cart: {
         title: "Giỏ hàng",
         empty: "Giỏ hàng trống",
@@ -352,7 +332,6 @@ const resources = {
         itemCount_plural: "{{count}} sản phẩm",
       },
 
-      // Orders
       orders: {
         title: "Đơn hàng của tôi",
         empty: "Chưa có đơn hàng nào",
@@ -371,7 +350,6 @@ const resources = {
         orderSummary: "Tóm tắt đơn hàng",
       },
 
-      // Order Status
       orderStatus: {
         PLACED: "Đã đặt",
         CONFIRMED: "Đã xác nhận",
@@ -381,7 +359,6 @@ const resources = {
         CANCELLED: "Đã hủy",
       },
 
-      // Account
       account: {
         title: "Tài khoản",
         profile: "Hồ sơ",
@@ -396,13 +373,11 @@ const resources = {
         settings: "Cài đặt",
       },
 
-      // Language
       language: {
         english: "Tiếng Anh",
         vietnamese: "Tiếng Việt",
       },
 
-      // Categories
       categories: {
         vegetables: "Rau củ",
         fruits: "Trái cây",
@@ -411,7 +386,6 @@ const resources = {
         meat: "Thịt & Gia cầm",
       },
 
-      // Checkout
       checkout: {
         title: "Thanh toán",
         shippingAddress: "Địa chỉ giao hàng",
@@ -425,7 +399,6 @@ const resources = {
           "Đơn hàng của bạn đã được xác nhận và đang được xử lý",
       },
 
-      // Empty States
       emptyState: {
         noProducts: "Không tìm thấy sản phẩm",
         noProductsDescription: "Thử điều chỉnh tiêu chí tìm kiếm hoặc bộ lọc",
@@ -437,7 +410,6 @@ const resources = {
         noResultsDescription: "Thử tìm kiếm với từ khóa khác",
       },
 
-      // Errors
       error: {
         generic: "Có lỗi xảy ra. Vui lòng thử lại.",
         network: "Lỗi mạng. Vui lòng kiểm tra kết nối.",
@@ -447,7 +419,6 @@ const resources = {
         validationError: "Vui lòng kiểm tra thông tin nhập và thử lại.",
       },
 
-      // Success Messages
       success: {
         orderPlaced: "Đặt hàng thành công!",
         profileUpdated: "Cập nhật hồ sơ thành công!",
@@ -458,41 +429,34 @@ const resources = {
   },
 };
 
-// Initialize i18n
 const initI18n = async () => {
   let savedLanguage = await storage.getItem<string>(STORAGE_KEYS.LANGUAGE);
-
   if (!savedLanguage) {
-    // Default to Vietnamese on first run regardless of device locale
-    // Users can change language later in settings
+
     savedLanguage = "vi";
     await storage.setItem(STORAGE_KEYS.LANGUAGE, savedLanguage);
   }
-
   await i18n.use(initReactI18next).init({
     resources,
     lng: savedLanguage,
     fallbackLng: "vi",
-    compatibilityJSON: "v3", // Fix for Intl API compatibility
+    compatibilityJSON: "v3",
     interpolation: {
       escapeValue: false,
     },
     react: {
       useSuspense: false,
     },
-    // Add pluralization fallback
+
     pluralSeparator: "_",
     contextSeparator: "_",
   });
 };
 
-// Change language
 export const changeLanguage = async (language: string) => {
   await storage.setItem(STORAGE_KEYS.LANGUAGE, language);
   await i18n.changeLanguage(language);
 };
 
-// Initialize i18n on app start
 initI18n();
-
 export default i18n;

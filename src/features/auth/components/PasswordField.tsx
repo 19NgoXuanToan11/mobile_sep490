@@ -8,30 +8,24 @@ import {
     Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 interface PasswordFieldProps extends Omit<TextInputProps, "style" | "secureTextEntry"> {
     error?: string;
     onChangeText?: (text: string) => void;
 }
-
 export const PasswordField = React.memo(
     React.forwardRef<TextInput, PasswordFieldProps>(
         ({ error, onChangeText, ...props }, ref) => {
             const [isFocused, setIsFocused] = useState(false);
             const [isVisible, setIsVisible] = useState(false);
-
             const handleFocus = useCallback(() => {
                 setIsFocused(true);
             }, []);
-
             const handleBlur = useCallback(() => {
                 setIsFocused(false);
             }, []);
-
             const toggleVisibility = useCallback(() => {
                 setIsVisible((prev) => !prev);
             }, []);
-
             const containerStyle = useMemo(
                 () => ({
                     borderRadius: 16,
@@ -50,7 +44,6 @@ export const PasswordField = React.memo(
                 }),
                 [isFocused, error]
             );
-
             const inputStyle = useMemo(
                 () => ({
                     fontSize: 16,
@@ -61,9 +54,7 @@ export const PasswordField = React.memo(
                 }),
                 []
             );
-
             const iconColor = isFocused ? "#00A86B" : "#9CA3AF";
-
             return (
                 <View>
                     <View style={containerStyle}>
@@ -114,6 +105,4 @@ export const PasswordField = React.memo(
         }
     )
 );
-
 PasswordField.displayName = "PasswordField";
-

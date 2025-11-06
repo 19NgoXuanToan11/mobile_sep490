@@ -1,7 +1,3 @@
-/**
- * Cart API Service - Real backend integration for authenticated users
- * Dịch vụ API giỏ hàng - Tích hợp backend thực cho người dùng đã xác thực
- */
 
 import { OpenAPI } from "../../api/core/OpenAPI";
 import { request as __request } from "../../api/core/request";
@@ -10,7 +6,6 @@ import env from "../../config/env";
 import { CartItem, Product, ApiResponse } from "../../types";
 import { generateId } from "../lib/utils";
 
-// Backend cart response structure
 interface BackendCartResponse {
   paymentStatus?: number;
   createdAt?: string;
@@ -19,7 +14,6 @@ interface BackendCartResponse {
   cartItems?: BackendCartItem[];
 }
 
-// Backend cart item structure
 interface BackendCartItem {
   cartItemId?: number;
   cartId?: number;
@@ -31,7 +25,6 @@ interface BackendCartItem {
   product?: BackendProduct;
 }
 
-// Backend product structure
 interface BackendProduct {
   productId?: number;
   productName?: string;
@@ -53,19 +46,14 @@ interface BackendProduct {
   updatedAt?: string;
 }
 
-/**
- * Unified response parser for backend API responses
- * Handles different response formats: { success, message, data } or { code, result } or direct data
- */
 function parseApiResponse<T>(response: any): {
   success: boolean;
   data: T | null;
   message?: string;
 } {
-  // Handle axios response wrapper
+
   const payload = response?.data ?? response;
 
-  // Format 1: { success, message, data }
   if (typeof payload === "object" && "success" in payload) {
     return {
       success: payload.success,
@@ -74,7 +62,6 @@ function parseApiResponse<T>(response: any): {
     };
   }
 
-  // Format 2: { code, result }
   if (typeof payload === "object" && "code" in payload) {
     return {
       success: payload.code === 200 || payload.code === 0,
@@ -83,7 +70,6 @@ function parseApiResponse<T>(response: any): {
     };
   }
 
-  // Format 3: Direct data or string response
   if (typeof payload === "string") {
     return {
       success: true,
@@ -92,7 +78,6 @@ function parseApiResponse<T>(response: any): {
     };
   }
 
-  // Format 4: Direct data object
   return {
     success: true,
     data: payload as T,
@@ -100,17 +85,12 @@ function parseApiResponse<T>(response: any): {
   };
 }
 
-/**
- * Transform backend cart item to frontend CartItem format
- */
 async function transformCartItem(
   item: BackendCartItem
 ): Promise<CartItem | null> {
   if (!item.productId) return null;
-
   let product: Product;
 
-  // If backend provides full product data, use it
   if (item.product) {
     const p = item.product;
     product = {
@@ -137,7 +117,7 @@ async function transformCartItem(
       updatedAt: p.updatedAt ?? new Date().toISOString(),
     };
   } else {
-    // If no product data, fetch it directly from ProductService
+
     try {
       OpenAPI.BASE = env.API_URL;
       const res = await ProductService.getApiV1ProductsGetProduct({
@@ -178,10 +158,8 @@ async function transformCartItem(
       return null;
     }
   }
-
   const quantity = Number(item.quantity ?? 1);
   const itemPrice = Number(item.priceQuantity ?? 0) / quantity || product.price;
-
   return {
     id: String(item.cartItemId ?? generateId("cart")),
     productId: String(item.productId),
@@ -189,19 +167,12 @@ async function transformCartItem(
     quantity,
     price: itemPrice,
     subtotal: itemPrice * quantity,
-    selected: true, // Mặc định chọn sản phẩm từ API
+    selected: true,
   };
 }
 
-/**
- * Real Cart API for authenticated users
- * API giỏ hàng thực cho người dùng đã xác thực
- */
 export const realCartApi = {
-  /**
-   * Get all cart items for current user
-   * Lấy tất cả mặt hàng trong giỏ hàng của người dùng hiện tại
-   */
+
   async getItems(): Promise<{
     success: boolean;
     data: CartItem[];
@@ -213,7 +184,6 @@ export const realCartApi = {
         method: "GET",
         url: "/api/v1/account/cart-items",
       });
-
       const parsed = parseApiResponse<BackendCartResponse>(response);
       if (!parsed.success) {
         return {
@@ -223,19 +193,17 @@ export const realCartApi = {
         };
       }
 
-      // Extract cart items from different possible response structures
       let backendItems: BackendCartItem[] = [];
       if (parsed.data) {
         if (Array.isArray(parsed.data)) {
-          // Direct array of cart items
+
           backendItems = parsed.data;
         } else if (parsed.data.cartItems) {
-          // Cart response with cartItems array
+
           backendItems = parsed.data.cartItems;
         }
       }
 
-      // Transform backend items to frontend format
       const cartItems: CartItem[] = [];
       for (const item of backendItems) {
         const transformedItem = await transformCartItem(item);
@@ -243,7 +211,6 @@ export const realCartApi = {
           cartItems.push(transformedItem);
         }
       }
-
       return { success: true, data: cartItems };
     } catch (error) {
       console.error("Get cart items error:", error);
@@ -256,10 +223,6 @@ export const realCartApi = {
     }
   },
 
-  /**
-   * Add item to cart
-   * Thêm mặt hàng vào giỏ hàng
-   */
   async addItem(
     productId: string,
     quantity: number = 1
@@ -267,7 +230,6 @@ export const realCartApi = {
     try {
       OpenAPI.BASE = env.API_URL;
 
-      // Backend expects query parameters, not request body
       const response = await __request(OpenAPI, {
         method: "POST",
         url: "/api/v1/account/add-to-cart",
@@ -276,7 +238,6 @@ export const realCartApi = {
           quantity,
         },
       });
-
       const parsed = parseApiResponse(response);
       if (!parsed.success) {
         return {
@@ -286,7 +247,6 @@ export const realCartApi = {
         };
       }
 
-      // After adding, fetch updated cart
       return await this.getItems();
     } catch (error) {
       console.error("Add to cart error:", error);
@@ -299,18 +259,13 @@ export const realCartApi = {
     }
   },
 
-  /**
-   * Update cart item quantity
-   * Cập nhật số lượng mặt hàng trong giỏ hàng
-   */
   async updateQuantity(
-    productId: string, // Frontend passes cartItemId, but backend expects productId
+    productId: string,
     quantity: number
   ): Promise<{ success: boolean; data: CartItem[]; message?: string }> {
     try {
       OpenAPI.BASE = env.API_URL;
 
-      // Backend expects productId in query parameters
       const response = await __request(OpenAPI, {
         method: "PUT",
         url: "/api/v1/account/update-cart-item",
@@ -319,7 +274,6 @@ export const realCartApi = {
           quantity,
         },
       });
-
       const parsed = parseApiResponse(response);
       if (!parsed.success) {
         return {
@@ -329,7 +283,6 @@ export const realCartApi = {
         };
       }
 
-      // After updating, fetch updated cart
       return await this.getItems();
     } catch (error) {
       console.error("Update cart item error:", error);
@@ -342,17 +295,12 @@ export const realCartApi = {
     }
   },
 
-  /**
-   * Remove item from cart
-   * Xóa mặt hàng khỏi giỏ hàng
-   */
   async removeItem(
-    productId: string // Frontend passes cartItemId, but backend expects productId
+    productId: string
   ): Promise<{ success: boolean; data: CartItem[]; message?: string }> {
     try {
       OpenAPI.BASE = env.API_URL;
 
-      // Backend expects productId in query parameters
       const response = await __request(OpenAPI, {
         method: "DELETE",
         url: "/api/v1/account/remove-cart-item",
@@ -360,7 +308,6 @@ export const realCartApi = {
           productId: Number(productId),
         },
       });
-
       const parsed = parseApiResponse(response);
       if (!parsed.success) {
         return {
@@ -370,7 +317,6 @@ export const realCartApi = {
         };
       }
 
-      // After removing, fetch updated cart
       return await this.getItems();
     } catch (error) {
       console.error("Remove cart item error:", error);
@@ -383,10 +329,6 @@ export const realCartApi = {
     }
   },
 
-  /**
-   * Clear all cart items
-   * Xóa tất cả mặt hàng trong giỏ hàng
-   */
   async clear(): Promise<{ success: boolean; data: null; message?: string }> {
     try {
       OpenAPI.BASE = env.API_URL;
@@ -394,7 +336,6 @@ export const realCartApi = {
         method: "DELETE",
         url: "/api/v1/account/clear-cart",
       });
-
       const parsed = parseApiResponse(response);
       if (!parsed.success) {
         return {
@@ -403,7 +344,6 @@ export const realCartApi = {
           message: parsed.message ?? "Failed to clear cart",
         };
       }
-
       return { success: true, data: null };
     } catch (error) {
       console.error("Clear cart error:", error);

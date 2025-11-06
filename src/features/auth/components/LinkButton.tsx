@@ -1,22 +1,17 @@
 import React, { useState, useCallback } from "react";
 import { TouchableOpacity, Text } from "react-native";
-
 interface LinkButtonProps {
     title: string;
     onPress: () => void;
 }
-
 export const LinkButton = React.memo<LinkButtonProps>(({ title, onPress }) => {
     const [isPressed, setIsPressed] = useState(false);
-
     const handlePressIn = useCallback(() => {
         setIsPressed(true);
     }, []);
-
     const handlePressOut = useCallback(() => {
         setIsPressed(false);
     }, []);
-
     return (
         <TouchableOpacity
             onPress={onPress}
@@ -38,6 +33,4 @@ export const LinkButton = React.memo<LinkButtonProps>(({ title, onPress }) => {
         </TouchableOpacity>
     );
 });
-
 LinkButton.displayName = "LinkButton";
-

@@ -7,21 +7,11 @@ import {
     Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 interface WelcomeProfileCardProps {
     title?: string;
     subtitle?: string;
 }
 
-/**
- * WelcomeProfileCard - Apple Premium Style
- * 
- * Hiển thị card chào mừng khi user chưa đăng nhập
- * - Fade-in animation 200ms
- * - Icon người dùng tròn 76px, nền #E8F9F1
- * - Card bo góc 24px, shadow nhẹ
- * - Spacing cân đối, typography iOS-style
- */
 export const WelcomeProfileCard = React.memo<WelcomeProfileCardProps>(
     ({
         title = "Chào mừng đến với IFMS",
@@ -29,7 +19,6 @@ export const WelcomeProfileCard = React.memo<WelcomeProfileCardProps>(
     }) => {
         const fadeAnim = useRef(new Animated.Value(0)).current;
         const slideAnim = useRef(new Animated.Value(20)).current;
-
         useEffect(() => {
             Animated.parallel([
                 Animated.timing(fadeAnim, {
@@ -44,7 +33,6 @@ export const WelcomeProfileCard = React.memo<WelcomeProfileCardProps>(
                 }),
             ]).start();
         }, []);
-
         return (
             <Animated.View
                 style={[
@@ -55,7 +43,7 @@ export const WelcomeProfileCard = React.memo<WelcomeProfileCardProps>(
                     },
                 ]}
             >
-                {/* Icon Container */}
+                {}
                 <View style={styles.iconContainer}>
                     <View style={styles.iconCircle}>
                         <Ionicons
@@ -65,8 +53,7 @@ export const WelcomeProfileCard = React.memo<WelcomeProfileCardProps>(
                         />
                     </View>
                 </View>
-
-                {/* Text Content */}
+                {}
                 <View style={styles.textContainer}>
                     <Text style={styles.title}>{title}</Text>
                     <Text style={styles.subtitle}>{subtitle}</Text>
@@ -75,9 +62,7 @@ export const WelcomeProfileCard = React.memo<WelcomeProfileCardProps>(
         );
     }
 );
-
 WelcomeProfileCard.displayName = "WelcomeProfileCard";
-
 const styles = StyleSheet.create({
     card: {
         backgroundColor: "#FFFFFF",
@@ -128,4 +113,3 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
     },
 });
-

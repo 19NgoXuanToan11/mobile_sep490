@@ -15,22 +15,18 @@ import Animated, {
     SlideInDown,
     SlideOutDown,
 } from "react-native-reanimated";
-
 interface GenderPickerProps {
     visible: boolean;
     selectedValue: number;
     onSelect: (value: number) => void;
     onClose: () => void;
 }
-
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 const GENDER_OPTIONS = [
     { value: 0, label: "Không xác định", icon: "help-circle-outline" },
     { value: 1, label: "Nam", icon: "male-outline" },
     { value: 2, label: "Nữ", icon: "female-outline" },
 ] as const;
-
 export const GenderPicker = React.memo<GenderPickerProps>(
     ({ visible, selectedValue, onSelect, onClose }) => {
         return (
@@ -55,7 +51,7 @@ export const GenderPicker = React.memo<GenderPickerProps>(
                             style={styles.container}
                             onPress={(e) => e.stopPropagation()}
                         >
-                            {/* Header */}
+                            {}
                             <View style={styles.header}>
                                 <View style={styles.handleBar} />
                                 <View style={styles.headerContent}>
@@ -69,13 +65,11 @@ export const GenderPicker = React.memo<GenderPickerProps>(
                                     </TouchableOpacity>
                                 </View>
                             </View>
-
-                            {/* Options */}
+                            {}
                             <View style={styles.optionsContainer}>
                                 {GENDER_OPTIONS.map((option, index) => {
                                     const isSelected = selectedValue === option.value;
                                     const isLast = index === GENDER_OPTIONS.length - 1;
-
                                     return (
                                         <TouchableOpacity
                                             key={option.value}
@@ -109,7 +103,6 @@ export const GenderPicker = React.memo<GenderPickerProps>(
                                                     {option.label}
                                                 </Text>
                                             </View>
-
                                             {isSelected && (
                                                 <Ionicons
                                                     name="checkmark-circle"
@@ -128,9 +121,7 @@ export const GenderPicker = React.memo<GenderPickerProps>(
         );
     }
 );
-
 GenderPicker.displayName = "GenderPicker";
-
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
@@ -244,4 +235,3 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
 });
-

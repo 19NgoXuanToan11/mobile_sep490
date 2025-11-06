@@ -1,6 +1,4 @@
-// Design system for farming e-commerce app
 
-// Design tokens
 export const colors = {
   primary: {
     50: "#f0f9f5",
@@ -89,7 +87,6 @@ export const colors = {
     900: "#4a3905",
   },
 };
-
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -99,7 +96,6 @@ export const spacing = {
   "2xl": 48,
   "3xl": 64,
 };
-
 export const borderRadius = {
   xs: 2,
   sm: 4,
@@ -111,7 +107,6 @@ export const borderRadius = {
   "4xl": 32,
   full: 9999,
 };
-
 export const elevation = {
   sm: {
     shadowColor: "#000",
@@ -143,9 +138,8 @@ export const elevation = {
   },
 };
 
-// Apple-style design tokens for premium UI
 export const appleDesign = {
-  // Soft, elegant shadows
+
   shadows: {
     soft: {
       shadowColor: "#000",
@@ -169,14 +163,14 @@ export const appleDesign = {
       elevation: 6,
     },
   },
-  // Smooth gradients
+
   gradients: {
     primary: ["#00A86B", "#009E60"] as const,
     header: ["#FFFFFF", "#F6FFF8"] as const,
     glass: ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.7)"] as const,
     overlay: ["rgba(0,0,0,0)", "rgba(0,0,0,0.6)"] as const,
   },
-  // Typography scales
+
   typography: {
     largeTitle: { fontSize: 34, fontWeight: "700" as const, lineHeight: 41 },
     title1: { fontSize: 28, fontWeight: "700" as const, lineHeight: 34 },
@@ -190,7 +184,7 @@ export const appleDesign = {
     caption1: { fontSize: 12, fontWeight: "400" as const, lineHeight: 16 },
     caption2: { fontSize: 11, fontWeight: "400" as const, lineHeight: 13 },
   },
-  // Refined colors
+
   colors: {
     text: {
       primary: "#1D1D1F",
@@ -211,7 +205,7 @@ export const appleDesign = {
       dark: "#065F46",
     },
   },
-  // Spacing based on 8pt grid
+
   spacing: {
     xxs: 4,
     xs: 8,
@@ -222,7 +216,7 @@ export const appleDesign = {
     xxl: 48,
     xxxl: 64,
   },
-  // Smooth corner radius
+
   radius: {
     xs: 8,
     sm: 12,
@@ -234,7 +228,6 @@ export const appleDesign = {
   },
 };
 
-// E-commerce specific design tokens (updated with Apple style)
 export const farmingTheme = {
   productCard: {
     borderRadius: appleDesign.radius.lg,
