@@ -19,8 +19,20 @@ import {
 } from "../../../src/features/cart/components";
 
 export default function CartScreen() {
-  const { cart, updateQuantity, removeItem, clearCart, isLoading } = useCart();
+  const { cart, updateQuantity, removeItem, clearCart, isLoading, toggleItemSelection, toggleAllSelection } = useCart();
   const { isAuthenticated } = useAuth();
+
+  // Check if all items are selected
+  const allSelected = useMemo(
+    () => cart.items.length > 0 && cart.items.every((item) => item.selected),
+    [cart.items]
+  );
+
+  // Check if any items are selected
+  const hasSelectedItems = useMemo(
+    () => cart.items.some((item) => item.selected),
+    [cart.items]
+  );
 
   // Memoized handlers to prevent re-renders
   const handleRemoveItem = useCallback(
@@ -57,6 +69,14 @@ export default function CartScreen() {
   }, [clearCart]);
 
   const handleCheckout = useCallback(() => {
+    if (!hasSelectedItems) {
+      Alert.alert(
+        "Chưa chọn sản phẩm",
+        "Vui lòng chọn ít nhất một sản phẩm để thanh toán."
+      );
+      return;
+    }
+
     if (!isAuthenticated) {
       Alert.alert(
         "Yêu cầu đăng nhập",
@@ -72,7 +92,7 @@ export default function CartScreen() {
       return;
     }
     router.push("/(app)/checkout");
-  }, [isAuthenticated]);
+  }, [isAuthenticated, hasSelectedItems]);
 
   const handleAddMore = useCallback(() => {
     router.push("/(app)/(tabs)/catalog");
@@ -85,9 +105,10 @@ export default function CartScreen() {
         item={item}
         onUpdateQuantity={updateQuantity}
         onRemove={handleRemoveItem}
+        onToggleSelection={toggleItemSelection}
       />
     ),
-    [updateQuantity, handleRemoveItem]
+    [updateQuantity, handleRemoveItem, toggleItemSelection]
   );
 
   // Stable keyExtractor
@@ -149,9 +170,11 @@ export default function CartScreen() {
 
       {/* Header */}
       <CartHeader
-        itemCount={cart.itemCount}
+        itemCount={cart.items.length}
         onClearCart={handleClearCart}
         onAddMore={handleAddMore}
+        allSelected={allSelected}
+        onToggleAll={toggleAllSelection}
       />
 
       {/* Cart Items List */}
@@ -180,6 +203,7 @@ export default function CartScreen() {
         total={cart.total}
         onCheckout={handleCheckout}
         isAuthenticated={isAuthenticated}
+        hasSelectedItems={hasSelectedItems}
       />
     </SafeAreaView>
   );

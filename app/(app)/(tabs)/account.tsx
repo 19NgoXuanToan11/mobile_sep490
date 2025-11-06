@@ -1,15 +1,15 @@
 import React, { useCallback } from "react";
-import { View, Text, ScrollView, StatusBar, StyleSheet } from "react-native";
+import { View, ScrollView, StatusBar, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { Button, Card } from "../../../src/shared/ui";
 import { useAuth, useAuthActions } from "../../../src/shared/hooks";
 import {
   ProfileCard,
   AccountSection,
   LogoutButton,
   AccountListItemProps,
+  WelcomeProfileCard,
+  WelcomeButtons,
 } from "../../../src/features/profile/components";
 
 export default function AccountScreen() {
@@ -61,55 +61,20 @@ export default function AccountScreen() {
   // Hiển thị yêu cầu đăng nhập nếu chưa xác thực
   if (!isLoading && !isAuthenticated) {
     return (
-      <View style={styles.container}>
-        <StatusBar
-          barStyle="dark-content"
-          backgroundColor="transparent"
-          translucent
-        />
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
-        <View style={styles.loginPromptContainer}>
-          <Card
-            padding="xl"
-            variant="elevated"
-            className="items-center space-y-6"
-          >
-            <View style={styles.loginIconContainer}>
-              <Ionicons
-                name="person-outline"
-                size={48}
-                color="#00623A"
-              />
-            </View>
+        <View style={styles.welcomeContainer}>
+          <WelcomeProfileCard />
 
-            <View className="items-center space-y-2">
-              <Text style={styles.loginTitle}>
-                Chào mừng đến với IFMS
-              </Text>
-              <Text style={styles.loginSubtitle}>
-                Đăng nhập để truy cập tài khoản, xem đơn hàng và
-                quản lý thông tin cá nhân
-              </Text>
-            </View>
-
-            <View className="w-full space-y-3">
-              <Button
-                title="Đăng nhập ngay"
-                onPress={() => router.push("/(public)/auth/login")}
-                fullWidth
-                size="lg"
-              />
-              <Button
-                title="Tạo tài khoản"
-                variant="outline"
-                onPress={() => router.push("/(public)/auth/register")}
-                fullWidth
-                size="lg"
-              />
-            </View>
-          </Card>
+          <View style={styles.buttonContainer}>
+            <WelcomeButtons
+              onLoginPress={() => router.push("/(public)/auth/login")}
+              onRegisterPress={() => router.push("/(public)/auth/register")}
+            />
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -162,33 +127,17 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 120,
   },
-  loginPromptContainer: {
+  // Welcome Profile Screen (Not Authenticated)
+  welcomeContainer: {
     flex: 1,
     justifyContent: "center",
-    paddingTop: 48,
-    paddingHorizontal: 16,
+    paddingBottom: 80,
   },
-  loginIconContainer: {
-    width: 96,
-    height: 96,
-    backgroundColor: "#E8F5F0",
-    borderRadius: 48,
-    alignItems: "center",
-    justifyContent: "center",
+  buttonContainer: {
+    marginTop: 24,
+    paddingHorizontal: 20,
   },
-  loginTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
-    letterSpacing: 0.3,
-  },
-  loginSubtitle: {
-    fontSize: 15,
-    color: "#6B7280",
-    textAlign: "center",
-    lineHeight: 22,
-  },
+  // Logout
   logoutContainer: {
     marginTop: 32,
     marginBottom: 24,

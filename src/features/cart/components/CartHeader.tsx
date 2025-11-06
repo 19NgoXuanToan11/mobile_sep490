@@ -6,10 +6,16 @@ interface CartHeaderProps {
     itemCount: number;
     onClearCart: () => void;
     onAddMore: () => void;
+    allSelected: boolean;
+    onToggleAll: (selected: boolean) => void;
 }
 
 export const CartHeader = React.memo<CartHeaderProps>(
-    ({ itemCount, onClearCart, onAddMore }) => {
+    ({ itemCount, onClearCart, onAddMore, allSelected, onToggleAll }) => {
+        const handleToggleAll = useCallback(() => {
+            onToggleAll(!allSelected);
+        }, [allSelected, onToggleAll]);
+
         return (
             <View
                 style={{
@@ -27,18 +33,38 @@ export const CartHeader = React.memo<CartHeaderProps>(
                         justifyContent: "space-between",
                     }}
                 >
-                    {/* Title */}
-                    <Text
-                        style={{
-                            fontSize: 18,
-                            fontWeight: "600",
-                            color: "#111827",
-                            flex: 1,
-                            marginRight: 8,
-                        }}
-                    >
-                        {itemCount} món trong giỏ
-                    </Text>
+                    {/* Checkbox and Title */}
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
+                        <Pressable
+                            onPress={handleToggleAll}
+                            style={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: 6,
+                                borderWidth: 2,
+                                borderColor: allSelected ? "#00A86B" : "#D1D5DB",
+                                backgroundColor: allSelected ? "#00A86B" : "transparent",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                            {allSelected && (
+                                <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                            )}
+                        </Pressable>
+
+                        <Text
+                            style={{
+                                fontSize: 18,
+                                fontWeight: "600",
+                                color: "#111827",
+                            }}
+                            numberOfLines={1}
+                        >
+                            {itemCount} món 
+                        </Text>
+                    </View>
 
                     {/* Action Buttons */}
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flexShrink: 0 }}>

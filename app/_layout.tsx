@@ -12,6 +12,7 @@ import { ToastProvider } from "../src/shared/ui/toast";
 import { userPreferences } from "../src/shared/lib/storage";
 import { OpenAPI } from "../src/api";
 import env from "../src/config/env";
+import { initializeDeepLinkListener } from "../src/navigation/deeplink";
 import "../global.css";
 
 // Prevent the splash screen from auto-hiding
@@ -48,53 +49,10 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  // Handle deep links
+  // Initialize deep link listener for VNPay & other deep links
   useEffect(() => {
-    const handleDeepLink = (url: string) => {
-      try {
-        // Parse the URL
-        const parsed = Linking.parse(url);
-
-        // Handle payment result deep link
-        if (parsed.path === "payment-result") {
-          const { success, orderId, amount, code, message } =
-            parsed.queryParams || {};
-
-          if (orderId) {
-            // Navigate to payment result screen with parameters
-            const params = new URLSearchParams();
-            params.append("orderId", orderId as string);
-            if (success) params.append("success", success as string);
-            if (amount) params.append("amount", amount as string);
-            if (code) params.append("code", code as string);
-            if (message) params.append("message", message as string);
-
-            const targetUrl = `/(app)/payment-result?${params.toString()}`;
-
-            router.replace(targetUrl as any);
-          } else {
-          }
-        } else {
-        }
-      } catch (error) {
-      }
-    };
-
-    // Handle initial URL if app was opened via deep link
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        handleDeepLink(url);
-      }
-    });
-
-    // Listen for deep links while app is running
-    const subscription = Linking.addEventListener("url", ({ url }) => {
-      handleDeepLink(url);
-    });
-
-    return () => {
-      subscription?.remove();
-    };
+    const cleanup = initializeDeepLinkListener();
+    return cleanup;
   }, []);
 
   if (!fontsLoaded) {

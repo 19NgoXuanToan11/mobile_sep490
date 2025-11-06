@@ -150,6 +150,8 @@ interface CartStore {
   removeItem: (itemId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   syncGuestCartToUser: () => Promise<void>;
+  toggleItemSelection: (itemId: string) => Promise<void>;
+  toggleAllSelection: (selected: boolean) => Promise<void>;
 }
 
 export const useCartStore = create<CartStore>((set, get) => ({
@@ -308,20 +310,75 @@ export const useCartStore = create<CartStore>((set, get) => ({
       console.error("Sync guest cart error:", error);
     }
   },
+
+  /**
+   * Toggle selection state of a cart item
+   * Chuyển đổi trạng thái chọn của một sản phẩm trong giỏ hàng
+   */
+  toggleItemSelection: async (itemId) => {
+    try {
+      const currentItems = get().items;
+      const updatedItems = currentItems.map((item) =>
+        item.id === itemId ? { ...item, selected: !item.selected } : item
+      );
+      set({ items: updatedItems });
+
+      // Save to localStorage for guest mode
+      const { isAuthenticated } = useAuthStore.getState();
+      if (!isAuthenticated) {
+        await storage.setItem(STORAGE_KEYS.CART_ITEMS, updatedItems);
+      }
+      // Note: For authenticated users, we would need to add an API endpoint
+      // to save the selection state, but for now we'll only persist in localStorage
+    } catch (error) {
+      console.error("Toggle item selection error:", error);
+    }
+  },
+
+  /**
+   * Toggle selection state of all cart items
+   * Chọn/bỏ chọn tất cả sản phẩm trong giỏ hàng
+   */
+  toggleAllSelection: async (selected) => {
+    try {
+      const currentItems = get().items;
+      const updatedItems = currentItems.map((item) => ({
+        ...item,
+        selected,
+      }));
+      set({ items: updatedItems });
+
+      // Save to localStorage for guest mode
+      const { isAuthenticated } = useAuthStore.getState();
+      if (!isAuthenticated) {
+        await storage.setItem(STORAGE_KEYS.CART_ITEMS, updatedItems);
+      }
+    } catch (error) {
+      console.error("Toggle all selection error:", error);
+    }
+  },
 }));
 
 export const useCart = () => {
   const store = useCartStore();
 
   const cart = useMemo((): Cart => {
-    const itemCount = store.items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = store.items.reduce((sum, item) => sum + item.subtotal, 0);
+    // Only count selected items for checkout
+    const selectedItems = store.items.filter((item) => item.selected);
+    const itemCount = selectedItems.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+    const subtotal = selectedItems.reduce(
+      (sum, item) => sum + item.subtotal,
+      0
+    );
     const shippingFee = subtotal > 0 ? 25000 : 0; // Free shipping over 500k
     const discount = 0; // TODO: Implement discount logic
     const total = subtotal + shippingFee - discount;
 
     return {
-      items: store.items,
+      items: store.items, // Return all items for display
       itemCount,
       subtotal,
       shippingFee,
@@ -337,6 +394,8 @@ export const useCart = () => {
   return {
     ...store,
     cart,
+    toggleItemSelection: store.toggleItemSelection,
+    toggleAllSelection: store.toggleAllSelection,
   };
 };
 
@@ -663,3 +722,6 @@ export const useAuthActions = () => {
     logout: logoutWithCacheInvalidation,
   };
 };
+
+// Export province data hook
+export { useProvinceData } from "./useProvinceData";

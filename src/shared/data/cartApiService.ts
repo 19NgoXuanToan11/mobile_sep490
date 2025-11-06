@@ -189,6 +189,7 @@ async function transformCartItem(
     quantity,
     price: itemPrice,
     subtotal: itemPrice * quantity,
+    selected: true, // Mặc định chọn sản phẩm từ API
   };
 }
 

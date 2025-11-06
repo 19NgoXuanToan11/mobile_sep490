@@ -15,10 +15,11 @@ interface CartItemCardProps {
     item: CartItem;
     onUpdateQuantity: (itemId: string, quantity: number) => void;
     onRemove: (itemId: string, itemName: string) => void;
+    onToggleSelection: (itemId: string) => void;
 }
 
 export const CartItemCard = React.memo<CartItemCardProps>(
-    ({ item, onUpdateQuantity, onRemove }) => {
+    ({ item, onUpdateQuantity, onRemove, onToggleSelection }) => {
         const scaleAnim = useRef(new Animated.Value(1)).current;
 
         const handlePressIn = useCallback(() => {
@@ -53,6 +54,10 @@ export const CartItemCard = React.memo<CartItemCardProps>(
             onRemove(item.id, item.product.name);
         }, [item.id, item.product.name, onRemove]);
 
+        const handleToggleSelection = useCallback(() => {
+            onToggleSelection(item.id);
+        }, [item.id, onToggleSelection]);
+
         const canIncrement = item.quantity < item.product.stock;
         const canDecrement = item.quantity > 1;
 
@@ -80,6 +85,27 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                 {/* Main Content */}
                 <View style={{ padding: 16 }}>
                     <View style={{ flexDirection: "row", gap: 12 }}>
+                        {/* Checkbox */}
+                        <TouchableOpacity
+                            onPress={handleToggleSelection}
+                            style={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: 6,
+                                borderWidth: 2,
+                                borderColor: item.selected ? "#00A86B" : "#D1D5DB",
+                                backgroundColor: item.selected ? "#00A86B" : "transparent",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                marginTop: 4,
+                            }}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                            {item.selected && (
+                                <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                            )}
+                        </TouchableOpacity>
+
                         {/* Product Image */}
                         <View style={{ position: "relative" }}>
                             <Image
@@ -91,6 +117,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                     backgroundColor: "#F8FAFC",
                                     borderWidth: 1,
                                     borderColor: "#E5E7EB",
+                                    opacity: item.selected ? 1 : 0.5,
                                 }}
                                 contentFit="contain"
                                 transition={150}
@@ -284,7 +311,8 @@ export const CartItemCard = React.memo<CartItemCardProps>(
         return (
             prevProps.item.id === nextProps.item.id &&
             prevProps.item.quantity === nextProps.item.quantity &&
-            prevProps.item.product.stock === nextProps.item.product.stock
+            prevProps.item.product.stock === nextProps.item.product.stock &&
+            prevProps.item.selected === nextProps.item.selected
         );
     }
 );

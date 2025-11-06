@@ -719,6 +719,7 @@ export const cartApi = {
         quantity,
         price: product.price,
         subtotal: product.price * quantity,
+        selected: true, // Mặc định chọn sản phẩm mới
       };
       existingItems.push(newItem);
     }
@@ -1790,6 +1791,80 @@ export const profileApi = {
         data: null as any,
         message:
           error instanceof Error ? error.message : "Failed to upload image",
+      };
+    }
+  },
+
+  async changePassword(
+    oldPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Promise<ApiResponse<null>> {
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: null,
+          message: "Chưa đăng nhập",
+        };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      await AccountService.putApiV1AccountUpdatePassword({
+        requestBody: {
+          oldPassword,
+          newPassword,
+          confirmPassword,
+        },
+      });
+
+      return {
+        success: true,
+        data: null,
+        message: "Đổi mật khẩu thành công",
+      };
+    } catch (error: any) {
+      console.error("Change password error:", error);
+
+      // Handle specific error codes
+      if (error?.status === 401 || error?.statusCode === 401) {
+        return {
+          success: false,
+          data: null,
+          message: "Phiên đăng nhập hết hạn",
+          errors: { auth: ["Vui lòng đăng nhập lại"] },
+        };
+      }
+
+      if (error?.status === 400 || error?.statusCode === 400) {
+        const errorMessage =
+          error?.body?.message ||
+          error?.message ||
+          "Mật khẩu hiện tại không đúng";
+        return {
+          success: false,
+          data: null,
+          message: errorMessage,
+          errors: { oldPassword: [errorMessage] },
+        };
+      }
+
+      if (error?.status === 429 || error?.statusCode === 429) {
+        return {
+          success: false,
+          data: null,
+          message: "Quá nhiều yêu cầu, vui lòng thử lại sau",
+        };
+      }
+
+      return {
+        success: false,
+        data: null,
+        message:
+          error instanceof Error ? error.message : "Đổi mật khẩu thất bại",
       };
     }
   },
