@@ -53,7 +53,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
       return false;
     } catch (error) {
-
       return false;
     }
   },
@@ -74,7 +73,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
       return false;
     } catch (error) {
-
       return false;
     }
   },
@@ -88,9 +86,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
 
       useCartStore.getState().clearCart();
-    } catch (error) {
-
-    }
+    } catch (error) {}
   },
   checkAuth: async () => {
     try {
@@ -111,7 +107,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         set({ isLoading: false });
       }
     } catch (error) {
-
       set({ isLoading: false });
     }
   },
@@ -148,7 +143,6 @@ export const useCartStore = create<CartStore>((set, get) => ({
         set({ items: response.data });
       }
     } catch (error) {
-
     } finally {
       set({ isLoading: false });
     }
@@ -164,19 +158,15 @@ export const useCartStore = create<CartStore>((set, get) => ({
       if (response.success) {
         set({ items: response.data });
       }
-    } catch (error) {
-
-    }
+    } catch (error) {}
   },
   updateQuantity: async (itemId, quantity) => {
     try {
       const { isAuthenticated } = useAuthStore.getState();
       if (isAuthenticated) {
-
         const currentItems = get().items;
         const item = currentItems.find((i) => i.id === itemId);
         if (!item) {
-
           return;
         }
         const response = await cartApi.updateQuantity(
@@ -188,7 +178,6 @@ export const useCartStore = create<CartStore>((set, get) => ({
           set({ items: response.data });
         }
       } else {
-
         const response = await cartApi.updateQuantity(
           itemId,
           quantity,
@@ -198,19 +187,15 @@ export const useCartStore = create<CartStore>((set, get) => ({
           set({ items: response.data });
         }
       }
-    } catch (error) {
-
-    }
+    } catch (error) {}
   },
   removeItem: async (itemId) => {
     try {
       const { isAuthenticated } = useAuthStore.getState();
       if (isAuthenticated) {
-
         const currentItems = get().items;
         const item = currentItems.find((i) => i.id === itemId);
         if (!item) {
-
           return;
         }
         const response = await cartApi.removeItem(
@@ -221,15 +206,12 @@ export const useCartStore = create<CartStore>((set, get) => ({
           set({ items: response.data });
         }
       } else {
-
         const response = await cartApi.removeItem(itemId, isAuthenticated);
         if (response.success) {
           set({ items: response.data });
         }
       }
-    } catch (error) {
-
-    }
+    } catch (error) {}
   },
   clearCart: async () => {
     try {
@@ -238,9 +220,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       if (response.success) {
         set({ items: [] });
       }
-    } catch (error) {
-
-    }
+    } catch (error) {}
   },
 
   syncGuestCartToUser: async () => {
@@ -259,17 +239,13 @@ export const useCartStore = create<CartStore>((set, get) => ({
       for (const item of guestCart) {
         try {
           await cartApi.addItem(item.productId, item.quantity, true);
-        } catch (error) {
-
-        }
+        } catch (error) {}
       }
 
       await storage.removeItem(STORAGE_KEYS.CART_ITEMS);
 
       await get().loadItems();
-    } catch (error) {
-
-    }
+    } catch (error) {}
   },
 
   toggleItemSelection: async (itemId) => {
@@ -284,10 +260,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       if (!isAuthenticated) {
         await storage.setItem(STORAGE_KEYS.CART_ITEMS, updatedItems);
       }
-
-    } catch (error) {
-
-    }
+    } catch (error) {}
   },
 
   toggleAllSelection: async (selected) => {
@@ -303,15 +276,12 @@ export const useCartStore = create<CartStore>((set, get) => ({
       if (!isAuthenticated) {
         await storage.setItem(STORAGE_KEYS.CART_ITEMS, updatedItems);
       }
-    } catch (error) {
-
-    }
+    } catch (error) {}
   },
 }));
 export const useCart = () => {
   const store = useCartStore();
   const cart = useMemo((): Cart => {
-
     const selectedItems = store.items.filter((item) => item.selected);
     const itemCount = selectedItems.reduce(
       (sum, item) => sum + item.quantity,
@@ -321,9 +291,9 @@ export const useCart = () => {
       (sum, item) => sum + item.subtotal,
       0
     );
-    const shippingFee = subtotal > 0 ? 25000 : 0;
+    const shippingFee = 0; // Không tính phí ship
     const discount = 0;
-    const total = subtotal + shippingFee - discount;
+    const total = subtotal - discount; // Tổng thanh toán = tạm tính - giảm giá
     return {
       items: store.items,
       itemCount,
@@ -410,14 +380,12 @@ export const useNotificationStore = create<NotificationStore>()(
           const unreadCount = mockNotifications.filter((n) => !n.isRead).length;
           set({ notifications: mockNotifications, unreadCount });
         } catch (error) {
-
         } finally {
           set({ isLoading: false });
         }
       },
       markAsRead: async (id: string) => {
         try {
-
           const { notifications } = get();
           const updatedNotifications = notifications.map((notification) =>
             notification.id === id
@@ -428,22 +396,17 @@ export const useNotificationStore = create<NotificationStore>()(
             (n) => !n.isRead
           ).length;
           set({ notifications: updatedNotifications, unreadCount });
-        } catch (error) {
-
-        }
+        } catch (error) {}
       },
       markAllAsRead: async () => {
         try {
-
           const { notifications } = get();
           const updatedNotifications = notifications.map((notification) => ({
             ...notification,
             isRead: true,
           }));
           set({ notifications: updatedNotifications, unreadCount: 0 });
-        } catch (error) {
-
-        }
+        } catch (error) {}
       },
       addNotification: (notification: Omit<Notification, "id">) => {
         const { notifications, unreadCount } = get();
@@ -521,7 +484,6 @@ export const useLoading = (initialState = false) => {
         const result = await fn();
         return result;
       } catch (error) {
-
         return undefined;
       } finally {
         setIsLoading(false);
@@ -595,7 +557,6 @@ export const useAuthActions = () => {
   const authStore = useAuthStore();
   const logoutWithCacheInvalidation = useCallback(async () => {
     try {
-
       await authStore.logout();
 
       await queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -607,9 +568,7 @@ export const useAuthActions = () => {
       queryClient.removeQueries({ queryKey: ["products"], exact: false });
       queryClient.removeQueries({ queryKey: ["featured-products"] });
       queryClient.removeQueries({ queryKey: ["trending-products"] });
-    } catch (error) {
-
-    }
+    } catch (error) {}
   }, [authStore, queryClient]);
   return {
     ...authStore,
