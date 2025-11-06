@@ -101,7 +101,7 @@ export default function PersonalInfoScreen() {
   }, []);
 
   const handleChangePassword = useCallback(() => {
-    // router.push("/(app)/profile/change-password");
+    router.push("/profile/change-password");
   }, []);
 
   return (

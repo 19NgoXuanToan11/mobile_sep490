@@ -26,8 +26,7 @@ export default function AppLayout() {
       <Stack.Screen
         name="checkout"
         options={{
-          title: "Thanh toán",
-          headerBackTitle: "Quay lại",
+          headerShown: false,
           presentation: "modal",
         }}
       />
@@ -64,13 +63,13 @@ export default function AppLayout() {
       <Stack.Screen
         name="address/add"
         options={{
-          title: "Thêm Địa Chỉ",
+          headerShown: false,
         }}
       />
       <Stack.Screen
         name="address/edit/[id]"
         options={{
-          title: "Chỉnh Sửa Địa Chỉ",
+          headerShown: false,
         }}
       />
       <Stack.Screen

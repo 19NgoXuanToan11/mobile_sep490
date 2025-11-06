@@ -22,7 +22,8 @@
         "screens": {
           "(app)": {
             "screens": {
-              "payment-result": "payment-result"
+              "payment-result": "payment-result",
+              "payment-callback": "payment-callback"
             }
           }
         }
@@ -54,7 +55,8 @@
         {
           "faceIDPermission": "Cho phép $(PRODUCT_NAME) truy cập dữ liệu sinh trắc học Face ID."
         }
-      ]
+      ],
+      "expo-web-browser"
     ]
   }
 }

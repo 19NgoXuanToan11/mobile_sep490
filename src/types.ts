@@ -53,6 +53,7 @@ export interface CartItem {
   quantity: number;
   price: number;
   subtotal: number;
+  selected: boolean; // Cho phép người dùng chọn sản phẩm để thanh toán
 }
 
 export interface Cart {

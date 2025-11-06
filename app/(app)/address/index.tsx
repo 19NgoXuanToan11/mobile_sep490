@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Platform,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -64,6 +65,10 @@ export default function MyAddressScreen() {
       toast.error("Thao tác thất bại", "Vui lòng thử lại");
     },
   });
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, []);
 
   const handleAddAddress = useCallback(() => {
     router.push("/(app)/address/add");
@@ -157,7 +162,16 @@ export default function MyAddressScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Địa Chỉ Của Tôi</Text>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            onPress={handleBack}
+            style={styles.backButton}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="arrow-back" size={24} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Địa Chỉ Của Tôi</Text>
+        </View>
         <AddNewButton onPress={handleAddAddress} />
       </View>
 
@@ -237,6 +251,18 @@ const styles = StyleSheet.create({
         elevation: 2,
       },
     }),
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: -8,
   },
   headerTitle: {
     fontSize: 18,
