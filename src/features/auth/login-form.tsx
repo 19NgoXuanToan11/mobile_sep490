@@ -12,7 +12,6 @@ import {
   PrimaryButton,
   LinkButton,
 } from "./components";
-
 const loginSchema = z.object({
   email: z
     .string()
@@ -23,17 +22,13 @@ const loginSchema = z.object({
     .min(1, "Mật khẩu là bắt buộc")
     .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
 });
-
 type LoginFormData = z.infer<typeof loginSchema>;
-
 export const LoginForm: React.FC = () => {
   const { login } = useAuth();
   const toast = useToast();
 
-  // Refs for input focus management
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
-
   const {
     control,
     handleSubmit,
@@ -45,19 +40,16 @@ export const LoginForm: React.FC = () => {
       password: "123123",
     },
   });
-
   const focusNextField = useCallback(
     (nextFieldRef: React.RefObject<TextInput | null>) => {
       nextFieldRef.current?.focus();
     },
     []
   );
-
   const onSubmit = useCallback(
     async (data: LoginFormData) => {
       try {
         const success = await login(data.email, data.password);
-
         if (success) {
           toast.success("Chào mừng bạn trở lại!");
           router.replace("/(app)/(tabs)/catalog");
@@ -73,14 +65,12 @@ export const LoginForm: React.FC = () => {
     },
     [login, toast]
   );
-
   const handleRegister = useCallback(() => {
     router.push("/(public)/auth/register");
   }, []);
-
   return (
     <View style={{ gap: 20 }}>
-      {/* Input Fields */}
+      {}
       <View style={{ gap: 16 }}>
         <Controller
           control={control}
@@ -102,7 +92,6 @@ export const LoginForm: React.FC = () => {
             />
           )}
         />
-
         <Controller
           control={control}
           name="password"
@@ -122,15 +111,13 @@ export const LoginForm: React.FC = () => {
           )}
         />
       </View>
-
-      {/* Sign In Button */}
+      {}
       <PrimaryButton
         title="Đăng Nhập"
         onPress={handleSubmit(onSubmit)}
         loading={isSubmitting}
       />
-
-      {/* Divider */}
+      {}
       <View
         style={{
           flexDirection: "row",
@@ -143,8 +130,7 @@ export const LoginForm: React.FC = () => {
         <Text style={{ fontSize: 14, color: "#6B7280" }}>hoặc</Text>
         <View style={{ flex: 1, height: 1, backgroundColor: "#E5E7EB" }} />
       </View>
-
-      {/* Sign Up Link */}
+      {}
       <View style={{ alignItems: "center", marginTop: 4 }}>
         <Text style={{ fontSize: 14, color: "#6B7280", marginBottom: 8 }}>
           Chưa có tài khoản?

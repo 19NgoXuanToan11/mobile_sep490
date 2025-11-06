@@ -1,7 +1,4 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 export type UpdateProductDTO = {
     productName: string;
     price: number;
@@ -9,4 +6,3 @@ export type UpdateProductDTO = {
     description?: string | null;
     categoryId: number;
 };
-

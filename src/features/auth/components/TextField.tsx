@@ -6,25 +6,20 @@ import {
     TextInputProps,
     Platform,
 } from "react-native";
-
 interface TextFieldProps extends Omit<TextInputProps, "style"> {
     error?: string;
     onChangeText?: (text: string) => void;
 }
-
 export const TextField = React.memo(
     React.forwardRef<TextInput, TextFieldProps>(
         ({ error, onChangeText, ...props }, ref) => {
             const [isFocused, setIsFocused] = useState(false);
-
             const handleFocus = useCallback(() => {
                 setIsFocused(true);
             }, []);
-
             const handleBlur = useCallback(() => {
                 setIsFocused(false);
             }, []);
-
             const containerStyle = useMemo(
                 () => ({
                     borderRadius: 16,
@@ -42,7 +37,6 @@ export const TextField = React.memo(
                 }),
                 [isFocused, error]
             );
-
             const inputStyle = useMemo(
                 () => ({
                     fontSize: 16,
@@ -53,7 +47,6 @@ export const TextField = React.memo(
                 }),
                 []
             );
-
             return (
                 <View>
                     <View style={containerStyle}>
@@ -85,6 +78,4 @@ export const TextField = React.memo(
         }
     )
 );
-
 TextField.displayName = "TextField";
-

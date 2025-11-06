@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, View, Text, TouchableOpacity, TextInput } from "react-native";
 import { RatingStars } from "./rating-stars";
-
 export interface FeedbackFormModalProps {
   visible: boolean;
   initialComment?: string;
@@ -13,7 +12,6 @@ export interface FeedbackFormModalProps {
   }) => Promise<void> | void;
   submitting?: boolean;
 }
-
 export default function FeedbackFormModal({
   visible,
   initialComment,
@@ -24,14 +22,12 @@ export default function FeedbackFormModal({
 }: FeedbackFormModalProps) {
   const [comment, setComment] = useState(initialComment ?? "");
   const [rating, setRating] = useState<number | null>(initialRating ?? 5);
-
   useEffect(() => {
     if (visible) {
       setComment(initialComment ?? "");
       setRating(initialRating ?? 5);
     }
   }, [visible, initialComment, initialRating]);
-
   return (
     <Modal
       visible={visible}

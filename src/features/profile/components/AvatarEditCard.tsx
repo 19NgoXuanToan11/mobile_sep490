@@ -12,37 +12,30 @@ import Animated, {
     withSpring,
     useSharedValue,
 } from "react-native-reanimated";
-
 interface AvatarEditCardProps {
     fullName: string;
     avatarUri?: string;
     onPress: () => void;
 }
-
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
 export const AvatarEditCard = React.memo<AvatarEditCardProps>(
     ({ fullName, avatarUri, onPress }) => {
         const scale = useSharedValue(1);
-
         const animatedStyle = useAnimatedStyle(() => ({
             transform: [{ scale: scale.value }],
         }));
-
         const handlePressIn = () => {
             scale.value = withSpring(0.95, {
                 damping: 15,
                 stiffness: 300,
             });
         };
-
         const handlePressOut = () => {
             scale.value = withSpring(1, {
                 damping: 15,
                 stiffness: 300,
             });
         };
-
         const getInitials = () => {
             const names = fullName.trim().split(" ");
             if (names.length >= 2) {
@@ -53,7 +46,6 @@ export const AvatarEditCard = React.memo<AvatarEditCardProps>(
             }
             return fullName.charAt(0).toUpperCase() || "N";
         };
-
         return (
             <View style={styles.container}>
                 <AnimatedTouchable
@@ -64,19 +56,17 @@ export const AvatarEditCard = React.memo<AvatarEditCardProps>(
                     style={animatedStyle}
                 >
                     <View style={styles.avatarContainer}>
-                        {/* Avatar Circle */}
+                        {}
                         <View style={styles.avatar}>
                             <Text style={styles.initials}>{getInitials()}</Text>
                         </View>
-
-                        {/* Camera Icon Overlay */}
+                        {}
                         <View style={styles.cameraButton}>
                             <Ionicons name="camera" size={18} color="#FFFFFF" />
                         </View>
                     </View>
                 </AnimatedTouchable>
-
-                {/* Edit Text */}
+                {}
                 <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
                     <Text style={styles.editText}>Thay đổi ảnh đại diện</Text>
                 </TouchableOpacity>
@@ -84,9 +74,7 @@ export const AvatarEditCard = React.memo<AvatarEditCardProps>(
         );
     }
 );
-
 AvatarEditCard.displayName = "AvatarEditCard";
-
 const styles = StyleSheet.create({
     container: {
         alignItems: "center",
@@ -168,4 +156,3 @@ const styles = StyleSheet.create({
         letterSpacing: 0.2,
     },
 });
-

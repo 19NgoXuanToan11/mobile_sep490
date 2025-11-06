@@ -1,7 +1,6 @@
 import React, { useCallback } from "react";
 import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 interface CartHeaderProps {
     itemCount: number;
     onClearCart: () => void;
@@ -9,13 +8,11 @@ interface CartHeaderProps {
     allSelected: boolean;
     onToggleAll: (selected: boolean) => void;
 }
-
 export const CartHeader = React.memo<CartHeaderProps>(
     ({ itemCount, onClearCart, onAddMore, allSelected, onToggleAll }) => {
         const handleToggleAll = useCallback(() => {
             onToggleAll(!allSelected);
         }, [allSelected, onToggleAll]);
-
         return (
             <View
                 style={{
@@ -33,7 +30,7 @@ export const CartHeader = React.memo<CartHeaderProps>(
                         justifyContent: "space-between",
                     }}
                 >
-                    {/* Checkbox and Title */}
+                    {}
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
                         <Pressable
                             onPress={handleToggleAll}
@@ -53,7 +50,6 @@ export const CartHeader = React.memo<CartHeaderProps>(
                                 <Ionicons name="checkmark" size={16} color="#FFFFFF" />
                             )}
                         </Pressable>
-
                         <Text
                             style={{
                                 fontSize: 18,
@@ -62,13 +58,12 @@ export const CartHeader = React.memo<CartHeaderProps>(
                             }}
                             numberOfLines={1}
                         >
-                            {itemCount} món 
+                            {itemCount} món
                         </Text>
                     </View>
-
-                    {/* Action Buttons */}
+                    {}
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flexShrink: 0 }}>
-                        {/* Clear All Button */}
+                        {}
                         <Pressable
                             onPress={onClearCart}
                             style={({ pressed }) => ({
@@ -95,8 +90,7 @@ export const CartHeader = React.memo<CartHeaderProps>(
                                 Xóa tất cả
                             </Text>
                         </Pressable>
-
-                        {/* Add More Button */}
+                        {}
                         <Pressable
                             onPress={onAddMore}
                             style={({ pressed }) => ({
@@ -129,6 +123,4 @@ export const CartHeader = React.memo<CartHeaderProps>(
         );
     }
 );
-
 CartHeader.displayName = "CartHeader";
-

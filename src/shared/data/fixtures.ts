@@ -10,7 +10,6 @@ import {
   OnboardingSlide,
 } from "../../types";
 
-// Onboarding slides
 export const onboardingSlides: OnboardingSlide[] = [
   {
     id: "1",
@@ -38,7 +37,6 @@ export const onboardingSlides: OnboardingSlide[] = [
   },
 ];
 
-// Categories
 export const categories: Category[] = [
   {
     id: "cat_vegetables",
@@ -87,9 +85,8 @@ export const categories: Category[] = [
   },
 ];
 
-// Products
 export const products: Product[] = [
-  // Vegetables
+
   {
     id: "prod_001",
     name: "Cà Chua Bi Hữu Cơ",
@@ -174,7 +171,6 @@ export const products: Product[] = [
     updatedAt: "2024-01-13T00:00:00Z",
   },
 
-  // Fruits
   {
     id: "prod_004",
     name: "Thanh Long",
@@ -226,7 +222,6 @@ export const products: Product[] = [
     updatedAt: "2024-01-14T00:00:00Z",
   },
 
-  // Grains
   {
     id: "prod_007",
     name: "Gạo Lứt Cao Cấp",
@@ -253,7 +248,6 @@ export const products: Product[] = [
     updatedAt: "2024-01-10T00:00:00Z",
   },
 
-  // Dairy
   {
     id: "prod_008",
     name: "Sữa Tươi Trang Trại",
@@ -280,7 +274,6 @@ export const products: Product[] = [
     updatedAt: "2024-01-15T00:00:00Z",
   },
 
-  // More products for variety...
   {
     id: "prod_009",
     name: "Cà Rốt Hữu Cơ",
@@ -332,7 +325,6 @@ export const products: Product[] = [
   },
 ];
 
-// Banners
 export const banners: Banner[] = [
   {
     id: "banner_001",
@@ -358,7 +350,6 @@ export const banners: Banner[] = [
   },
 ];
 
-// Sample user
 export const sampleUser: User = {
   id: "user_001",
   name: "Nguyễn Văn An",
@@ -371,7 +362,6 @@ export const sampleUser: User = {
   updatedAt: "2024-01-15T00:00:00Z",
 };
 
-// Addresses
 export const addresses: Address[] = [
   {
     id: "addr_001",
@@ -395,7 +385,6 @@ export const addresses: Address[] = [
   },
 ];
 
-// Payment methods
 export const paymentMethods: PaymentMethod[] = [
   {
     id: "pm_001",
@@ -413,7 +402,6 @@ export const paymentMethods: PaymentMethod[] = [
   },
 ];
 
-// Order status timeline
 const createStatusHistory = (
   currentStatus: OrderStatus["status"]
 ): OrderStatus[] => {
@@ -425,9 +413,7 @@ const createStatusHistory = (
       { status: "SHIPPED", description: "Đang giao hàng" },
       { status: "DELIVERED", description: "Giao hàng thành công" },
     ];
-
   const currentIndex = allStatuses.findIndex((s) => s.status === currentStatus);
-
   return allStatuses.slice(0, currentIndex + 1).map((status, index) => ({
     id: `status_${index}`,
     status: status.status,
@@ -438,5 +424,4 @@ const createStatusHistory = (
   }));
 };
 
-// Sample orders
 export const orders: Order[] = [];

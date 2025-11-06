@@ -7,7 +7,6 @@ import {
     Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 export interface QuickActionItemProps {
     icon: keyof typeof Ionicons.glyphMap;
     iconColor: string;
@@ -17,7 +16,6 @@ export interface QuickActionItemProps {
     onPress: () => void;
     isLast?: boolean;
 }
-
 export const QuickActionItem = React.memo<QuickActionItemProps>(
     ({
         icon,
@@ -29,14 +27,12 @@ export const QuickActionItem = React.memo<QuickActionItemProps>(
         isLast = false,
     }) => {
         const scaleAnim = React.useRef(new Animated.Value(1)).current;
-
         const handlePressIn = () => {
             Animated.spring(scaleAnim, {
                 toValue: 0.97,
                 useNativeDriver: true,
             }).start();
         };
-
         const handlePressOut = () => {
             Animated.spring(scaleAnim, {
                 toValue: 1,
@@ -45,7 +41,6 @@ export const QuickActionItem = React.memo<QuickActionItemProps>(
                 useNativeDriver: true,
             }).start();
         };
-
         return (
             <Animated.View
                 style={[styles.container, { transform: [{ scale: scaleAnim }] }]}
@@ -82,9 +77,7 @@ export const QuickActionItem = React.memo<QuickActionItemProps>(
         );
     }
 );
-
 QuickActionItem.displayName = "QuickActionItem";
-
 const styles = StyleSheet.create({
     container: {
         width: "100%",

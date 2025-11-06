@@ -2,13 +2,11 @@ import React, { useEffect, useRef } from "react";
 import { View, Animated, ViewProps, ViewStyle } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { cn } from "../lib/utils";
-
 interface ShimmerLoaderProps extends ViewProps {
     width?: number | string;
     height?: number;
     borderRadius?: number;
 }
-
 export const ShimmerLoader: React.FC<ShimmerLoaderProps> = ({
     width = "100%",
     height = 100,
@@ -17,7 +15,6 @@ export const ShimmerLoader: React.FC<ShimmerLoaderProps> = ({
     ...props
 }) => {
     const animatedValue = useRef(new Animated.Value(0)).current;
-
     useEffect(() => {
         Animated.loop(
             Animated.sequence([
@@ -29,12 +26,10 @@ export const ShimmerLoader: React.FC<ShimmerLoaderProps> = ({
             ])
         ).start();
     }, []);
-
     const translateX = animatedValue.interpolate({
         inputRange: [0, 1],
         outputRange: [-300, 300],
     });
-
     return (
         <View
             style={[{ width, height, borderRadius, overflow: "hidden", backgroundColor: "#f0f0f0" } as ViewStyle]}
@@ -61,7 +56,6 @@ export const ShimmerLoader: React.FC<ShimmerLoaderProps> = ({
     );
 };
 
-// Product Card Skeleton
 export const ProductCardSkeleton: React.FC = () => {
     return (
         <View className="w-full p-3 bg-white rounded-[20px]">
@@ -73,7 +67,6 @@ export const ProductCardSkeleton: React.FC = () => {
     );
 };
 
-// Category Card Skeleton
 export const CategoryCardSkeleton: React.FC = () => {
     return (
         <View className="items-center">
@@ -82,4 +75,3 @@ export const CategoryCardSkeleton: React.FC = () => {
         </View>
     );
 };
-

@@ -1,26 +1,22 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 export interface GenderOption {
   value: number;
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
 }
-
 export interface GenderPickerProps {
   value?: number;
   onValueChange: (value: number) => void;
   error?: string;
   disabled?: boolean;
 }
-
 const GENDER_OPTIONS: GenderOption[] = [
   { value: 0, label: "Nam", icon: "man" },
   { value: 1, label: "Nữ", icon: "woman" },
   { value: 2, label: "Khác", icon: "person" },
 ];
-
 export function GenderPicker({
   value,
   onValueChange,
@@ -32,11 +28,9 @@ export function GenderPicker({
       <Text className="text-sm font-medium text-neutral-700 mb-3">
         Giới tính
       </Text>
-      
       <View className="flex-row space-x-3">
         {GENDER_OPTIONS.map((option) => {
           const isSelected = value === option.value;
-          
           return (
             <TouchableOpacity
               key={option.value}
@@ -64,7 +58,6 @@ export function GenderPicker({
           );
         })}
       </View>
-      
       {error && (
         <Text className="text-error-500 text-sm mt-2">{error}</Text>
       )}

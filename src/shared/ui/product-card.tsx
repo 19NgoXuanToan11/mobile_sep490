@@ -9,7 +9,6 @@ import { appleDesign } from "../lib/theme";
 import { Card } from "./card";
 import { Badge } from "./badge";
 import { RatingDisplay } from "./rating-stars";
-
 const productCardVariants = cva("", {
   variants: {
     size: {
@@ -23,7 +22,6 @@ const productCardVariants = cva("", {
     size: "md",
   },
 });
-
 export interface ProductCardProps
   extends ViewProps,
   VariantProps<typeof productCardVariants> {
@@ -49,14 +47,12 @@ export interface ProductCardProps
   showAddToCart?: boolean;
   showQuickView?: boolean;
 }
-
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
   }).format(amount);
 };
-
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   size,
@@ -67,9 +63,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   className,
   ...props
 }) => {
-  // Animation for press feedback
-  const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const hasDiscount =
     product.originalPrice && product.originalPrice > product.price;
   const discountPercent = hasDiscount
@@ -78,7 +73,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       100
     )
     : 0;
-
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
       toValue: 0.96,
@@ -87,7 +81,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       bounciness: 4,
     }).start();
   };
-
   const handlePressOut = () => {
     Animated.spring(scaleAnim, {
       toValue: 1,
@@ -96,10 +89,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       bounciness: 4,
     }).start();
   };
-
   const renderImage = () => {
     const imageUrl = product.images && product.images.length > 0 ? product.images[0] : null;
-
     return (
       <View
         className="relative bg-neutral-100 overflow-hidden w-full h-36"
@@ -117,8 +108,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <Text className="text-neutral-500 text-xs mt-2">Không có hình ảnh</Text>
           </View>
         )}
-
-        {/* Top Badges - Left Side */}
+        {}
         <View className="absolute top-1.5 left-1.5 space-y-1">
           {hasDiscount && (
             <View className="bg-red-500 px-1.5 py-0.5 rounded-md">
@@ -133,8 +123,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </View>
           )}
         </View>
-
-        {/* Top Badge - Right Side */}
+        {}
         {product.tags?.includes("organic") && (
           <View className="absolute top-1.5 right-1.5">
             <View className="bg-green-500 px-1.5 py-0.5 rounded-md">
@@ -142,8 +131,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </View>
           </View>
         )}
-
-        {/* Quick actions */}
+        {}
         {showQuickView && (
           <View
             className="absolute top-1.5 right-1.5"
@@ -157,8 +145,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </TouchableOpacity>
           </View>
         )}
-
-        {/* Out of stock overlay - Apple style */}
+        {}
         {product.isInStock === false && (
           <View
             className="absolute inset-0 items-center justify-center"
@@ -189,20 +176,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </View>
     );
   };
-
   const renderContent = () => (
     <View className="flex-1 justify-between pt-3">
-      {/* Top Section: Product Info */}
+      {}
       <View className="space-y-2 flex-1">
-        {/* Product Name */}
+        {}
         <Text
           className="font-semibold text-neutral-900 text-sm leading-5"
           numberOfLines={2}
         >
           {product.name}
         </Text>
-
-        {/* Location & Date Row */}
+        {}
         {(product.origin || product.harvestDate) && (
           <View className="flex-row items-center flex-wrap gap-x-3 gap-y-1">
             {product.origin && (
@@ -226,8 +211,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </View>
         )}
-
-        {/* Rating & Trust Row */}
+        {}
         <View className="space-y-1.5">
           {product.rating && (
             <RatingDisplay
@@ -236,10 +220,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               size="sm"
             />
           )}
-
-          {/* Trust Elements Row */}
+          {}
           <View className="flex-row items-center flex-wrap gap-x-3 gap-y-1">
-            {/* Sold Count */}
+            {}
             {product.soldCount && (
               <View className="flex-row items-center gap-1">
                 <Ionicons name="checkmark-circle" size={11} color="#16a34a" />
@@ -251,8 +234,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 </Text>
               </View>
             )}
-
-            {/* VietGAP Badge */}
+            {}
             {product.certifications?.includes("VietGAP") && (
               <View className="flex-row items-center gap-1">
                 <Ionicons name="shield-checkmark" size={11} color="#2563eb" />
@@ -264,10 +246,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </View>
         </View>
       </View>
-
-      {/* Bottom Section: Price & CTA */}
+      {}
       <View className="space-y-2.5 mt-2">
-        {/* Price Section */}
+        {}
         <View className="space-y-1">
           <View className="flex-row items-baseline gap-2 flex-wrap">
             <Text className="text-base font-bold text-primary-600">
@@ -277,8 +258,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <Text className="text-xs text-neutral-500">/{product.unit}</Text>
             )}
           </View>
-
-          {/* Original Price Row */}
+          {}
           {hasDiscount && (
             <View className="flex-row items-center gap-2">
               <Text className="text-sm text-neutral-400 line-through">
@@ -292,8 +272,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </View>
           )}
         </View>
-
-        {/* Apple-style Gradient CTA Button */}
+        {}
         {showAddToCart && product.isInStock !== false && (
           <TouchableOpacity
             onPress={onAddToCart}
@@ -326,7 +305,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </View>
     </View>
   );
-
   return (
     <TouchableOpacity
       onPress={onPress}

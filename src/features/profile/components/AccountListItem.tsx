@@ -8,7 +8,6 @@ import {
     Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 export interface AccountListItemProps {
     icon: keyof typeof Ionicons.glyphMap;
     title: string;
@@ -17,11 +16,9 @@ export interface AccountListItemProps {
     showChevron?: boolean;
     isLast?: boolean;
 }
-
 export const AccountListItem = React.memo<AccountListItemProps>(
     ({ icon, title, subtitle, onPress, showChevron = true, isLast = false }) => {
         const scaleAnim = useRef(new Animated.Value(1)).current;
-
         const handlePressIn = () => {
             Animated.spring(scaleAnim, {
                 toValue: 0.97,
@@ -29,7 +26,6 @@ export const AccountListItem = React.memo<AccountListItemProps>(
                 useNativeDriver: true,
             }).start();
         };
-
         const handlePressOut = () => {
             Animated.spring(scaleAnim, {
                 toValue: 1,
@@ -37,7 +33,6 @@ export const AccountListItem = React.memo<AccountListItemProps>(
                 useNativeDriver: true,
             }).start();
         };
-
         return (
             <>
                 <Animated.View
@@ -54,12 +49,11 @@ export const AccountListItem = React.memo<AccountListItemProps>(
                         activeOpacity={1}
                     >
                         <View style={styles.content}>
-                            {/* Icon Container */}
+                            {}
                             <View style={styles.iconContainer}>
                                 <Ionicons name={icon} size={20} color="#6B7280" />
                             </View>
-
-                            {/* Text Container */}
+                            {}
                             <View style={styles.textContainer}>
                                 <Text style={styles.title} numberOfLines={1}>
                                     {title}
@@ -70,8 +64,7 @@ export const AccountListItem = React.memo<AccountListItemProps>(
                                     </Text>
                                 ) : null}
                             </View>
-
-                            {/* Chevron */}
+                            {}
                             {showChevron && (
                                 <Ionicons
                                     name="chevron-forward"
@@ -82,16 +75,13 @@ export const AccountListItem = React.memo<AccountListItemProps>(
                         </View>
                     </TouchableOpacity>
                 </Animated.View>
-
-                {/* Divider */}
+                {}
                 {!isLast && <View style={styles.divider} />}
             </>
         );
     }
 );
-
 AccountListItem.displayName = "AccountListItem";
-
 const styles = StyleSheet.create({
     container: {
         backgroundColor: "#FFFFFF",
@@ -136,4 +126,3 @@ const styles = StyleSheet.create({
         marginLeft: 56,
     },
 });
-

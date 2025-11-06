@@ -12,39 +12,31 @@ import Animated, {
     useAnimatedStyle,
     withSpring,
 } from "react-native-reanimated";
-
 interface AddNewButtonProps {
     onPress: () => void;
 }
-
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
 export const AddNewButton = React.memo<AddNewButtonProps>(({ onPress }) => {
     const scale = useSharedValue(1);
-
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],
     }));
-
     const handlePressIn = useCallback(() => {
         scale.value = withSpring(0.95, {
             damping: 15,
             stiffness: 400,
         });
     }, []);
-
     const handlePressOut = useCallback(() => {
         scale.value = withSpring(1, {
             damping: 15,
             stiffness: 400,
         });
     }, []);
-
     const handlePress = useCallback(() => {
         handlePressOut();
         onPress();
     }, [onPress]);
-
     return (
         <AnimatedTouchable
             onPress={handlePress}
@@ -60,9 +52,7 @@ export const AddNewButton = React.memo<AddNewButtonProps>(({ onPress }) => {
         </AnimatedTouchable>
     );
 });
-
 AddNewButton.displayName = "AddNewButton";
-
 const styles = StyleSheet.create({
     button: {
         flexDirection: "row",
@@ -96,4 +86,3 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
     },
 });
-

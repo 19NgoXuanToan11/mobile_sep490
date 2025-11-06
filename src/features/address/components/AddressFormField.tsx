@@ -8,7 +8,6 @@ import {
     Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 interface AddressFormFieldProps {
     label: string;
     required?: boolean;
@@ -25,7 +24,6 @@ interface AddressFormFieldProps {
     maxLength?: number;
     rightIcon?: keyof typeof Ionicons.glyphMap;
 }
-
 export const AddressFormField = React.memo<AddressFormFieldProps>(
     ({
         label,
@@ -44,7 +42,6 @@ export const AddressFormField = React.memo<AddressFormFieldProps>(
         rightIcon,
     }) => {
         const [isFocused, setIsFocused] = useState(false);
-
         const handleFocus = useCallback(() => {
             if (onPress) {
                 onPress();
@@ -52,24 +49,20 @@ export const AddressFormField = React.memo<AddressFormFieldProps>(
                 setIsFocused(true);
             }
         }, [onPress]);
-
         const handleBlur = useCallback(() => {
             setIsFocused(false);
         }, []);
-
         const isPickerField = !!onPress;
         const hasError = !!error;
         const hasValue = value && value.trim().length > 0;
-
         return (
             <View style={styles.container}>
-                {/* Label */}
+                {}
                 <Text style={styles.label}>
                     {label}
                     {required && <Text style={styles.required}> *</Text>}
                 </Text>
-
-                {/* Input Container */}
+                {}
                 <TouchableOpacity
                     activeOpacity={isPickerField ? 0.6 : 1}
                     onPress={isPickerField ? onPress : undefined}
@@ -102,8 +95,7 @@ export const AddressFormField = React.memo<AddressFormFieldProps>(
                         keyboardType={keyboardType}
                         maxLength={maxLength}
                     />
-
-                    {/* Right Icon for Picker */}
+                    {}
                     {isPickerField && (
                         <Ionicons
                             name={rightIcon || "chevron-down"}
@@ -113,16 +105,14 @@ export const AddressFormField = React.memo<AddressFormFieldProps>(
                         />
                     )}
                 </TouchableOpacity>
-
-                {/* Error Message */}
+                {}
                 {hasError && (
                     <View style={styles.errorContainer}>
                         <Ionicons name="warning-outline" size={14} color="#EF4444" />
                         <Text style={styles.errorText}>{error}</Text>
                     </View>
                 )}
-
-                {/* Character Count (for multiline) */}
+                {}
                 {multiline && maxLength && hasValue && (
                     <Text style={styles.charCount}>
                         {value.length}/{maxLength}
@@ -132,9 +122,7 @@ export const AddressFormField = React.memo<AddressFormFieldProps>(
         );
     }
 );
-
 AddressFormField.displayName = "AddressFormField";
-
 const styles = StyleSheet.create({
     container: {
         marginBottom: 20,
@@ -239,4 +227,3 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
     },
 });
-

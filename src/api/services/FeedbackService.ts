@@ -1,16 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 import type { CreateFeedbackDTO } from '../models/CreateFeedbackDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class FeedbackService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1FeedbackFeedBackList({
         pageIndex = 1,
         pageSize = 10,
@@ -27,10 +21,7 @@ export class FeedbackService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1FeedbackCreateFeedback({
         requestBody,
     }: {
@@ -43,10 +34,7 @@ export class FeedbackService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1FeedbackUpdateFeedback({
         id,
         requestBody,
@@ -64,10 +52,7 @@ export class FeedbackService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1FeedbackUpdateFeedbackStatus({
         id,
     }: {
@@ -81,10 +66,7 @@ export class FeedbackService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1FeedbackFeedbackByProduct({
         productId,
     }: {
@@ -98,10 +80,7 @@ export class FeedbackService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1FeedbackFeedbackByOrder({
         orderId,
     }: {
@@ -115,10 +94,7 @@ export class FeedbackService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1FeedbackFeedbackByOrderDetail({
         orderDetailId,
     }: {

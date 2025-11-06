@@ -4,14 +4,12 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { CartItem } from "../../../types";
 import { formatCurrency } from "../../../shared/lib/utils";
-
 interface OrderSummaryCardProps {
     items: CartItem[];
     subtotal: number;
     total: number;
 }
 
-// Memoized order item row
 const OrderItemRow = memo<{ item: CartItem }>(({ item }) => (
     <View style={styles.itemRow}>
         <Image
@@ -31,9 +29,7 @@ const OrderItemRow = memo<{ item: CartItem }>(({ item }) => (
         <Text style={styles.itemPrice}>{formatCurrency(item.subtotal)}</Text>
     </View>
 ));
-
 OrderItemRow.displayName = "OrderItemRow";
-
 export const OrderSummaryCard = memo<OrderSummaryCardProps>(
     ({ items, subtotal, total }) => {
         return (
@@ -42,7 +38,6 @@ export const OrderSummaryCard = memo<OrderSummaryCardProps>(
                     <Ionicons name="receipt-outline" size={20} color="#00A86B" />
                     <Text style={styles.title}>Đơn Hàng</Text>
                 </View>
-
                 <FlatList
                     data={items}
                     keyExtractor={(item) => item.id}
@@ -51,14 +46,11 @@ export const OrderSummaryCard = memo<OrderSummaryCardProps>(
                     ItemSeparatorComponent={() => <View style={styles.separator} />}
                     contentContainerStyle={styles.listContent}
                 />
-
                 <View style={styles.divider} />
-
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Tạm tính</Text>
                     <Text style={styles.summaryValue}>{formatCurrency(subtotal)}</Text>
                 </View>
-
                 <View style={[styles.summaryRow, styles.totalRow]}>
                     <Text style={styles.totalLabel}>Tổng cộng</Text>
                     <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
@@ -67,9 +59,7 @@ export const OrderSummaryCard = memo<OrderSummaryCardProps>(
         );
     }
 );
-
 OrderSummaryCard.displayName = "OrderSummaryCard";
-
 const styles = StyleSheet.create({
     container: {
         backgroundColor: "#FFFFFF",
@@ -167,4 +157,3 @@ const styles = StyleSheet.create({
         color: "#00A86B",
     },
 });
-

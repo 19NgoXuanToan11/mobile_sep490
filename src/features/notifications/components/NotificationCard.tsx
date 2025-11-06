@@ -2,12 +2,10 @@ import React, { useCallback } from "react";
 import { View, Text, Pressable, Animated, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Notification } from "../../../shared/hooks";
-
 interface NotificationCardProps {
     notification: Notification;
     onPress: (notification: Notification) => void;
 }
-
 const ICON_CONFIG = {
     order: { icon: "bag-outline" as const, color: "#00A86B", bg: "#E6F7F0", label: "Đơn hàng" },
     promotion: { icon: "pricetag-outline" as const, color: "#F97316", bg: "#FFF7ED", label: "Khuyến mãi" },
@@ -15,30 +13,23 @@ const ICON_CONFIG = {
     delivery: { icon: "car-outline" as const, color: "#3B82F6", bg: "#EFF6FF", label: "Giao hàng" },
     system: { icon: "settings-outline" as const, color: "#6B7280", bg: "#F3F4F6", label: "Hệ thống" },
 };
-
 const formatRelativeTime = (timestamp: string): string => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-
     if (diffInMinutes < 1) return "Vừa xong";
     if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
-
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours} giờ trước`;
-
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays === 1) return "Hôm qua";
     if (diffInDays < 7) return `${diffInDays} ngày trước`;
-
     return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
 };
-
 export const NotificationCard = React.memo<NotificationCardProps>(
     ({ notification, onPress }) => {
         const scaleAnim = React.useRef(new Animated.Value(1)).current;
         const config = ICON_CONFIG[notification.type] || ICON_CONFIG.system;
-
         const handlePressIn = useCallback(() => {
             Animated.timing(scaleAnim, {
                 toValue: 0.97,
@@ -46,7 +37,6 @@ export const NotificationCard = React.memo<NotificationCardProps>(
                 useNativeDriver: true,
             }).start();
         }, [scaleAnim]);
-
         const handlePressOut = useCallback(() => {
             Animated.timing(scaleAnim, {
                 toValue: 1,
@@ -54,11 +44,9 @@ export const NotificationCard = React.memo<NotificationCardProps>(
                 useNativeDriver: true,
             }).start();
         }, [scaleAnim]);
-
         const handlePress = useCallback(() => {
             onPress(notification);
         }, [notification, onPress]);
-
         return (
             <Animated.View
                 style={[
@@ -75,14 +63,13 @@ export const NotificationCard = React.memo<NotificationCardProps>(
                     hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                 >
                     <View style={styles.content}>
-                        {/* Left Icon */}
+                        {}
                         <View style={[styles.iconContainer, { backgroundColor: config.bg }]}>
                             <Ionicons name={config.icon} size={20} color={config.color} />
                         </View>
-
-                        {/* Main Content */}
+                        {}
                         <View style={styles.mainContent}>
-                            {/* Top Row: Type Badge + Time */}
+                            {}
                             <View style={styles.topRow}>
                                 <View style={[styles.badge, { backgroundColor: config.bg }]}>
                                     <Text style={[styles.badgeText, { color: config.color }]}>
@@ -93,8 +80,7 @@ export const NotificationCard = React.memo<NotificationCardProps>(
                                     {formatRelativeTime(notification.timestamp)}
                                 </Text>
                             </View>
-
-                            {/* Title Row */}
+                            {}
                             <View style={styles.titleRow}>
                                 {!notification.isRead && <View style={styles.unreadDot} />}
                                 <Text
@@ -107,8 +93,7 @@ export const NotificationCard = React.memo<NotificationCardProps>(
                                     {notification.title}
                                 </Text>
                             </View>
-
-                            {/* Message */}
+                            {}
                             <Text
                                 style={[
                                     styles.message,
@@ -131,9 +116,7 @@ export const NotificationCard = React.memo<NotificationCardProps>(
         );
     }
 );
-
 NotificationCard.displayName = "NotificationCard";
-
 const styles = StyleSheet.create({
     container: {
         marginHorizontal: 16,
@@ -227,4 +210,3 @@ const styles = StyleSheet.create({
         color: "#9CA3AF",
     },
 });
-

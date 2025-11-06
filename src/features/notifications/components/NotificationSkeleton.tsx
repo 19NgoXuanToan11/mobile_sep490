@@ -1,9 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { View, Animated, StyleSheet } from "react-native";
-
 const SkeletonItem = () => {
     const shimmerAnim = useRef(new Animated.Value(0)).current;
-
     useEffect(() => {
         const animation = Animated.loop(
             Animated.sequence([
@@ -20,34 +18,28 @@ const SkeletonItem = () => {
             ])
         );
         animation.start();
-
         return () => animation.stop();
     }, [shimmerAnim]);
-
     const opacity = shimmerAnim.interpolate({
         inputRange: [0, 1],
         outputRange: [0.3, 0.7],
     });
-
     return (
         <View style={styles.container}>
             <View style={styles.content}>
-                {/* Icon Skeleton */}
+                {}
                 <Animated.View style={[styles.iconSkeleton, { opacity }]} />
-
-                {/* Content Skeleton */}
+                {}
                 <View style={styles.mainContent}>
-                    {/* Top Row */}
+                    {}
                     <View style={styles.topRow}>
                         <Animated.View style={[styles.badgeSkeleton, { opacity }]} />
                         <Animated.View style={[styles.timeSkeleton, { opacity }]} />
                     </View>
-
-                    {/* Title */}
+                    {}
                     <Animated.View style={[styles.titleSkeleton, { opacity }]} />
                     <Animated.View style={[styles.titleSkeletonShort, { opacity }]} />
-
-                    {/* Message */}
+                    {}
                     <Animated.View style={[styles.messageSkeleton, { opacity }]} />
                     <Animated.View style={[styles.messageSkeletonShort, { opacity }]} />
                 </View>
@@ -55,11 +47,9 @@ const SkeletonItem = () => {
         </View>
     );
 };
-
 interface NotificationSkeletonProps {
     count?: number;
 }
-
 export const NotificationSkeleton = React.memo<NotificationSkeletonProps>(
     ({ count = 3 }) => {
         return (
@@ -71,9 +61,7 @@ export const NotificationSkeleton = React.memo<NotificationSkeletonProps>(
         );
     }
 );
-
 NotificationSkeleton.displayName = "NotificationSkeleton";
-
 const styles = StyleSheet.create({
     container: {
         marginHorizontal: 16,
@@ -145,4 +133,3 @@ const styles = StyleSheet.create({
         width: "80%",
     },
 });
-

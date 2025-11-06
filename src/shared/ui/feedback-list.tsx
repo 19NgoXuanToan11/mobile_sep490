@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, FlatList } from "react-native";
 import { RatingStars } from "./rating-stars";
-
 export type FeedbackListItem = {
   id?: string;
   comment: string;
@@ -9,7 +8,6 @@ export type FeedbackListItem = {
   createdAt?: string;
   phone?: string;
 };
-
 export interface FeedbackListProps {
   data: FeedbackListItem[];
   isLoading?: boolean;
@@ -17,7 +15,6 @@ export interface FeedbackListProps {
   onEditPress?: (item: FeedbackListItem) => void;
   currentUserPhone?: string;
 }
-
 const Item = ({
   item,
   canEdit,
@@ -66,7 +63,6 @@ const Item = ({
     </View>
   );
 };
-
 export default function FeedbackList({
   data,
   isLoading,
@@ -81,7 +77,6 @@ export default function FeedbackList({
       </View>
     );
   }
-
   if (!data?.length) {
     return (
       <View className="bg-neutral-50 rounded-2xl p-4">
@@ -89,7 +84,6 @@ export default function FeedbackList({
       </View>
     );
   }
-
   return (
     <FlatList
       data={data}

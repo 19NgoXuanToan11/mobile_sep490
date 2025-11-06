@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
-
 const buttonVariants = cva(
   "flex-row items-center justify-center rounded-xl border font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
   {
@@ -53,7 +52,6 @@ const buttonVariants = cva(
     },
   }
 );
-
 const textVariants = cva("font-semibold", {
   variants: {
     variant: {
@@ -78,7 +76,6 @@ const textVariants = cva("font-semibold", {
     size: "md",
   },
 });
-
 export interface ButtonProps
   extends TouchableOpacityProps,
     VariantProps<typeof buttonVariants> {
@@ -88,7 +85,6 @@ export interface ButtonProps
   rightIcon?: React.ReactNode;
   iconOnly?: boolean;
 }
-
 export const Button: React.FC<ButtonProps> = ({
   title,
   variant,
@@ -104,7 +100,6 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const isDisabled = disabled || loading;
-
   const getIndicatorColor = () => {
     switch (variant) {
       case "secondary":
@@ -115,7 +110,6 @@ export const Button: React.FC<ButtonProps> = ({
         return "#ffffff";
     }
   };
-
   return (
     <TouchableOpacity
       className={cn(
@@ -133,11 +127,9 @@ export const Button: React.FC<ButtonProps> = ({
           style={{ marginRight: iconOnly ? 0 : 8 }}
         />
       )}
-
       {!loading && leftIcon && (
         <View className={iconOnly ? "" : "mr-2"}>{leftIcon}</View>
       )}
-
       {!iconOnly && (
         <Text
           className={cn(textVariants({ variant, size }), loading && "ml-2")}
@@ -145,7 +137,6 @@ export const Button: React.FC<ButtonProps> = ({
           {title}
         </Text>
       )}
-
       {!loading && rightIcon && (
         <View className={iconOnly ? "" : "ml-2"}>{rightIcon}</View>
       )}

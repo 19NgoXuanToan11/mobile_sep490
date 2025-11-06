@@ -1,16 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 import type { IOTRequest } from '../models/IOTRequest';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class DevicesService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1IotDevicesIotDevicesCreate({
         requestBody,
     }: {
@@ -23,10 +17,7 @@ export class DevicesService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1IotDevicesIotDevicesList({
         pageIndex = 1,
         pageSize = 10,
@@ -43,10 +34,7 @@ export class DevicesService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1IotDevicesIotDevicesById({
         id,
     }: {
@@ -60,10 +48,7 @@ export class DevicesService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1IotDevicesIotDevicesUpdateStatus({
         iotDevicesId,
         requestBody,
@@ -81,10 +66,7 @@ export class DevicesService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static patchApiV1IotDevicesIotDevicesUpdate({
         iotDevicesId,
         requestBody,

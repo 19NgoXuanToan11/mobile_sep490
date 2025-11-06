@@ -1,7 +1,4 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 import type { Gender } from './Gender';
 export type AccountForm = {
     email: string;
@@ -12,4 +9,3 @@ export type AccountForm = {
     address: string;
     images?: string | null;
 };
-

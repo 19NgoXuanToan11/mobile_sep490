@@ -2,7 +2,6 @@ import React from "react";
 import { View, Text, TouchableOpacity, ViewProps } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { cn } from "../lib/utils";
-
 export interface RatingStarsProps extends ViewProps {
   rating: number;
   maxRating?: number;
@@ -12,7 +11,6 @@ export interface RatingStarsProps extends ViewProps {
   showText?: boolean;
   textClassName?: string;
 }
-
 export const RatingStars: React.FC<RatingStarsProps> = ({
   rating,
   maxRating = 5,
@@ -28,12 +26,10 @@ export const RatingStars: React.FC<RatingStarsProps> = ({
     if (readonly || !onRatingChange) return;
     onRatingChange(starRating);
   };
-
   const renderStar = (starIndex: number) => {
     const starRating = starIndex + 1;
     const isFilled = starRating <= rating;
     const isHalfFilled = rating > starIndex && rating < starRating;
-
     if (readonly) {
       return (
         <Ionicons
@@ -44,7 +40,6 @@ export const RatingStars: React.FC<RatingStarsProps> = ({
         />
       );
     }
-
     return (
       <TouchableOpacity
         key={starIndex}
@@ -59,13 +54,11 @@ export const RatingStars: React.FC<RatingStarsProps> = ({
       </TouchableOpacity>
     );
   };
-
   return (
     <View className={cn("flex-row items-center", className)} {...props}>
       <View className="flex-row items-center space-x-1">
         {Array.from({ length: maxRating }).map((_, index) => renderStar(index))}
       </View>
-
       {showText && (
         <Text className={cn("ml-2 text-sm text-neutral-600", textClassName)}>
           {rating.toFixed(1)} / {maxRating}
@@ -74,13 +67,11 @@ export const RatingStars: React.FC<RatingStarsProps> = ({
     </View>
   );
 };
-
 export interface RatingDisplayProps extends ViewProps {
   rating: number;
   reviewCount?: number;
   size?: "sm" | "md" | "lg";
 }
-
 export const RatingDisplay: React.FC<RatingDisplayProps> = ({
   rating,
   reviewCount,
@@ -93,20 +84,16 @@ export const RatingDisplay: React.FC<RatingDisplayProps> = ({
     md: { starSize: 16, textSize: "text-sm" },
     lg: { starSize: 20, textSize: "text-base" },
   };
-
   const config = sizeConfig[size];
-
   return (
     <View
       className={cn("flex-row items-center space-x-1", className)}
       {...props}
     >
       <RatingStars rating={rating} size={config.starSize} readonly />
-
       <Text className={cn("font-medium text-neutral-900", config.textSize)}>
         {rating.toFixed(1)}
       </Text>
-
       {reviewCount !== undefined && (
         <Text className={cn("text-neutral-500", config.textSize)}>
           ({reviewCount.toLocaleString()})

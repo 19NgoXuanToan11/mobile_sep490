@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { create } from "zustand";
 import { cn } from "../lib/utils";
-
 export interface Toast {
   id: string;
   type: "success" | "error" | "warning" | "info";
@@ -11,14 +10,12 @@ export interface Toast {
   description?: string;
   duration?: number;
 }
-
 interface ToastStore {
   toasts: Toast[];
   addToast: (toast: Omit<Toast, "id">) => void;
   removeToast: (id: string) => void;
   clearAll: () => void;
 }
-
 export const useToastStore = create<ToastStore>((set, get) => ({
   toasts: [],
   addToast: (toast) => {
@@ -27,7 +24,6 @@ export const useToastStore = create<ToastStore>((set, get) => ({
       toasts: [...state.toasts, { ...toast, id }],
     }));
 
-    // Auto-remove after duration
     const duration = toast.duration ?? 5000;
     if (duration > 0) {
       setTimeout(() => {
@@ -44,10 +40,8 @@ export const useToastStore = create<ToastStore>((set, get) => ({
     set({ toasts: [] });
   },
 }));
-
 export const useToast = () => {
   const { addToast } = useToastStore();
-
   const toast = {
     success: (title: string, description?: string, duration?: number) =>
       addToast({ type: "success", title, description, duration }),
@@ -58,10 +52,8 @@ export const useToast = () => {
     info: (title: string, description?: string, duration?: number) =>
       addToast({ type: "info", title, description, duration }),
   };
-
   return toast;
 };
-
 const getToastStyles = (type: Toast["type"]) => {
   switch (type) {
     case "success":
@@ -99,14 +91,11 @@ const getToastStyles = (type: Toast["type"]) => {
       };
   }
 };
-
 export const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
   const { removeToast } = useToastStore();
   const slideAnim = React.useRef(new Animated.Value(-100)).current;
   const opacityAnim = React.useRef(new Animated.Value(0)).current;
-
   const styles = getToastStyles(toast.type);
-
   useEffect(() => {
     Animated.parallel([
       Animated.timing(slideAnim, {
@@ -121,7 +110,6 @@ export const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
       }),
     ]).start();
   }, []);
-
   const handleRemove = () => {
     Animated.parallel([
       Animated.timing(slideAnim, {
@@ -138,7 +126,6 @@ export const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
       removeToast(toast.id);
     });
   };
-
   return (
     <Animated.View
       style={{
@@ -156,7 +143,6 @@ export const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
           size={20}
           color={styles.iconColor}
         />
-
         <View className="flex-1">
           <Text className={cn("font-medium", styles.titleColor)}>
             {toast.title}
@@ -167,7 +153,6 @@ export const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
             </Text>
           )}
         </View>
-
         <TouchableOpacity onPress={handleRemove}>
           <Ionicons name="close" size={18} color="#6b7280" />
         </TouchableOpacity>
@@ -175,12 +160,9 @@ export const ToastItem: React.FC<{ toast: Toast }> = ({ toast }) => {
     </Animated.View>
   );
 };
-
 export const ToastProvider: React.FC = () => {
   const { toasts } = useToastStore();
-
   if (toasts.length === 0) return null;
-
   return (
     <View className="absolute top-safe-top left-0 right-0 z-50 pt-16">
       {toasts.map((toast) => (

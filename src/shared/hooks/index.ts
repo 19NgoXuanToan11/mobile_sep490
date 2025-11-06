@@ -8,7 +8,6 @@ import { User, CartItem, Cart } from "../../types";
 import { authStorage, storage, STORAGE_KEYS } from "../lib/storage";
 import { authApi, cartApi } from "../data/api";
 
-// Notification types
 export interface Notification {
   id: string;
   title: string;
@@ -20,7 +19,6 @@ export interface Notification {
   metadata?: Record<string, any>;
 }
 
-// Authentication hook
 interface AuthStore {
   user: User | null;
   isAuthenticated: boolean;
@@ -34,12 +32,10 @@ interface AuthStore {
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
-
 export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-
   login: async (email, password) => {
     try {
       const response = await authApi.login({ email, password });
@@ -50,21 +46,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           isLoading: false,
         });
 
-        // Sync guest cart to user cart after successful login
-        // Đồng bộ giỏ hàng khách đến giỏ hàng người dùng sau khi đăng nhập thành công
         setTimeout(() => {
           useCartStore.getState().syncGuestCartToUser();
         }, 500);
-
         return true;
       }
       return false;
     } catch (error) {
-      console.error("Login error:", error);
+
       return false;
     }
   },
-
   register: async (email, password, confirmPassword) => {
     try {
       const response = await authApi.register({
@@ -82,11 +74,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
       return false;
     } catch (error) {
-      console.error("Register error:", error);
+
       return false;
     }
   },
-
   logout: async () => {
     try {
       await authApi.logout();
@@ -96,14 +87,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         isLoading: false,
       });
 
-      // Clear cart when logging out
-      // Xóa giỏ hàng khi đăng xuất
       useCartStore.getState().clearCart();
     } catch (error) {
-      console.error("Logout error:", error);
+
     }
   },
-
   checkAuth: async () => {
     try {
       const token = await authStorage.getAccessToken();
@@ -111,7 +99,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         set({ isLoading: false });
         return;
       }
-
       const response = await authApi.getCurrentUser();
       if (response.success) {
         set({
@@ -124,23 +111,19 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         set({ isLoading: false });
       }
     } catch (error) {
-      console.error("Auth check error:", error);
+
       set({ isLoading: false });
     }
   },
 }));
-
 export const useAuth = () => {
   const store = useAuthStore();
-
   useEffect(() => {
     store.checkAuth();
   }, []);
-
   return store;
 };
 
-// Cart hook with Guest and User mode support
 interface CartStore {
   items: CartItem[];
   isLoading: boolean;
@@ -153,11 +136,9 @@ interface CartStore {
   toggleItemSelection: (itemId: string) => Promise<void>;
   toggleAllSelection: (selected: boolean) => Promise<void>;
 }
-
 export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
   isLoading: false,
-
   loadItems: async () => {
     try {
       set({ isLoading: true });
@@ -167,12 +148,11 @@ export const useCartStore = create<CartStore>((set, get) => ({
         set({ items: response.data });
       }
     } catch (error) {
-      console.error("Load cart items error:", error);
+
     } finally {
       set({ isLoading: false });
     }
   },
-
   addItem: async (productId, quantity = 1) => {
     try {
       const { isAuthenticated } = useAuthStore.getState();
@@ -185,26 +165,22 @@ export const useCartStore = create<CartStore>((set, get) => ({
         set({ items: response.data });
       }
     } catch (error) {
-      console.error("Add to cart error:", error);
+
     }
   },
-
   updateQuantity: async (itemId, quantity) => {
     try {
       const { isAuthenticated } = useAuthStore.getState();
-
       if (isAuthenticated) {
-        // For authenticated users, we need to get the productId from the cart item
-        // since backend expects productId, not cartItemId
+
         const currentItems = get().items;
         const item = currentItems.find((i) => i.id === itemId);
         if (!item) {
-          console.error("Cart item not found:", itemId);
+
           return;
         }
-
         const response = await cartApi.updateQuantity(
-          item.productId, // Pass productId instead of itemId
+          item.productId,
           quantity,
           isAuthenticated
         );
@@ -212,7 +188,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
           set({ items: response.data });
         }
       } else {
-        // Guest mode - use localStorage with itemId
+
         const response = await cartApi.updateQuantity(
           itemId,
           quantity,
@@ -223,24 +199,20 @@ export const useCartStore = create<CartStore>((set, get) => ({
         }
       }
     } catch (error) {
-      console.error("Update quantity error:", error);
+
     }
   },
-
   removeItem: async (itemId) => {
     try {
       const { isAuthenticated } = useAuthStore.getState();
-
       if (isAuthenticated) {
-        // For authenticated users, we need to get the productId from the cart item
-        // since backend expects productId, not cartItemId
+
         const currentItems = get().items;
         const item = currentItems.find((i) => i.id === itemId);
         if (!item) {
-          console.error("Cart item not found:", itemId);
+
           return;
         }
-
         const response = await cartApi.removeItem(
           item.productId,
           isAuthenticated
@@ -249,17 +221,16 @@ export const useCartStore = create<CartStore>((set, get) => ({
           set({ items: response.data });
         }
       } else {
-        // Guest mode - use localStorage with itemId
+
         const response = await cartApi.removeItem(itemId, isAuthenticated);
         if (response.success) {
           set({ items: response.data });
         }
       }
     } catch (error) {
-      console.error("Remove item error:", error);
+
     }
   },
-
   clearCart: async () => {
     try {
       const { isAuthenticated } = useAuthStore.getState();
@@ -268,53 +239,39 @@ export const useCartStore = create<CartStore>((set, get) => ({
         set({ items: [] });
       }
     } catch (error) {
-      console.error("Clear cart error:", error);
+
     }
   },
 
-  /**
-   * Sync guest cart (localStorage) to user cart (API) after login
-   * Đồng bộ giỏ hàng khách (localStorage) đến giỏ hàng người dùng (API) sau khi đăng nhập
-   */
   syncGuestCartToUser: async () => {
     try {
       const { isAuthenticated } = useAuthStore.getState();
-
       if (!isAuthenticated) {
         return;
       }
 
-      // Get guest cart from localStorage
       const guestCart =
         (await storage.getItem<CartItem[]>(STORAGE_KEYS.CART_ITEMS)) || [];
-
       if (guestCart.length === 0) {
         return;
       }
 
-      // Add each guest cart item to user cart via API
       for (const item of guestCart) {
         try {
           await cartApi.addItem(item.productId, item.quantity, true);
         } catch (error) {
-          console.error(`Failed to sync item ${item.productId}:`, error);
+
         }
       }
 
-      // Clear guest cart from localStorage
       await storage.removeItem(STORAGE_KEYS.CART_ITEMS);
 
-      // Reload cart items from API
       await get().loadItems();
     } catch (error) {
-      console.error("Sync guest cart error:", error);
+
     }
   },
 
-  /**
-   * Toggle selection state of a cart item
-   * Chuyển đổi trạng thái chọn của một sản phẩm trong giỏ hàng
-   */
   toggleItemSelection: async (itemId) => {
     try {
       const currentItems = get().items;
@@ -323,22 +280,16 @@ export const useCartStore = create<CartStore>((set, get) => ({
       );
       set({ items: updatedItems });
 
-      // Save to localStorage for guest mode
       const { isAuthenticated } = useAuthStore.getState();
       if (!isAuthenticated) {
         await storage.setItem(STORAGE_KEYS.CART_ITEMS, updatedItems);
       }
-      // Note: For authenticated users, we would need to add an API endpoint
-      // to save the selection state, but for now we'll only persist in localStorage
+
     } catch (error) {
-      console.error("Toggle item selection error:", error);
+
     }
   },
 
-  /**
-   * Toggle selection state of all cart items
-   * Chọn/bỏ chọn tất cả sản phẩm trong giỏ hàng
-   */
   toggleAllSelection: async (selected) => {
     try {
       const currentItems = get().items;
@@ -348,22 +299,19 @@ export const useCartStore = create<CartStore>((set, get) => ({
       }));
       set({ items: updatedItems });
 
-      // Save to localStorage for guest mode
       const { isAuthenticated } = useAuthStore.getState();
       if (!isAuthenticated) {
         await storage.setItem(STORAGE_KEYS.CART_ITEMS, updatedItems);
       }
     } catch (error) {
-      console.error("Toggle all selection error:", error);
+
     }
   },
 }));
-
 export const useCart = () => {
   const store = useCartStore();
-
   const cart = useMemo((): Cart => {
-    // Only count selected items for checkout
+
     const selectedItems = store.items.filter((item) => item.selected);
     const itemCount = selectedItems.reduce(
       (sum, item) => sum + item.quantity,
@@ -373,12 +321,11 @@ export const useCart = () => {
       (sum, item) => sum + item.subtotal,
       0
     );
-    const shippingFee = subtotal > 0 ? 25000 : 0; // Free shipping over 500k
-    const discount = 0; // TODO: Implement discount logic
+    const shippingFee = subtotal > 0 ? 25000 : 0;
+    const discount = 0;
     const total = subtotal + shippingFee - discount;
-
     return {
-      items: store.items, // Return all items for display
+      items: store.items,
       itemCount,
       subtotal,
       shippingFee,
@@ -386,11 +333,9 @@ export const useCart = () => {
       total,
     };
   }, [store.items]);
-
   useEffect(() => {
     store.loadItems();
   }, []);
-
   return {
     ...store,
     cart,
@@ -399,7 +344,6 @@ export const useCart = () => {
   };
 };
 
-// Notifications hook
 interface NotificationStore {
   notifications: Notification[];
   unreadCount: number;
@@ -409,26 +353,16 @@ interface NotificationStore {
   markAllAsRead: () => Promise<void>;
   addNotification: (notification: Omit<Notification, "id">) => void;
 }
-
 export const useNotificationStore = create<NotificationStore>()(
   persist(
     (set, get) => ({
       notifications: [],
       unreadCount: 0,
       isLoading: false,
-
       loadNotifications: async () => {
         try {
           set({ isLoading: true });
-          // TODO: Replace with actual API call
-          // const response = await notificationApi.getNotifications();
-          // if (response.success) {
-          //   const notifications = response.data;
-          //   const unreadCount = notifications.filter(n => !n.isRead).length;
-          //   set({ notifications, unreadCount });
-          // }
 
-          // Mock data for now
           const mockNotifications: Notification[] = [
             {
               id: "1",
@@ -473,20 +407,16 @@ export const useNotificationStore = create<NotificationStore>()(
               ).toISOString(),
             },
           ];
-
           const unreadCount = mockNotifications.filter((n) => !n.isRead).length;
           set({ notifications: mockNotifications, unreadCount });
         } catch (error) {
-          console.error("Load notifications error:", error);
+
         } finally {
           set({ isLoading: false });
         }
       },
-
       markAsRead: async (id: string) => {
         try {
-          // TODO: Replace with actual API call
-          // await notificationApi.markAsRead(id);
 
           const { notifications } = get();
           const updatedNotifications = notifications.map((notification) =>
@@ -497,37 +427,30 @@ export const useNotificationStore = create<NotificationStore>()(
           const unreadCount = updatedNotifications.filter(
             (n) => !n.isRead
           ).length;
-
           set({ notifications: updatedNotifications, unreadCount });
         } catch (error) {
-          console.error("Mark as read error:", error);
+
         }
       },
-
       markAllAsRead: async () => {
         try {
-          // TODO: Replace with actual API call
-          // await notificationApi.markAllAsRead();
 
           const { notifications } = get();
           const updatedNotifications = notifications.map((notification) => ({
             ...notification,
             isRead: true,
           }));
-
           set({ notifications: updatedNotifications, unreadCount: 0 });
         } catch (error) {
-          console.error("Mark all as read error:", error);
+
         }
       },
-
       addNotification: (notification: Omit<Notification, "id">) => {
         const { notifications, unreadCount } = get();
         const newNotification: Notification = {
           ...notification,
           id: Date.now().toString(),
         };
-
         set({
           notifications: [newNotification, ...notifications],
           unreadCount: notification.isRead ? unreadCount : unreadCount + 1,
@@ -540,53 +463,42 @@ export const useNotificationStore = create<NotificationStore>()(
     }
   )
 );
-
 export const useNotifications = () => {
   const store = useNotificationStore();
-
   useEffect(() => {
     store.loadNotifications();
   }, []);
-
   return store;
 };
 
-// Debounce hook
 export const useDebounce = <T>(value: T, delay: number): T => {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
-
     return () => {
       clearTimeout(handler);
     };
   }, [value, delay]);
-
   return debouncedValue;
 };
 
-// Preferences hook
 interface PreferencesStore {
   language: string;
   lastActiveTab: string;
   setLanguage: (language: string) => Promise<void>;
   setLastActiveTab: (tab: string) => Promise<void>;
 }
-
 export const usePreferencesStore = create<PreferencesStore>()(
   persist(
     (set) => ({
       language: "vi",
       lastActiveTab: "home",
-
       setLanguage: async (language) => {
         set({ language });
         await storage.setItem(STORAGE_KEYS.LANGUAGE, language);
       },
-
       setLastActiveTab: async (tab) => {
         set({ lastActiveTab: tab });
         await storage.setItem(STORAGE_KEYS.LAST_ACTIVE_TAB, tab);
@@ -598,13 +510,10 @@ export const usePreferencesStore = create<PreferencesStore>()(
     }
   )
 );
-
 export const usePreferences = () => usePreferencesStore();
 
-// Loading state hook
 export const useLoading = (initialState = false) => {
   const [isLoading, setIsLoading] = useState(initialState);
-
   const withLoading = useCallback(
     async <T>(fn: () => Promise<T>): Promise<T | undefined> => {
       try {
@@ -612,7 +521,7 @@ export const useLoading = (initialState = false) => {
         const result = await fn();
         return result;
       } catch (error) {
-        console.error("Loading error:", error);
+
         return undefined;
       } finally {
         setIsLoading(false);
@@ -620,7 +529,6 @@ export const useLoading = (initialState = false) => {
     },
     []
   );
-
   return {
     isLoading,
     setIsLoading,
@@ -628,13 +536,11 @@ export const useLoading = (initialState = false) => {
   };
 };
 
-// Async state hook
 interface AsyncState<T> {
   data: T | null;
   isLoading: boolean;
   error: string | null;
 }
-
 export const useAsync = <T>(
   asyncFunction: () => Promise<T>,
   deps: any[] = []
@@ -644,10 +550,8 @@ export const useAsync = <T>(
     isLoading: true,
     error: null,
   });
-
   const execute = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
     try {
       const data = await asyncFunction();
       setState({ data, isLoading: false, error: null });
@@ -659,22 +563,18 @@ export const useAsync = <T>(
       });
     }
   }, deps);
-
   useEffect(() => {
     execute();
   }, deps);
-
   return {
     ...state,
     refetch: execute,
   };
 };
 
-// Localization hook (wrapper around useTranslation)
 export const useLocalization = () => {
   const { t, i18n } = useTranslation();
   const { language, setLanguage } = usePreferences();
-
   const changeLanguage = useCallback(
     async (lang: string) => {
       await setLanguage(lang);
@@ -682,7 +582,6 @@ export const useLocalization = () => {
     },
     [i18n, setLanguage]
   );
-
   return {
     t,
     language: i18n.language,
@@ -691,37 +590,31 @@ export const useLocalization = () => {
   };
 };
 
-// Enhanced auth actions with query cache management
 export const useAuthActions = () => {
   const queryClient = useQueryClient();
   const authStore = useAuthStore();
-
   const logoutWithCacheInvalidation = useCallback(async () => {
     try {
-      // Perform the logout
+
       await authStore.logout();
 
-      // Invalidate all product-related queries to ensure fresh data for guest users
       await queryClient.invalidateQueries({ queryKey: ["products"] });
       await queryClient.invalidateQueries({ queryKey: ["featured-products"] });
       await queryClient.invalidateQueries({ queryKey: ["trending-products"] });
       await queryClient.invalidateQueries({ queryKey: ["categories"] });
       await queryClient.invalidateQueries({ queryKey: ["banners"] });
 
-      // Clear any stale product data
       queryClient.removeQueries({ queryKey: ["products"], exact: false });
       queryClient.removeQueries({ queryKey: ["featured-products"] });
       queryClient.removeQueries({ queryKey: ["trending-products"] });
     } catch (error) {
-      console.error("Logout with cache invalidation error:", error);
+
     }
   }, [authStore, queryClient]);
-
   return {
     ...authStore,
     logout: logoutWithCacheInvalidation,
   };
 };
 
-// Export province data hook
 export { useProvinceData } from "./useProvinceData";

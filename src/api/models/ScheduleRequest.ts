@@ -1,7 +1,4 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 export type ScheduleRequest = {
     startDate: string;
     endDate: string;
@@ -13,4 +10,3 @@ export type ScheduleRequest = {
     location?: string | null;
     quantity: number;
 };
-

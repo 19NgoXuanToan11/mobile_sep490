@@ -1,16 +1,10 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 import type { ScheduleRequest } from '../models/ScheduleRequest';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class ScheduleService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1ScheduleScheduleCreate({
         requestBody,
     }: {
@@ -23,10 +17,7 @@ export class ScheduleService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1ScheduleScheduleAssignStaff({
         scheduleId,
         requestBody,
@@ -44,10 +35,7 @@ export class ScheduleService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1ScheduleScheduleList({
         pageIndex = 1,
         pageSize = 10,
@@ -64,10 +52,7 @@ export class ScheduleService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1ScheduleScheduleById({
         id,
     }: {
@@ -81,10 +66,7 @@ export class ScheduleService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1ScheduleScheduleUpdateStatus({
         scheduleId,
         requestBody,
@@ -102,10 +84,7 @@ export class ScheduleService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1ScheduleScheduleUpdate({
         scheduleId,
         requestBody,
@@ -123,10 +102,7 @@ export class ScheduleService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1ScheduleScheduleByStaff({
         month,
     }: {

@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-
 export const NotificationHeader = React.memo(() => {
     return (
         <View style={styles.container}>
@@ -10,9 +9,7 @@ export const NotificationHeader = React.memo(() => {
         </View>
     );
 });
-
 NotificationHeader.displayName = "NotificationHeader";
-
 const styles = StyleSheet.create({
     container: {
         backgroundColor: "#FFFFFF",
@@ -32,4 +29,3 @@ const styles = StyleSheet.create({
         color: "#111827",
     },
 });
-

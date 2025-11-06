@@ -14,7 +14,6 @@ import Animated, {
     withSpring,
     withTiming,
 } from "react-native-reanimated";
-
 interface ConfirmDialogProps {
     visible: boolean;
     title: string;
@@ -25,7 +24,6 @@ interface ConfirmDialogProps {
     onConfirm: () => void;
     onCancel: () => void;
 }
-
 export const ConfirmDialog = React.memo<ConfirmDialogProps>(
     ({
         visible,
@@ -39,15 +37,12 @@ export const ConfirmDialog = React.memo<ConfirmDialogProps>(
     }) => {
         const backdropOpacity = useSharedValue(0);
         const translateY = useSharedValue(300);
-
         const backdropStyle = useAnimatedStyle(() => ({
             opacity: backdropOpacity.value,
         }));
-
         const sheetStyle = useAnimatedStyle(() => ({
             transform: [{ translateY: translateY.value }],
         }));
-
         useEffect(() => {
             if (visible) {
                 backdropOpacity.value = withTiming(1, { duration: 200 });
@@ -60,17 +55,13 @@ export const ConfirmDialog = React.memo<ConfirmDialogProps>(
                 translateY.value = withTiming(300, { duration: 200 });
             }
         }, [visible]);
-
         const handleConfirm = useCallback(() => {
             onConfirm();
         }, [onConfirm]);
-
         const handleCancel = useCallback(() => {
             onCancel();
         }, [onCancel]);
-
         if (!visible) return null;
-
         return (
             <Modal
                 visible={visible}
@@ -83,17 +74,14 @@ export const ConfirmDialog = React.memo<ConfirmDialogProps>(
                     <Animated.View style={[styles.backdrop, backdropStyle]}>
                         <Pressable style={styles.backdropPressable} onPress={onCancel} />
                     </Animated.View>
-
                     <Animated.View style={[styles.sheet, sheetStyle]}>
-                        {/* Handle Bar */}
+                        {}
                         <View style={styles.handleBar} />
-
-                        {/* Content */}
+                        {}
                         <View style={styles.content}>
                             <Text style={styles.title}>{title}</Text>
                             <Text style={styles.message}>{message}</Text>
-
-                            {/* Actions */}
+                            {}
                             <View style={styles.actions}>
                                 <TouchableOpacity
                                     onPress={handleCancel}
@@ -102,7 +90,6 @@ export const ConfirmDialog = React.memo<ConfirmDialogProps>(
                                 >
                                     <Text style={styles.cancelButtonText}>{cancelText}</Text>
                                 </TouchableOpacity>
-
                                 <TouchableOpacity
                                     onPress={handleConfirm}
                                     style={[
@@ -123,9 +110,7 @@ export const ConfirmDialog = React.memo<ConfirmDialogProps>(
         );
     }
 );
-
 ConfirmDialog.displayName = "ConfirmDialog";
-
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
@@ -212,4 +197,3 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
     },
 });
-

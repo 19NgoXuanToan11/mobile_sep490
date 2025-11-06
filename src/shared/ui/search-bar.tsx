@@ -3,7 +3,6 @@ import { View, TextInput, TouchableOpacity, ViewProps } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
-
 const searchBarVariants = cva(
   "flex-row items-center bg-white border border-neutral-200 rounded-xl px-4 shadow-sm h-12",
   {
@@ -30,7 +29,6 @@ const searchBarVariants = cva(
     },
   }
 );
-
 export interface SearchBarProps
   extends ViewProps,
     VariantProps<typeof searchBarVariants> {
@@ -45,7 +43,6 @@ export interface SearchBarProps
   autoFocus?: boolean;
   editable?: boolean;
 }
-
 export const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = "Tìm kiếm sản phẩm...",
   value,
@@ -64,27 +61,22 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-
   const handleFocus = () => {
     setIsFocused(true);
     onFocus?.();
   };
-
   const handleBlur = () => {
     setIsFocused(false);
     onBlur?.();
   };
-
   const handleSubmit = () => {
     if (value && onSubmit) {
       onSubmit(value);
     }
   };
-
   const handleClear = () => {
     onChangeText?.("");
   };
-
   return (
     <View
       className={cn(
@@ -94,7 +86,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       )}
       {...props}
     >
-      {/* Search Icon */}
+      {}
       <View className="items-center justify-center w-6 h-6">
         <Ionicons
           name="search-outline"
@@ -102,8 +94,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           color={isFocused ? "#00623A" : "#6b7280"}
         />
       </View>
-
-      {/* Text Input */}
+      {}
       <TextInput
         className="flex-1 ml-3 text-base text-neutral-900"
         placeholder={placeholder}
@@ -128,8 +119,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           fontSize: 16,
         }}
       />
-
-      {/* Clear Button */}
+      {}
       {value && value.length > 0 && (
         <TouchableOpacity
           onPress={handleClear}
@@ -139,8 +129,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           <Ionicons name="close-circle" size={18} color="#9ca3af" />
         </TouchableOpacity>
       )}
-
-      {/* Filter Button */}
+      {}
       {showFilter && (
         <TouchableOpacity
           onPress={onFilterPress}

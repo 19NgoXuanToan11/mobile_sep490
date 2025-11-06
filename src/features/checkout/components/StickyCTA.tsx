@@ -3,18 +3,15 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "rea
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-
 interface StickyCTAProps {
     isEnabled: boolean;
     isLoading: boolean;
     onPress: () => void;
     disabledMessage?: string;
 }
-
 export const StickyCTA = memo<StickyCTAProps>(
     ({ isEnabled, isLoading, onPress, disabledMessage }) => {
         const insets = useSafeAreaInsets();
-
         if (!isEnabled) {
             return (
                 <View
@@ -32,7 +29,6 @@ export const StickyCTA = memo<StickyCTAProps>(
                 </View>
             );
         }
-
         return (
             <View
                 style={[
@@ -66,9 +62,7 @@ export const StickyCTA = memo<StickyCTAProps>(
         );
     }
 );
-
 StickyCTA.displayName = "StickyCTA";
-
 const styles = StyleSheet.create({
     container: {
         position: "absolute",
@@ -124,4 +118,3 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
     },
 });
-

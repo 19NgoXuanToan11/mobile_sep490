@@ -12,51 +12,41 @@ import Animated, {
     useAnimatedStyle,
     withSpring,
 } from "react-native-reanimated";
-
 interface EmptyAddressStateProps {
     onAddAddress: () => void;
 }
-
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
 export const EmptyAddressState = React.memo<EmptyAddressStateProps>(
     ({ onAddAddress }) => {
         const scale = useSharedValue(1);
-
         const animatedStyle = useAnimatedStyle(() => ({
             transform: [{ scale: scale.value }],
         }));
-
         const handlePressIn = useCallback(() => {
             scale.value = withSpring(0.96, {
                 damping: 15,
                 stiffness: 400,
             });
         }, []);
-
         const handlePressOut = useCallback(() => {
             scale.value = withSpring(1, {
                 damping: 15,
                 stiffness: 400,
             });
         }, []);
-
         const handlePress = useCallback(() => {
             handlePressOut();
             onAddAddress();
         }, [onAddAddress]);
-
         return (
             <View style={styles.container}>
                 <View style={styles.iconContainer}>
                     <Ionicons name="home-outline" size={56} color="#D1D5DB" />
                 </View>
-
                 <Text style={styles.title}>Chưa có địa chỉ nào</Text>
                 <Text style={styles.subtitle}>
                     Thêm địa chỉ để thuận tiện hơn khi đặt hàng
                 </Text>
-
                 <AnimatedTouchable
                     onPress={handlePress}
                     onPressIn={handlePressIn}
@@ -70,9 +60,7 @@ export const EmptyAddressState = React.memo<EmptyAddressStateProps>(
         );
     }
 );
-
 EmptyAddressState.displayName = "EmptyAddressState";
-
 const styles = StyleSheet.create({
     container: {
         alignItems: "center",
@@ -127,4 +115,3 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
     },
 });
-

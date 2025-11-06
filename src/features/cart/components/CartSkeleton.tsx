@@ -1,9 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { View, Animated } from "react-native";
-
 const ShimmerBlock = ({ width, height, borderRadius = 8 }: any) => {
     const shimmerAnim = useRef(new Animated.Value(0)).current;
-
     useEffect(() => {
         Animated.loop(
             Animated.sequence([
@@ -20,12 +18,10 @@ const ShimmerBlock = ({ width, height, borderRadius = 8 }: any) => {
             ])
         ).start();
     }, [shimmerAnim]);
-
     const opacity = shimmerAnim.interpolate({
         inputRange: [0, 1],
         outputRange: [0.3, 0.7],
     });
-
     return (
         <Animated.View
             style={{
@@ -38,7 +34,6 @@ const ShimmerBlock = ({ width, height, borderRadius = 8 }: any) => {
         />
     );
 };
-
 const CartItemSkeleton = () => (
     <View
         style={{
@@ -54,20 +49,18 @@ const CartItemSkeleton = () => (
             elevation: 2,
         }}
     >
-        {/* Main Content */}
+        {}
         <View style={{ flexDirection: "row", gap: 12 }}>
-            {/* Image Placeholder */}
+            {}
             <ShimmerBlock width={64} height={64} borderRadius={10} />
-
-            {/* Info Placeholder */}
+            {}
             <View style={{ flex: 1, gap: 8 }}>
                 <ShimmerBlock width="80%" height={16} borderRadius={8} />
                 <ShimmerBlock width="60%" height={14} borderRadius={8} />
                 <ShimmerBlock width="40%" height={12} borderRadius={8} />
             </View>
         </View>
-
-        {/* Divider */}
+        {}
         <View
             style={{
                 height: 1,
@@ -75,8 +68,7 @@ const CartItemSkeleton = () => (
                 marginVertical: 16,
             }}
         />
-
-        {/* Bottom Controls Placeholder */}
+        {}
         <View
             style={{
                 flexDirection: "row",
@@ -89,7 +81,6 @@ const CartItemSkeleton = () => (
         </View>
     </View>
 );
-
 export const CartSkeleton = () => {
     return (
         <View style={{ paddingVertical: 20 }}>
@@ -99,4 +90,3 @@ export const CartSkeleton = () => {
         </View>
     );
 };
-

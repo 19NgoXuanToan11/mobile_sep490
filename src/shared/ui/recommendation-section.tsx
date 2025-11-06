@@ -4,7 +4,6 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { appleDesign } from "../lib/theme";
-
 interface RecommendationItem {
     id: string;
     title: string;
@@ -13,7 +12,6 @@ interface RecommendationItem {
     icon?: string;
     color?: string;
 }
-
 interface RecommendationSectionProps {
     title: string;
     emoji?: string;
@@ -21,7 +19,6 @@ interface RecommendationSectionProps {
     onItemPress?: (item: RecommendationItem) => void;
     onSeeAll?: () => void;
 }
-
 export const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     title,
     emoji = "🌱",
@@ -30,7 +27,6 @@ export const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     onSeeAll,
 }) => {
     const fadeAnim = React.useRef(new Animated.Value(0)).current;
-
     React.useEffect(() => {
         Animated.timing(fadeAnim, {
             toValue: 1,
@@ -38,11 +34,10 @@ export const RecommendationSection: React.FC<RecommendationSectionProps> = ({
             useNativeDriver: true,
         }).start();
     }, []);
-
     return (
         <Animated.View style={{ opacity: fadeAnim }}>
             <View className="mb-6">
-                {/* Section Header */}
+                {}
                 <View className="flex-row items-center justify-between mb-4 px-5">
                     <View className="flex-row items-center gap-2">
                         <Text style={{ fontSize: appleDesign.typography.title3.fontSize }}>
@@ -80,8 +75,7 @@ export const RecommendationSection: React.FC<RecommendationSectionProps> = ({
                         </TouchableOpacity>
                     )}
                 </View>
-
-                {/* Horizontal Scroll Cards */}
+                {}
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -103,13 +97,11 @@ export const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         </Animated.View>
     );
 };
-
 interface RecommendationCardProps {
     item: RecommendationItem;
     index: number;
     onPress?: () => void;
 }
-
 const RecommendationCard: React.FC<RecommendationCardProps> = ({
     item,
     index,
@@ -117,7 +109,6 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
 }) => {
     const scaleAnim = React.useRef(new Animated.Value(1)).current;
     const fadeAnim = React.useRef(new Animated.Value(0)).current;
-
     React.useEffect(() => {
         Animated.spring(fadeAnim, {
             toValue: 1,
@@ -127,7 +118,6 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
             friction: 7,
         }).start();
     }, [index]);
-
     const handlePressIn = () => {
         Animated.spring(scaleAnim, {
             toValue: 0.95,
@@ -136,7 +126,6 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
             bounciness: 4,
         }).start();
     };
-
     const handlePressOut = () => {
         Animated.spring(scaleAnim, {
             toValue: 1,
@@ -145,7 +134,6 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
             bounciness: 4,
         }).start();
     };
-
     return (
         <Animated.View
             style={{
@@ -174,7 +162,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
                         ...appleDesign.shadows.soft,
                     }}
                 >
-                    {/* Image or Icon Area */}
+                    {}
                     <View className="relative w-full h-24 bg-neutral-100">
                         {item.image ? (
                             <Image
@@ -198,8 +186,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
                             </LinearGradient>
                         )}
                     </View>
-
-                    {/* Content */}
+                    {}
                     <View className="p-3">
                         <Text
                             className="font-semibold mb-1"
@@ -230,4 +217,3 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({
         </Animated.View>
     );
 };
-

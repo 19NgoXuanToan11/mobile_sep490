@@ -9,7 +9,6 @@ import {
     Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 interface FormInputProps extends TextInputProps {
     label: string;
     icon?: keyof typeof Ionicons.glyphMap;
@@ -17,7 +16,6 @@ interface FormInputProps extends TextInputProps {
     required?: boolean;
     disabled?: boolean;
 }
-
 export const FormInput = React.memo(
     forwardRef<TextInput, FormInputProps>(
         (
@@ -35,7 +33,6 @@ export const FormInput = React.memo(
         ) => {
             const [isFocused, setIsFocused] = useState(false);
             const borderColor = new Animated.Value(0);
-
             const handleFocus = () => {
                 setIsFocused(true);
                 Animated.timing(borderColor, {
@@ -44,7 +41,6 @@ export const FormInput = React.memo(
                     useNativeDriver: false,
                 }).start();
             };
-
             const handleBlur = () => {
                 setIsFocused(false);
                 Animated.timing(borderColor, {
@@ -53,23 +49,20 @@ export const FormInput = React.memo(
                     useNativeDriver: false,
                 }).start();
             };
-
             const animatedBorderColor = borderColor.interpolate({
                 inputRange: [0, 1],
                 outputRange: error ? ["#FCA5A5", "#EF4444"] : ["#E5E7EB", "#00A86B"],
             });
-
             return (
                 <View style={styles.container}>
-                    {/* Label */}
+                    {}
                     <View style={styles.labelContainer}>
                         <Text style={styles.label}>
                             {label}
                             {required && <Text style={styles.required}>*</Text>}
                         </Text>
                     </View>
-
-                    {/* Input Container */}
+                    {}
                     <Animated.View
                         style={[
                             styles.inputContainer,
@@ -79,7 +72,7 @@ export const FormInput = React.memo(
                             error && styles.errorContainer,
                         ]}
                     >
-                        {/* Icon */}
+                        {}
                         {icon && (
                             <View style={styles.iconContainer}>
                                 <Ionicons
@@ -89,8 +82,7 @@ export const FormInput = React.memo(
                                 />
                             </View>
                         )}
-
-                        {/* Input */}
+                        {}
                         <TextInput
                             ref={ref}
                             style={[
@@ -108,8 +100,7 @@ export const FormInput = React.memo(
                             {...textInputProps}
                         />
                     </Animated.View>
-
-                    {/* Error Message */}
+                    {}
                     {error && (
                         <View style={styles.errorMessageContainer}>
                             <Ionicons
@@ -126,9 +117,7 @@ export const FormInput = React.memo(
         }
     )
 );
-
 FormInput.displayName = "FormInput";
-
 const styles = StyleSheet.create({
     container: {
         marginBottom: 20,
@@ -217,4 +206,3 @@ const styles = StyleSheet.create({
         letterSpacing: 0.1,
     },
 });
-

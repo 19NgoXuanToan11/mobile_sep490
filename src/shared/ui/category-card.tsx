@@ -8,7 +8,6 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 import { appleDesign } from "../lib/theme";
 import { Card } from "./card";
-
 const categoryCardVariants = cva("", {
   variants: {
     size: {
@@ -26,7 +25,6 @@ const categoryCardVariants = cva("", {
     layout: "vertical",
   },
 });
-
 export interface CategoryCardProps
   extends VariantProps<typeof categoryCardVariants> {
   category: {
@@ -41,7 +39,6 @@ export interface CategoryCardProps
   showCount?: boolean;
   className?: string;
 }
-
 export const CategoryCard: React.FC<CategoryCardProps> = ({
   category,
   size,
@@ -55,10 +52,8 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   const containerSize =
     size === "sm" ? "w-16 h-16" : size === "md" ? "w-20 h-20" : "w-24 h-24";
 
-  // Apple-style animations
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-
   React.useEffect(() => {
     Animated.spring(fadeAnim, {
       toValue: 1,
@@ -67,7 +62,6 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       friction: 7,
     }).start();
   }, []);
-
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
       toValue: 0.94,
@@ -76,7 +70,6 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       bounciness: 4,
     }).start();
   };
-
   const handlePressOut = () => {
     Animated.spring(scaleAnim, {
       toValue: 1,
@@ -85,7 +78,6 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       bounciness: 4,
     }).start();
   };
-
   const renderIcon = () => {
     if (category.image) {
       return (
@@ -104,9 +96,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
         </View>
       );
     }
-
     const iconName = category.icon || "leaf-outline";
-
     return (
       <View
         className={cn("overflow-hidden", containerSize)}
@@ -115,7 +105,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
           ...appleDesign.shadows.medium,
         }}
       >
-        {/* Glass morphism background */}
+        {}
         <LinearGradient
           colors={["rgba(0,168,107,0.12)", "rgba(0,168,107,0.08)"]}
           start={{ x: 0, y: 0 }}
@@ -136,7 +126,6 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       </View>
     );
   };
-
   return (
     <Animated.View
       style={{
@@ -166,7 +155,6 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
           )}
         >
           {renderIcon()}
-
           <View
             className={cn(
               "items-center",
@@ -190,7 +178,6 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
             >
               {category.name}
             </Text>
-
             {showCount && category.count !== undefined && (
               <Text
                 className="mt-1"

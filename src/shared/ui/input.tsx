@@ -10,7 +10,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
-
 const inputVariants = cva(
   "border rounded-lg px-3 py-3 text-base bg-white text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
   {
@@ -34,7 +33,6 @@ const inputVariants = cva(
     },
   }
 );
-
 export interface InputProps
   extends Omit<TextInputProps, "size">,
     VariantProps<typeof inputVariants> {
@@ -48,7 +46,6 @@ export interface InputProps
   multiline?: boolean;
   numberOfLines?: number;
 }
-
 export const Input = forwardRef<TextInput, InputProps>(
   (
     {
@@ -73,7 +70,6 @@ export const Input = forwardRef<TextInput, InputProps>(
       !secureTextEntry
     );
     const [isFocused, setIsFocused] = useState(false);
-
     const finalVariant = error ? "error" : success ? "success" : variant;
     const isPassword = secureTextEntry;
     const showPasswordIcon = isPassword;
@@ -82,7 +78,6 @@ export const Input = forwardRef<TextInput, InputProps>(
         ? "eye-off"
         : "eye"
       : rightIcon;
-
     const handleRightIconPress = useCallback(() => {
       if (showPasswordIcon) {
         setIsPasswordVisible(!isPasswordVisible);
@@ -90,7 +85,6 @@ export const Input = forwardRef<TextInput, InputProps>(
         onRightIconPress();
       }
     }, [showPasswordIcon, isPasswordVisible, onRightIconPress]);
-
     const handleFocus = useCallback(
       (e: any) => {
         setIsFocused(true);
@@ -98,7 +92,6 @@ export const Input = forwardRef<TextInput, InputProps>(
       },
       [props.onFocus]
     );
-
     const handleBlur = useCallback(
       (e: any) => {
         setIsFocused(false);
@@ -106,7 +99,6 @@ export const Input = forwardRef<TextInput, InputProps>(
       },
       [props.onBlur]
     );
-
     return (
       <View className="w-full">
         {label && (
@@ -115,7 +107,6 @@ export const Input = forwardRef<TextInput, InputProps>(
             {required && <Text className="text-error-500 ml-1">*</Text>}
           </Text>
         )}
-
         <View className="relative">
           {leftIcon && (
             <View
@@ -130,7 +121,6 @@ export const Input = forwardRef<TextInput, InputProps>(
               <Ionicons name={leftIcon} size={20} color="#6b7280" />
             </View>
           )}
-
           <TextInput
             ref={ref}
             className={cn(
@@ -207,7 +197,6 @@ export const Input = forwardRef<TextInput, InputProps>(
               props.style,
             ]}
           />
-
           {(finalRightIcon || showPasswordIcon) && (
             <TouchableOpacity
               className="absolute right-3 items-center justify-center"
@@ -224,9 +213,7 @@ export const Input = forwardRef<TextInput, InputProps>(
             </TouchableOpacity>
           )}
         </View>
-
         {error && <Text className="text-sm text-error-500 mt-1">{error}</Text>}
-
         {success && !error && (
           <Text className="text-sm text-success-500 mt-1">{success}</Text>
         )}

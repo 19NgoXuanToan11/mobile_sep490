@@ -1,10 +1,8 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
 export function formatCurrency(
   amount: number,
   locale = "vi-VN",
@@ -17,11 +15,9 @@ export function formatCurrency(
     maximumFractionDigits: 0,
   }).format(amount);
 }
-
 export function formatNumber(num: number, locale = "vi-VN") {
   return new Intl.NumberFormat(locale).format(num);
 }
-
 export function formatDate(
   date: string | Date,
   options: Intl.DateTimeFormatOptions = {
@@ -34,12 +30,10 @@ export function formatDate(
   const dateObj = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat(locale, options).format(dateObj);
 }
-
 export function formatRelativeTime(date: string | Date, locale = "vi-VN") {
   const dateObj = typeof date === "string" ? new Date(date) : date;
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
-
   const intervals = [
     { label: "year", seconds: 31536000 },
     { label: "month", seconds: 2592000 },
@@ -47,7 +41,6 @@ export function formatRelativeTime(date: string | Date, locale = "vi-VN") {
     { label: "hour", seconds: 3600 },
     { label: "minute", seconds: 60 },
   ];
-
   for (const interval of intervals) {
     const count = Math.floor(diffInSeconds / interval.seconds);
     if (count > 0) {
@@ -57,15 +50,12 @@ export function formatRelativeTime(date: string | Date, locale = "vi-VN") {
       );
     }
   }
-
   return "just now";
 }
-
 export function truncateText(text: string, maxLength: number) {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength) + "...";
 }
-
 export function generateId(prefix = "") {
   const timestamp = Date.now().toString(36);
   const randomPart = Math.random().toString(36).substr(2, 5);
@@ -73,7 +63,6 @@ export function generateId(prefix = "") {
     ? `${prefix}_${timestamp}_${randomPart}`
     : `${timestamp}_${randomPart}`;
 }
-
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   delay: number
@@ -84,7 +73,6 @@ export function debounce<T extends (...args: any[]) => any>(
     timeoutId = setTimeout(() => func(...args), delay);
   };
 }
-
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
   limit: number
@@ -98,7 +86,6 @@ export function throttle<T extends (...args: any[]) => any>(
     }
   };
 }
-
 export function calculateDiscount(
   originalPrice: number,
   discountedPrice: number
@@ -106,7 +93,6 @@ export function calculateDiscount(
   if (originalPrice <= 0 || discountedPrice >= originalPrice) return 0;
   return Math.round(((originalPrice - discountedPrice) / originalPrice) * 100);
 }
-
 export function getStockStatus(stock: number): {
   status: "in_stock" | "low_stock" | "out_of_stock";
   text: string;
@@ -119,7 +105,6 @@ export function getStockStatus(stock: number): {
       color: "text-error-500",
     };
   }
-
   if (stock < 10) {
     return {
       status: "low_stock",
@@ -127,25 +112,21 @@ export function getStockStatus(stock: number): {
       color: "text-warning-500",
     };
   }
-
   return {
     status: "in_stock",
     text: "Còn hàng",
     color: "text-success-500",
   };
 }
-
 export function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
-
 export function validatePhone(phone: string): boolean {
-  // Vietnamese phone number format
+
   const phoneRegex = /^(?:\+84|0)[3|5|7|8|9][0-9]{8}$/;
   return phoneRegex.test(phone.replace(/\s/g, ""));
 }
-
 export function formatPhone(phone: string): string {
   const cleaned = phone.replace(/\D/g, "");
   if (cleaned.startsWith("84")) {
@@ -156,7 +137,6 @@ export function formatPhone(phone: string): string {
   }
   return `0${cleaned}`;
 }
-
 export function getOrderStatusColor(status: string): string {
   const statusColors: Record<string, string> = {
     PLACED: "bg-blue-100 text-blue-800",
@@ -168,11 +148,9 @@ export function getOrderStatusColor(status: string): string {
   };
   return statusColors[status] || "bg-gray-100 text-gray-800";
 }
-
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
 export function getRandomDelay(): number {
-  return Math.floor(Math.random() * 300) + 200; // 200-500ms
+  return Math.floor(Math.random() * 300) + 200;
 }

@@ -13,44 +13,37 @@ import Animated, {
     withSpring,
 } from "react-native-reanimated";
 import { Address } from "../../../types";
-
 interface AddressCardProps {
     address: Address;
     onEdit: () => void;
     onDelete: () => void;
     onSetDefault: () => void;
 }
-
 export const AddressCard = React.memo<AddressCardProps>(
     ({ address, onEdit, onDelete, onSetDefault }) => {
         const scale = useSharedValue(1);
-
         const animatedStyle = useAnimatedStyle(() => ({
             transform: [{ scale: scale.value }],
         }));
-
         const handlePressIn = useCallback(() => {
             scale.value = withSpring(0.98, {
                 damping: 15,
                 stiffness: 400,
             });
         }, []);
-
         const handlePressOut = useCallback(() => {
             scale.value = withSpring(1, {
                 damping: 15,
                 stiffness: 400,
             });
         }, []);
-
         const handleSetDefault = useCallback(() => {
             handlePressOut();
             onSetDefault();
         }, [onSetDefault]);
-
         return (
             <Animated.View style={[styles.container, animatedStyle]}>
-                {/* Header Row */}
+                {}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
                         <Text style={styles.name} numberOfLines={1}>
@@ -62,7 +55,6 @@ export const AddressCard = React.memo<AddressCardProps>(
                             </View>
                         )}
                     </View>
-
                     <View style={styles.actions}>
                         <TouchableOpacity
                             onPress={onEdit}
@@ -80,8 +72,7 @@ export const AddressCard = React.memo<AddressCardProps>(
                         </TouchableOpacity>
                     </View>
                 </View>
-
-                {/* Contact Info */}
+                {}
                 <View style={styles.infoContainer}>
                     <View style={styles.infoRow}>
                         <Ionicons name="call-outline" size={18} color="#6B7280" />
@@ -89,7 +80,6 @@ export const AddressCard = React.memo<AddressCardProps>(
                             {address.phoneNumber || address.phone}
                         </Text>
                     </View>
-
                     <View style={styles.infoRow}>
                         <Ionicons name="location-outline" size={18} color="#6B7280" />
                         <Text style={styles.addressText} numberOfLines={3}>
@@ -98,8 +88,7 @@ export const AddressCard = React.memo<AddressCardProps>(
                         </Text>
                     </View>
                 </View>
-
-                {/* Set Default Action */}
+                {}
                 {!address.isDefault && (
                     <View style={styles.footer}>
                         <TouchableOpacity
@@ -118,9 +107,7 @@ export const AddressCard = React.memo<AddressCardProps>(
         );
     }
 );
-
 AddressCard.displayName = "AddressCard";
-
 const styles = StyleSheet.create({
     container: {
         backgroundColor: "#FFFFFF",
@@ -220,4 +207,3 @@ const styles = StyleSheet.create({
         color: "#00A86B",
     },
 });
-

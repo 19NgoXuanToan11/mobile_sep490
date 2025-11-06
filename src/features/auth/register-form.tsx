@@ -12,7 +12,6 @@ import {
   PrimaryButton,
   LinkButton,
 } from "./components";
-
 const registerSchema = z
   .object({
     email: z
@@ -29,18 +28,14 @@ const registerSchema = z
     message: "Mật khẩu không khớp",
     path: ["confirmPassword"],
   });
-
 type RegisterFormData = z.infer<typeof registerSchema>;
-
 export const RegisterForm: React.FC = () => {
   const { register } = useAuth();
   const toast = useToast();
 
-  // Refs for input focus management
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
-
   const {
     control,
     handleSubmit,
@@ -53,14 +48,12 @@ export const RegisterForm: React.FC = () => {
       confirmPassword: "",
     },
   });
-
   const focusNextField = useCallback(
     (nextFieldRef: React.RefObject<TextInput | null>) => {
       nextFieldRef.current?.focus();
     },
     []
   );
-
   const onSubmit = useCallback(
     async (data: RegisterFormData) => {
       try {
@@ -69,7 +62,6 @@ export const RegisterForm: React.FC = () => {
           data.password,
           data.confirmPassword
         );
-
         if (success) {
           toast.success(
             "Tạo tài khoản thành công!",
@@ -91,14 +83,12 @@ export const RegisterForm: React.FC = () => {
     },
     [register, toast]
   );
-
   const handleLogin = useCallback(() => {
     router.push("/(public)/auth/login");
   }, []);
-
   return (
     <View style={{ gap: 20 }}>
-      {/* Input Fields */}
+      {}
       <View style={{ gap: 16 }}>
         <Controller
           control={control}
@@ -120,7 +110,6 @@ export const RegisterForm: React.FC = () => {
             />
           )}
         />
-
         <Controller
           control={control}
           name="password"
@@ -139,7 +128,6 @@ export const RegisterForm: React.FC = () => {
             />
           )}
         />
-
         <Controller
           control={control}
           name="confirmPassword"
@@ -159,15 +147,13 @@ export const RegisterForm: React.FC = () => {
           )}
         />
       </View>
-
-      {/* Create Account Button */}
+      {}
       <PrimaryButton
         title="Tạo Tài Khoản"
         onPress={handleSubmit(onSubmit)}
         loading={isSubmitting}
       />
-
-      {/* Sign In Link */}
+      {}
       <View style={{ alignItems: "center", marginTop: 4 }}>
         <Text style={{ fontSize: 14, color: "#6B7280", marginBottom: 8 }}>
           Đã có tài khoản?

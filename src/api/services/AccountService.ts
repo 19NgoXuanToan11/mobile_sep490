@@ -1,7 +1,4 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
+
 import type { AccountForm } from '../models/AccountForm';
 import type { AccountStatus } from '../models/AccountStatus';
 import type { ChangePasswordDTO } from '../models/ChangePasswordDTO';
@@ -12,10 +9,7 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AccountService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1AccountLogin({
         requestBody,
     }: {
@@ -28,10 +22,7 @@ export class AccountService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1AccountRegister({
         requestBody,
     }: {
@@ -44,10 +35,7 @@ export class AccountService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static postApiV1AccountCreate({
         requestBody,
     }: {
@@ -60,10 +48,7 @@ export class AccountService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1AccountUpdateStatus({
         id,
     }: {
@@ -77,10 +62,7 @@ export class AccountService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1AccountUpdate({
         id,
         requestBody,
@@ -98,10 +80,7 @@ export class AccountService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1AccountGetAll({
         pageSize = 10,
         pageIndex = 1,
@@ -124,10 +103,7 @@ export class AccountService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static getApiV1AccountGetByEmail({
         email,
     }: {
@@ -141,10 +117,7 @@ export class AccountService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1AccountUpdateRole({
         accountId,
         roleId,
@@ -161,10 +134,7 @@ export class AccountService {
             },
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static putApiV1AccountUpdatePassword({
         id,
         requestBody,
@@ -182,10 +152,7 @@ export class AccountService {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
+
     public static put(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PUT',

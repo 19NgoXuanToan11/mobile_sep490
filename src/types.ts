@@ -5,12 +5,11 @@ export interface User {
   phone?: string;
   avatar?: string;
   role: "GUEST" | "CUSTOMER";
-  gender?: string; // "male", "female", hoặc null
+  gender?: string;
   address?: string;
   createdAt: string;
   updatedAt: string;
 }
-
 export interface Category {
   id: string;
   name: string;
@@ -19,7 +18,6 @@ export interface Category {
   description?: string;
   sortOrder: number;
 }
-
 export interface Product {
   id: string;
   name: string;
@@ -33,19 +31,18 @@ export interface Product {
   images: string[];
   rating: number;
   reviewCount: number;
-  soldCount?: number; // Number of items sold for trust building
-  certifications?: string[]; // e.g., ["VietGAP", "Organic", "GlobalGAP"]
+  soldCount?: number;
+  certifications?: string[];
   stock: number;
   isInStock: boolean;
   isFeatured: boolean;
   tags: string[];
-  unit: string; // kg, piece, pack, etc.
+  unit: string;
   origin?: string;
   harvestDate?: string;
   createdAt: string;
   updatedAt: string;
 }
-
 export interface CartItem {
   id: string;
   productId: string;
@@ -53,9 +50,8 @@ export interface CartItem {
   quantity: number;
   price: number;
   subtotal: number;
-  selected: boolean; // Cho phép người dùng chọn sản phẩm để thanh toán
+  selected: boolean;
 }
-
 export interface Cart {
   items: CartItem[];
   itemCount: number;
@@ -64,7 +60,6 @@ export interface Cart {
   discount: number;
   total: number;
 }
-
 export interface Address {
   id: string;
   customerName: string;
@@ -76,12 +71,10 @@ export interface Address {
   isDefault: boolean;
   latitude?: number;
   longitude?: number;
-  // Legacy fields for backward compatibility
   name?: string;
   phone?: string;
   city?: string;
 }
-
 export interface PaymentMethod {
   id: string;
   type: "COD" | "BANK_TRANSFER" | "CREDIT_CARD" | "E_WALLET";
@@ -89,7 +82,6 @@ export interface PaymentMethod {
   description: string;
   isActive: boolean;
 }
-
 export interface OrderStatus {
   id: string;
   status:
@@ -102,7 +94,6 @@ export interface OrderStatus {
   timestamp: string;
   description: string;
 }
-
 export interface Order {
   id: string;
   orderNumber: string;
@@ -121,11 +112,10 @@ export interface Order {
   estimatedDelivery?: string;
   actualDelivery?: string;
   trackingNumber?: string;
-  images?: string[]; // Hình ảnh đơn hàng từ backend
+  images?: string[];
   createdAt: string;
   updatedAt: string;
 }
-
 export interface Banner {
   id: string;
   title: string;
@@ -136,7 +126,6 @@ export interface Banner {
   isActive: boolean;
   sortOrder: number;
 }
-
 export interface Promotion {
   id: string;
   name: string;
@@ -149,33 +138,26 @@ export interface Promotion {
   validTo: string;
   isActive: boolean;
 }
-
-// Form types
 export interface LoginFormData {
   email: string;
   password: string;
 }
-
 export interface RegisterFormData {
   email: string;
   password: string;
   confirmPassword: string;
 }
-
 export interface CheckoutFormData {
   addressId: string;
   paymentMethodId: string;
   notes?: string;
 }
-
-// API Response types
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
   message?: string;
   errors?: Record<string, string[]>;
 }
-
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: {
@@ -187,27 +169,21 @@ export interface PaginatedResponse<T> {
     hasPrev: boolean;
   };
 }
-
-// UI State types
 export interface LoadingState {
   isLoading: boolean;
   error?: string | null;
 }
-
 export interface FilterState {
   categories: string[];
   priceRange: [number, number];
   sortBy: "name" | "price_asc" | "price_desc" | "rating" | "newest";
   inStockOnly: boolean;
 }
-
-// Navigation types
 export interface TabBarIconProps {
   focused: boolean;
   color: string;
   size: number;
 }
-
 export interface OnboardingSlide {
   id: string;
   title: string;

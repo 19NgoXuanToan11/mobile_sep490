@@ -2,7 +2,6 @@ import React from "react";
 import { View, Text, ViewProps } from "react-native";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
-
 const badgeVariants = cva(
   "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
   {
@@ -27,7 +26,6 @@ const badgeVariants = cva(
     },
   }
 );
-
 const textVariants = cva("font-semibold", {
   variants: {
     variant: {
@@ -45,14 +43,12 @@ const textVariants = cva("font-semibold", {
     },
   },
 });
-
 export interface BadgeProps
   extends ViewProps,
     VariantProps<typeof badgeVariants> {
-  text?: string; // Prefer children, keep for backward compatibility
+  text?: string;
   children?: React.ReactNode;
 }
-
 export const Badge: React.FC<BadgeProps> = ({
   text,
   children,

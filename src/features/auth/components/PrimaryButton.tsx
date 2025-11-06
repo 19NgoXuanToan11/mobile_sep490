@@ -7,18 +7,15 @@ import {
     ViewStyle,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-
 interface PrimaryButtonProps {
     title: string;
     onPress: () => void;
     loading?: boolean;
     disabled?: boolean;
 }
-
 export const PrimaryButton = React.memo<PrimaryButtonProps>(
     ({ title, onPress, loading = false, disabled = false }) => {
         const scaleAnim = useRef(new Animated.Value(1)).current;
-
         const handlePressIn = useCallback(() => {
             Animated.timing(scaleAnim, {
                 toValue: 0.98,
@@ -26,7 +23,6 @@ export const PrimaryButton = React.memo<PrimaryButtonProps>(
                 useNativeDriver: true,
             }).start();
         }, [scaleAnim]);
-
         const handlePressOut = useCallback(() => {
             Animated.timing(scaleAnim, {
                 toValue: 1,
@@ -34,9 +30,7 @@ export const PrimaryButton = React.memo<PrimaryButtonProps>(
                 useNativeDriver: true,
             }).start();
         }, [scaleAnim]);
-
         const isDisabled = disabled || loading;
-
         return (
             <Animated.View
                 style={{
@@ -90,6 +84,4 @@ export const PrimaryButton = React.memo<PrimaryButtonProps>(
         );
     }
 );
-
 PrimaryButton.displayName = "PrimaryButton";
-
