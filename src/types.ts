@@ -50,7 +50,6 @@ export interface CartItem {
   quantity: number;
   price: number;
   subtotal: number;
-  selected: boolean;
 }
 export interface Cart {
   items: CartItem[];
@@ -101,7 +100,7 @@ export interface Order {
   items: CartItem[];
   status: OrderStatus["status"];
   statusHistory: OrderStatus[];
-  shippingAddress: Address;
+  shippingAddress: Address | string;
   paymentMethod: PaymentMethod;
   itemCount: number;
   subtotal: number;
@@ -115,6 +114,17 @@ export interface Order {
   images?: string[];
   createdAt: string;
   updatedAt: string;
+  // Additional fields from backend
+  email?: string;
+  totalPrice?: number;
+  orderItems?: Array<{
+    productId: string;
+    productName: string;
+    price: number;
+    unit: string;
+    stockQuantity: number;
+    images: string;
+  }>;
 }
 export interface Banner {
   id: string;

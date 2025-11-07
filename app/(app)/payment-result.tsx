@@ -22,10 +22,9 @@ export default function PaymentResultScreen() {
     orderId: string;
     success?: string;
     amount?: string;
-    code?: string;
     message?: string;
   }>();
-  const { orderId, success, amount, code, message } = params;
+  const { orderId, success, amount, message } = params;
   const toast = useToast();
   const { clearCart } = useCart();
   const [paymentStatus, setPaymentStatus] = useState<
@@ -47,12 +46,11 @@ export default function PaymentResultScreen() {
       } else {
         setPaymentStatus("failed");
         toast.error(
-          "Thanh toán thất bại",
-          message || `Mã lỗi: ${code || "Unknown"}`
+          "Thanh toán thất bại"
         );
       }
     }
-  }, [success, code, message]);
+  }, [success, message]);
 
   // Check payment status (only if not from deep link)
   const { data: paymentData, isLoading } = useQuery({
@@ -110,7 +108,7 @@ export default function PaymentResultScreen() {
   const handlePaymentSuccess = async () => {
     try {
       // Create order payment record
-      const paymentResult = await ordersApi.createOrderPayment(Number(orderId));
+      const paymentResult = await ordersApi.createOrderPayment(orderId);
 
       if (paymentResult.success) {
         // Clear cart and show success
@@ -248,12 +246,6 @@ export default function PaymentResultScreen() {
                   </Text>
                 </View>
                 <View className="w-full space-y-3 mt-5">
-                  <Button
-                    title="Thử lại"
-                    onPress={handleRetry}
-                    size="lg"
-                    variant="primary"
-                  />
                   <Button
                     title="Về trang chủ"
                     onPress={handleGoHome}

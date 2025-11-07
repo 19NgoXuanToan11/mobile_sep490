@@ -79,6 +79,12 @@ export default function AppLayout() {
           headerBackTitle: "Quay lại",
         }}
       />
+      <Stack.Screen
+        name="track/[id]"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
