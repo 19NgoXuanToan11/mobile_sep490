@@ -70,9 +70,6 @@ export interface Address {
   isDefault: boolean;
   latitude?: number;
   longitude?: number;
-  name?: string;
-  phone?: string;
-  city?: string;
 }
 export interface PaymentMethod {
   id: string;

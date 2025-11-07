@@ -123,7 +123,6 @@ export default function PaymentResultScreen() {
         setPaymentStatus("failed");
       }
     } catch (error) {
-      console.error("Payment success handling error:", error);
       toast.error("Lỗi xử lý thanh toán", "Vui lòng liên hệ hỗ trợ");
       setPaymentStatus("failed");
     }

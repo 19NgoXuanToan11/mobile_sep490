@@ -18,8 +18,6 @@ export const secureStorage = {
     try {
       await SecureStore.setItemAsync(key, value);
     } catch (error) {
-      console.error("SecureStore setItem error:", error);
-
       await AsyncStorage.setItem(`secure_${key}`, value);
     }
   },
@@ -27,8 +25,6 @@ export const secureStorage = {
     try {
       return await SecureStore.getItemAsync(key);
     } catch (error) {
-      console.error("SecureStore getItem error:", error);
-
       return await AsyncStorage.getItem(`secure_${key}`);
     }
   },
@@ -36,8 +32,6 @@ export const secureStorage = {
     try {
       await SecureStore.deleteItemAsync(key);
     } catch (error) {
-      console.error("SecureStore removeItem error:", error);
-
       await AsyncStorage.removeItem(`secure_${key}`);
     }
   },
@@ -46,7 +40,6 @@ export const secureStorage = {
       const keys = Object.values(STORAGE_KEYS);
       await Promise.all(keys.map((key) => SecureStore.deleteItemAsync(key)));
     } catch (error) {
-      console.error("SecureStore clear error:", error);
     }
   },
 };
@@ -57,7 +50,6 @@ export const storage = {
       const jsonValue = JSON.stringify(value);
       await AsyncStorage.setItem(key, jsonValue);
     } catch (error) {
-
     }
   },
   async getItem<T>(key: string): Promise<T | null> {
@@ -65,7 +57,6 @@ export const storage = {
       const jsonValue = await AsyncStorage.getItem(key);
       return jsonValue ? JSON.parse(jsonValue) : null;
     } catch (error) {
-
       return null;
     }
   },
@@ -73,21 +64,18 @@ export const storage = {
     try {
       await AsyncStorage.removeItem(key);
     } catch (error) {
-
     }
   },
   async clear(): Promise<void> {
     try {
       await AsyncStorage.clear();
     } catch (error) {
-
     }
   },
   async getAllKeys(): Promise<readonly string[]> {
     try {
       return await AsyncStorage.getAllKeys();
     } catch (error) {
-
       return [];
     }
   },
@@ -95,7 +83,6 @@ export const storage = {
     try {
       return await AsyncStorage.multiGet(keys);
     } catch (error) {
-
       return keys.map((key) => [key, null]);
     }
   },
@@ -143,7 +130,6 @@ export const userPreferences = {
       );
       await Promise.all(onboardingKeys.map((key) => storage.removeItem(key)));
     } catch (error) {
-
     }
   },
 };
