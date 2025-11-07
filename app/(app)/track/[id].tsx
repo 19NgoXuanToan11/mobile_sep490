@@ -571,8 +571,6 @@ export default function OrderDetailScreen() {
                                         text: "Hủy đơn",
                                         style: "destructive",
                                         onPress: () => {
-                                            // TODO: Call cancel order API
-                                            console.log("Cancel order:", order.id);
                                         },
                                     },
                                 ]

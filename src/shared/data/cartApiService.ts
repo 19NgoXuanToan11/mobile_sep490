@@ -151,7 +151,6 @@ async function transformCartItem(
         updatedAt: p.updatedAt ?? new Date().toISOString(),
       };
     } catch (error) {
-      console.error(`Error fetching product ${item.productId}:`, error);
       return null;
     }
   }
@@ -206,7 +205,6 @@ export const realCartApi = {
       }
       return { success: true, data: cartItems };
     } catch (error) {
-      console.error("Get cart items error:", error);
       return {
         success: false,
         data: [],
@@ -242,7 +240,6 @@ export const realCartApi = {
 
       return await this.getItems();
     } catch (error) {
-      console.error("Add to cart error:", error);
       return {
         success: false,
         data: [],
@@ -278,7 +275,6 @@ export const realCartApi = {
 
       return await this.getItems();
     } catch (error) {
-      console.error("Update cart item error:", error);
       return {
         success: false,
         data: [],
@@ -312,7 +308,6 @@ export const realCartApi = {
 
       return await this.getItems();
     } catch (error) {
-      console.error("Remove cart item error:", error);
       return {
         success: false,
         data: [],
@@ -339,7 +334,6 @@ export const realCartApi = {
       }
       return { success: true, data: null };
     } catch (error) {
-      console.error("Clear cart error:", error);
       return {
         success: false,
         data: null,

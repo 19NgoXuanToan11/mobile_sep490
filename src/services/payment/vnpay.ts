@@ -19,16 +19,12 @@ export interface VNPayCallbackParams {
 
 export const openPayment = async (paymentUrl: string): Promise<void> => {
   try {
-
     const result = await WebBrowser.openBrowserAsync(paymentUrl, {
       presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
       controlsColor: "#00A86B",
       toolbarColor: "#FFFFFF",
     });
-    console.log("VNPay WebBrowser result:", result);
   } catch (error) {
-    console.error("Failed to open WebBrowser, trying external browser:", error);
-
     await Linking.openURL(paymentUrl);
   }
 };
@@ -39,14 +35,12 @@ export const handleCallback = async (
   try {
     const parsedUrl = Linking.parse(url);
     const queryParams = parsedUrl.queryParams as VNPayCallbackParams;
-    console.log("VNPay callback params:", queryParams);
 
     const orderId =
       queryParams.orderId ||
       queryParams.vnp_TxnRef ||
       queryParams.vnp_OrderInfo;
     if (!orderId) {
-      console.error("No orderId found in callback");
       return null;
     }
 
@@ -62,7 +56,6 @@ export const handleCallback = async (
       isSuccess: isSuccess ? "true" : "false",
     };
   } catch (error) {
-    console.error("Failed to parse VNPay callback:", error);
     return null;
   }
 };
@@ -80,7 +73,6 @@ export const verifyPayment = async (
     }
     return { success: false };
   } catch (error) {
-    console.error("Payment verification error:", error);
     return { success: false };
   }
 };
@@ -100,10 +92,8 @@ export const navigateToPaymentResult = (
 
 export const completePaymentFlow = async (url: string): Promise<void> => {
   try {
-
     const callbackParams = await handleCallback(url);
     if (!callbackParams || !callbackParams.orderId) {
-      console.error("Invalid callback params");
       navigateToPaymentResult(0, false);
       return;
     }
@@ -114,7 +104,6 @@ export const completePaymentFlow = async (url: string): Promise<void> => {
 
     navigateToPaymentResult(orderId, verification.success && isSuccess);
   } catch (error) {
-    console.error("Payment flow error:", error);
     navigateToPaymentResult(0, false);
   }
 };

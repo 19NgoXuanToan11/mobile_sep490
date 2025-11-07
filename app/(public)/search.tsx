@@ -165,7 +165,6 @@ export default function SearchScreen() {
           return response.data?.data || [];
         }
       } catch (error) {
-        console.error("Search error:", error);
         return [];
       }
     },

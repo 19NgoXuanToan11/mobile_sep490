@@ -62,7 +62,6 @@ export const authApi = {
       });
       const token = result?.data?.token ?? result?.token ?? result?.accessToken;
       if (!token) {
-        console.error("❌ [LOGIN] No token found in response!");
         return {
           success: false,
           data: null as any,
@@ -97,7 +96,6 @@ export const authApi = {
       };
       return { success: true, data: { user, token } };
     } catch (error) {
-      console.error("❌ [LOGIN] Error:", error);
       return {
         success: false,
         data: null as any,
@@ -887,7 +885,6 @@ export const ordersApi = {
         data: { orders: mapped, totalCount, hasNextPage },
       };
     } catch (error) {
-      console.error("❌ [ORDERS] Error fetching orders:", error);
       return {
         success: true,
         data: { orders: [], totalCount: 0, hasNextPage: false },
@@ -969,12 +966,6 @@ export const ordersApi = {
         };
       }
     } catch (error: any) {
-      console.error("Create order error:", error);
-      console.error("Error details:", {
-        message: error?.message,
-        response: error?.response?.data,
-        status: error?.response?.status,
-      });
       return {
         success: false,
         data: { orderId: 0, totalPrice: 0 },
@@ -1030,7 +1021,6 @@ export const ordersApi = {
         };
       }
     } catch (error: any) {
-      console.error("Create payment URL error:", error);
       return {
         success: false,
         data: { paymentUrl: "" },
@@ -1103,7 +1093,6 @@ export const ordersApi = {
         };
       }
     } catch (error: any) {
-      console.error("Get payment status error:", error);
       return {
         success: false,
         data: { isSuccess: false },
@@ -1182,7 +1171,6 @@ export const ordersApi = {
       };
       return { success: true, data: order };
     } catch (error) {
-      console.error("❌ [GET ORDER BY ID] Error:", error);
       return { success: false, data: null as any, message: "Order not found" };
     }
   },
@@ -1298,7 +1286,6 @@ export const addressesApi = {
         : [];
       return { success: true, data: addresses };
     } catch (error) {
-      console.error("❌ [ADDRESSES] Error fetching addresses:", error);
       return {
         success: true,
         data: [],
@@ -1400,7 +1387,6 @@ export const addressesApi = {
       };
       return { success: true, data: address };
     } catch (error) {
-      console.error("❌ [ADDRESSES] Error creating address:", error);
       return {
         success: false,
         data: null as any,
@@ -1468,7 +1454,6 @@ export const addressesApi = {
       };
       return { success: true, data: address };
     } catch (error) {
-      console.error("❌ [ADDRESSES] Error updating address:", error);
       return {
         success: false,
         data: null as any,
@@ -1495,7 +1480,6 @@ export const addressesApi = {
       });
       return { success: true, data: null };
     } catch (error) {
-      console.error("❌ [ADDRESSES] Error deleting address:", error);
       return {
         success: false,
         data: null,
@@ -1566,7 +1550,6 @@ export const profileApi = {
         data: (response as any)?.data ?? (response as any),
       };
     } catch (error) {
-      console.error("Get profile error:", error);
       return {
         success: false,
         data: null as any,
@@ -1598,7 +1581,6 @@ export const profileApi = {
         data: (response as any)?.data ?? (response as any),
       };
     } catch (error) {
-      console.error("Update profile error:", error);
       return {
         success: false,
         data: null as any,
@@ -1644,7 +1626,6 @@ export const profileApi = {
         data: { imageUrl: result.imageUrl },
       };
     } catch (error) {
-      console.error("Upload image error:", error);
       return {
         success: false,
         data: null as any,
@@ -1682,8 +1663,6 @@ export const profileApi = {
         message: "Đổi mật khẩu thành công",
       };
     } catch (error: any) {
-      console.error("Change password error:", error);
-
       if (error?.status === 401 || error?.statusCode === 401) {
         return {
           success: false,

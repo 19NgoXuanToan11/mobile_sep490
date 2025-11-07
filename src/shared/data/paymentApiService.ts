@@ -1,4 +1,3 @@
-
 import { OpenAPI } from "../../api/core/OpenAPI";
 import { request as __request } from "../../api/core/request";
 import { PaymentService } from "../../api/services/PaymentService";
@@ -26,7 +25,6 @@ export interface PaymentResponse {
 }
 
 export const vnpayApi = {
-
   async createPaymentUrl(
     paymentInfo: PaymentInformation
   ): Promise<PaymentResponse> {
@@ -50,7 +48,6 @@ export const vnpayApi = {
         },
       };
     } catch (error) {
-      console.error("Create payment URL error:", error);
       return {
         success: false,
         message:
@@ -81,7 +78,6 @@ export const vnpayApi = {
         },
       };
     } catch (error) {
-      console.error("Get payment by order ID error:", error);
       return {
         success: false,
         message:
@@ -109,7 +105,6 @@ export const vnpayApi = {
         },
       };
     } catch (error) {
-      console.error("Create order payment error:", error);
       return {
         success: false,
         message:
@@ -127,7 +122,6 @@ export const vnpayApi = {
     message?: string;
   }> {
     try {
-
       const orderId = queryParams.vnp_TxnRef;
       const responseCode = queryParams.vnp_ResponseCode;
       const transactionStatus = queryParams.vnp_TransactionStatus;
@@ -142,7 +136,6 @@ export const vnpayApi = {
           : "Payment failed or cancelled",
       };
     } catch (error) {
-      console.error("Handle callback error:", error);
       return {
         success: false,
         status: "FAILED",

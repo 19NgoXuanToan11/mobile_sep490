@@ -5,14 +5,6 @@ import axios, {
   AxiosResponse,
 } from "axios";
 import env from "../config/env";
-const ONE_TIME_LOG = (() => {
-  let logged = false;
-  return (message: string, ...payload: unknown[]) => {
-    if (!logged) {
-      logged = true;
-    }
-  };
-})();
 export const createHttpClient = (
   baseURL: string = env.API_URL
 ): AxiosInstance => {
@@ -24,16 +16,11 @@ export const createHttpClient = (
       Accept: "application/json",
     },
   });
-  ONE_TIME_LOG("[HTTP] baseURL=", baseURL);
   instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-    try {
-    } catch {}
     return config;
   });
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
-      try {
-      } catch {}
       return response;
     },
     (error: AxiosError) => {

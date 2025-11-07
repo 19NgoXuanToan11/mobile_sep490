@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
@@ -43,7 +43,8 @@ export const useCheckout = (options?: UseCheckoutOptions) => {
     [allPaymentMethods]
   );
 
-  useMemo(() => {
+  // Auto-select default address
+  React.useEffect(() => {
     if (addresses.length > 0 && !selectedAddressId) {
       const defaultAddress = addresses.find((a) => a.isDefault);
       if (defaultAddress) {

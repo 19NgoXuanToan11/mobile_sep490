@@ -131,7 +131,6 @@ export default function ProductDetailScreen() {
             refetchFeedback();
         },
         onError: (error) => {
-            console.error("Create feedback error:", error);
             toast.error("Lỗi", "Không thể gửi đánh giá. Vui lòng thử lại.");
         },
     });
@@ -206,7 +205,6 @@ export default function ProductDetailScreen() {
                 setAddedToCart(false);
             }, 2000);
         } catch (error) {
-            console.error("Add to cart error:", error);
             toast.error("Lỗi", "Không thể thêm sản phẩm vào giỏ hàng");
         }
     };
