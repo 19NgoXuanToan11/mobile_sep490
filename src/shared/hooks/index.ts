@@ -128,6 +128,8 @@ interface CartStore {
   removeItem: (itemId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   syncGuestCartToUser: () => Promise<void>;
+  toggleItemSelection: (itemId: string) => Promise<void>;
+  toggleAllSelection: (selected: boolean) => Promise<void>;
 }
 export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
@@ -245,12 +247,50 @@ export const useCartStore = create<CartStore>((set, get) => ({
       await get().loadItems();
     } catch (error) {}
   },
+
+  toggleItemSelection: async (itemId) => {
+    try {
+      const currentItems = get().items;
+      const updatedItems = currentItems.map((item) =>
+        item.id === itemId ? { ...item, selected: !item.selected } : item
+      );
+      set({ items: updatedItems });
+
+      const { isAuthenticated } = useAuthStore.getState();
+      if (!isAuthenticated) {
+        await storage.setItem(STORAGE_KEYS.CART_ITEMS, updatedItems);
+      }
+    } catch (error) {}
+  },
+
+  toggleAllSelection: async (selected) => {
+    try {
+      const currentItems = get().items;
+      const updatedItems = currentItems.map((item) => ({
+        ...item,
+        selected,
+      }));
+      set({ items: updatedItems });
+
+      const { isAuthenticated } = useAuthStore.getState();
+      if (!isAuthenticated) {
+        await storage.setItem(STORAGE_KEYS.CART_ITEMS, updatedItems);
+      }
+    } catch (error) {}
+  },
 }));
 export const useCart = () => {
   const store = useCartStore();
   const cart = useMemo((): Cart => {
-    const itemCount = store.items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = store.items.reduce((sum, item) => sum + item.subtotal, 0);
+    const selectedItems = store.items.filter((item) => item.selected);
+    const itemCount = selectedItems.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+    const subtotal = selectedItems.reduce(
+      (sum, item) => sum + item.subtotal,
+      0
+    );
     const shippingFee = 0; // Không tính phí ship
     const discount = 0;
     const total = subtotal - discount; // Tổng thanh toán = tạm tính - giảm giá
@@ -269,6 +309,8 @@ export const useCart = () => {
   return {
     ...store,
     cart,
+    toggleItemSelection: store.toggleItemSelection,
+    toggleAllSelection: store.toggleAllSelection,
   };
 };
 

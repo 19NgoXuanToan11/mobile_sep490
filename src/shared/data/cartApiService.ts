@@ -1,3 +1,4 @@
+
 import { OpenAPI } from "../../api/core/OpenAPI";
 import { request as __request } from "../../api/core/request";
 import { ProductService } from "../../api";
@@ -50,6 +51,7 @@ function parseApiResponse<T>(response: any): {
   data: T | null;
   message?: string;
 } {
+
   const payload = response?.data ?? response;
 
   if (typeof payload === "object" && "success" in payload) {
@@ -115,6 +117,7 @@ async function transformCartItem(
       updatedAt: p.updatedAt ?? new Date().toISOString(),
     };
   } else {
+
     try {
       OpenAPI.BASE = env.API_URL;
       const res = await ProductService.getApiV1ProductsGetProduct({
@@ -163,10 +166,12 @@ async function transformCartItem(
     quantity,
     price: itemPrice,
     subtotal: itemPrice * quantity,
+    selected: true,
   };
 }
 
 export const realCartApi = {
+
   async getItems(): Promise<{
     success: boolean;
     data: CartItem[];
@@ -190,8 +195,10 @@ export const realCartApi = {
       let backendItems: BackendCartItem[] = [];
       if (parsed.data) {
         if (Array.isArray(parsed.data)) {
+
           backendItems = parsed.data;
         } else if (parsed.data.cartItems) {
+
           backendItems = parsed.data.cartItems;
         }
       }

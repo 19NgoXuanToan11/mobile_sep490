@@ -14,9 +14,10 @@ interface CartItemCardProps {
     item: CartItem;
     onUpdateQuantity: (itemId: string, quantity: number) => void;
     onRemove: (itemId: string, itemName: string) => void;
+    onToggleSelection: (itemId: string) => void;
 }
 export const CartItemCard = React.memo<CartItemCardProps>(
-    ({ item, onUpdateQuantity, onRemove }) => {
+    ({ item, onUpdateQuantity, onRemove, onToggleSelection }) => {
         const scaleAnim = useRef(new Animated.Value(1)).current;
         const handlePressIn = useCallback(() => {
             Animated.timing(scaleAnim, {
@@ -45,6 +46,9 @@ export const CartItemCard = React.memo<CartItemCardProps>(
         const handleRemove = useCallback(() => {
             onRemove(item.id, item.product.name);
         }, [item.id, item.product.name, onRemove]);
+        const handleToggleSelection = useCallback(() => {
+            onToggleSelection(item.id);
+        }, [item.id, onToggleSelection]);
         const canIncrement = item.quantity < item.product.stock;
         const canDecrement = item.quantity > 1;
 
@@ -67,9 +71,30 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                     elevation: 2,
                 }}
             >
+                {}
                 <View style={{ padding: 16 }}>
                     <View style={{ flexDirection: "row", gap: 12 }}>
-                        {/* Product Image */}
+                        {}
+                        <TouchableOpacity
+                            onPress={handleToggleSelection}
+                            style={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: 6,
+                                borderWidth: 2,
+                                borderColor: item.selected ? "#00A86B" : "#D1D5DB",
+                                backgroundColor: item.selected ? "#00A86B" : "transparent",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                marginTop: 4,
+                            }}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                            {item.selected && (
+                                <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                            )}
+                        </TouchableOpacity>
+                        {}
                         <View style={{ position: "relative" }}>
                             <Image
                                 source={{ uri: item.product.images[0] }}
@@ -80,14 +105,15 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                     backgroundColor: "#F8FAFC",
                                     borderWidth: 1,
                                     borderColor: "#E5E7EB",
+                                    opacity: item.selected ? 1 : 0.5,
                                 }}
                                 contentFit="contain"
                                 transition={150}
                             />
                         </View>
-                        { }
+                        {}
                         <View style={{ flex: 1, justifyContent: "space-between" }}>
-                            { }
+                            {}
                             <Text
                                 style={{
                                     fontSize: 15,
@@ -99,7 +125,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                             >
                                 {item.product.name}
                             </Text>
-                            { }
+                            {}
                             <View
                                 style={{
                                     flexDirection: "row",
@@ -131,7 +157,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                     )}
                                 </View>
                             </View>
-                            { }
+                            {}
                             <Text
                                 style={{
                                     fontSize: 13,
@@ -144,7 +170,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                         </View>
                     </View>
                 </View>
-                { }
+                {}
                 <View
                     style={{
                         height: 1,
@@ -152,7 +178,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                         marginHorizontal: 16,
                     }}
                 />
-                { }
+                {}
                 <View
                     style={{
                         flexDirection: "row",
@@ -161,7 +187,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                         padding: 16,
                     }}
                 >
-                    { }
+                    {}
                     <View
                         style={{
                             flexDirection: "row",
@@ -172,7 +198,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                             borderColor: "#E5E7EB",
                         }}
                     >
-                        { }
+                        {}
                         <Pressable
                             onPress={handleDecrement}
                             disabled={!canDecrement}
@@ -192,7 +218,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                 color={canDecrement ? "#4B5563" : "#9CA3AF"}
                             />
                         </Pressable>
-                        { }
+                        {}
                         <View
                             style={{
                                 minWidth: 32,
@@ -210,7 +236,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                 {item.quantity}
                             </Text>
                         </View>
-                        { }
+                        {}
                         <Pressable
                             onPress={handleIncrement}
                             disabled={!canIncrement}
@@ -231,7 +257,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                             />
                         </Pressable>
                     </View>
-                    { }
+                    {}
                     <Pressable
                         onPress={handleRemove}
                         style={({ pressed }) => ({
@@ -261,10 +287,12 @@ export const CartItemCard = React.memo<CartItemCardProps>(
         );
     },
     (prevProps, nextProps) => {
+
         return (
             prevProps.item.id === nextProps.item.id &&
             prevProps.item.quantity === nextProps.item.quantity &&
-            prevProps.item.product.stock === nextProps.item.product.stock
+            prevProps.item.product.stock === nextProps.item.product.stock &&
+            prevProps.item.selected === nextProps.item.selected
         );
     }
 );

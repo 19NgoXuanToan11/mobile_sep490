@@ -1,7 +1,7 @@
 import * as Linking from "expo-linking";
 import { completePaymentFlow } from "../services/payment/vnpay";
 export const DEEP_LINK_SCHEME = "ifms";
-export const DEEP_LINK_PREFIX = `${DEEP_LINK_SCHEME}://`;
+export const DEEP_LINK_PREFIX = `${DEEP_LINK_SCHEME}:
 export const DEEP_LINK_PATHS = {
   PAYMENT_CALLBACK: "payment-callback",
   ORDER_DETAIL: "order",
@@ -33,7 +33,9 @@ const handleDeepLink = async (url: string): Promise<void> => {
     } else if (hostname === DEEP_LINK_PATHS.PRODUCT_DETAIL) {
     } else {
     }
-  } catch (error) {}
+  } catch (error) {
+
+  }
 };
 export const generatePaymentCallbackUrl = (orderId: number): string => {
   return `${DEEP_LINK_PREFIX}${DEEP_LINK_PATHS.PAYMENT_CALLBACK}?orderId=${orderId}`;
