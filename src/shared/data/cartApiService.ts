@@ -158,7 +158,8 @@ async function transformCartItem(
     }
   }
   const quantity = Number(item.quantity ?? 1);
-  const itemPrice = Number(item.priceQuantity ?? 0) / quantity || product.price;
+  // Dùng product.price trực tiếp làm giá đơn vị - đáng tin cậy và chính xác nhất
+  const itemPrice = product.price;
   return {
     id: String(item.cartItemId ?? generateId("cart")),
     productId: String(item.productId),
