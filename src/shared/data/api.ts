@@ -1175,6 +1175,155 @@ export const ordersApi = {
     }
   },
 
+  async getByDate(params: {
+    date: string; // Format: YYYY-MM-DD
+    pageIndex?: number;
+    pageSize?: number;
+  }): Promise<
+    ApiResponse<{ orders: Order[]; totalCount: number; hasNextPage: boolean }>
+  > {
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: { orders: [], totalCount: 0, hasNextPage: false },
+          message: "Not authenticated",
+        };
+      }
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      // Format date as YYYY-MM-DD for the API
+      const dateStr = params.date;
+
+      const res = await OrderService.postApiV1OrderOrderListByDate({
+        pageIndex: params?.pageIndex ?? 1,
+        pageSize: params?.pageSize ?? 15,
+        requestBody: dateStr,
+      });
+      const payload = res?.data ?? res;
+
+      const list: any[] = Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload?.items)
+        ? payload.items
+        : Array.isArray(payload)
+        ? payload
+        : [];
+
+      const totalCount = list.length;
+      const hasNextPage = Boolean(
+        (params?.pageIndex ?? 1) * (params?.pageSize ?? 15) < totalCount
+      );
+
+      const mapped: Order[] = list.map((o: any, idx: number) => {
+        const orderItemsImages = (o.orderItems ?? o.orderDetails ?? [])
+          .map((item: any) => item.images)
+          .filter((img: any) => img && img.trim() !== "");
+        return {
+          id: String(o.orderId ?? o.id ?? idx),
+          orderNumber: o.orderNumber ?? String(o.orderId ?? idx),
+          userId: String(o.userId ?? o.customerId ?? ""),
+          items: (o.orderItems ?? o.orderDetails ?? []).map((item: any) => ({
+            id: String(item.id ?? item.orderDetailId ?? idx),
+            productId: String(item.productId ?? ""),
+            quantity: Number(item.quantity ?? item.stockQuantity ?? 1),
+            price: Number(item.price ?? item.unitPrice ?? 0),
+            product: {
+              id: String(item.productId ?? ""),
+              name: String(item.productName ?? "Sản phẩm"),
+              images: item.images
+                ? [item.images]
+                : item.productImages
+                ? [item.productImages]
+                : [],
+              tags: [],
+              price: Number(item.price ?? item.unitPrice ?? 0),
+              description: "",
+              category: {
+                id: "",
+                name: "",
+                slug: "",
+                description: "",
+                image: "",
+                isActive: true,
+              },
+              isActive: true,
+              stock: 0,
+              rating: 0,
+              reviewCount: 0,
+              discount: 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          })),
+          status:
+            String(o.status ?? "1") === "1"
+              ? "PLACED"
+              : String(o.status ?? "2") === "2"
+              ? "CONFIRMED"
+              : String(o.status ?? "3") === "3"
+              ? "PACKED"
+              : String(o.status ?? "6") === "6"
+              ? "SHIPPED"
+              : String(o.status ?? "4") === "4"
+              ? "SHIPPED"
+              : String(o.status ?? "5") === "5"
+              ? "DELIVERED"
+              : String(o.status ?? "0") === "0"
+              ? "CANCELLED"
+              : "PLACED",
+          statusHistory: [],
+          shippingAddress: {
+            id: "",
+            customerName: "",
+            phoneNumber: "",
+            province: "",
+            district: "",
+            street: String(o.shippingAddress ?? ""),
+            ward: "",
+            isDefault: false,
+            name: "",
+            phone: "",
+            city: "",
+          },
+          paymentMethod: {
+            id: "cod",
+            type: "COD",
+            name: "Thanh toán khi nhận hàng",
+            description: "",
+            isActive: true,
+          },
+          itemCount: Number(
+            o.orderItems?.length ?? o.orderDetails?.length ?? 1
+          ),
+          subtotal: Number(o.totalPrice ?? o.total ?? 0),
+          shippingFee: 0,
+          discount: 0,
+          total: Number(o.totalPrice ?? o.total ?? 0),
+          notes: o.notes ?? undefined,
+          estimatedDelivery: o.estimatedDelivery ?? undefined,
+          trackingNumber: o.trackingNumber ?? undefined,
+          images: orderItemsImages.length > 0 ? orderItemsImages : undefined,
+          createdAt: o.createdAt ?? new Date().toISOString(),
+          updatedAt: o.updatedAt ?? new Date().toISOString(),
+        };
+      });
+
+      return {
+        success: true,
+        data: { orders: mapped, totalCount, hasNextPage },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: { orders: [], totalCount: 0, hasNextPage: false },
+        message: "Failed to fetch orders by date",
+      };
+    }
+  },
+
   async prepareOrder(): Promise<
     ApiResponse<{
       orderItems: Array<{ productId: number; stockQuantity: number }>;
@@ -1322,10 +1471,6 @@ export const addressesApi = {
         isDefault: Boolean(addr.isDefault ?? false),
         latitude: addr.latitude,
         longitude: addr.longitude,
-
-        name: addr.customerName,
-        phone: addr.phoneNumber,
-        city: addr.province,
       };
       return { success: true, data: address };
     } catch (error) {
@@ -1380,10 +1525,6 @@ export const addressesApi = {
         isDefault: Boolean(addr.isDefault ?? addressData.isDefault),
         latitude: addr.latitude ?? addressData.latitude,
         longitude: addr.longitude ?? addressData.longitude,
-
-        name: addr.customerName ?? addressData.customerName,
-        phone: addr.phoneNumber ?? addressData.phoneNumber,
-        city: addr.province ?? addressData.province,
       };
       return { success: true, data: address };
     } catch (error) {
@@ -1447,10 +1588,6 @@ export const addressesApi = {
         isDefault: Boolean(addr.isDefault ?? addressData.isDefault ?? false),
         latitude: addr.latitude ?? addressData.latitude,
         longitude: addr.longitude ?? addressData.longitude,
-
-        name: addr.customerName ?? addressData.customerName,
-        phone: addr.phoneNumber ?? addressData.phoneNumber,
-        city: addr.province ?? addressData.province,
       };
       return { success: true, data: address };
     } catch (error) {

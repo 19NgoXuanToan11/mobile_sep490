@@ -13,6 +13,8 @@ import {
   Dimensions,
   Linking,
   Alert,
+  Modal,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -63,6 +65,9 @@ export default function OrdersScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState<string>("");
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   // Animation values
@@ -104,7 +109,7 @@ export default function OrdersScreen() {
     }
   };
 
-  // Enhanced infinite query with search support
+  // Enhanced infinite query with search support and date filter
   const {
     data,
     fetchNextPage,
@@ -114,13 +119,23 @@ export default function OrdersScreen() {
     refetch,
     error,
   } = useInfiniteQuery({
-    queryKey: ["orders", activeTab, debouncedSearch],
-    queryFn: ({ pageParam = 1 }) =>
-      ordersApi.getAll({
+    queryKey: ["orders", activeTab, debouncedSearch, selectedDate],
+    queryFn: ({ pageParam = 1 }) => {
+      // If date is selected, use getByDate API
+      if (selectedDate) {
+        return ordersApi.getByDate({
+          date: selectedDate,
+          pageIndex: pageParam,
+          pageSize: 15,
+        });
+      }
+      // Otherwise use getAll API
+      return ordersApi.getAll({
         pageIndex: pageParam,
         pageSize: 15,
         status: getStatusFilter(),
-      }),
+      });
+    },
     initialPageParam: 1,
     getNextPageParam: (lastPage, pages) => {
       if (lastPage.success && lastPage.data.hasNextPage) {
@@ -264,6 +279,32 @@ export default function OrdersScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await refetch();
     setRefreshing(false);
+  };
+
+  // Date picker handlers
+  const handleDateSelect = () => {
+    if (tempDate) {
+      setSelectedDate(tempDate);
+      setShowDatePicker(false);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+  };
+
+  const handleClearDate = () => {
+    setSelectedDate(null);
+    setTempDate("");
+    setShowDatePicker(false);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const formatDateForDisplay = (dateStr: string | null) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   // Enhanced load more with haptic feedback
@@ -977,29 +1018,38 @@ export default function OrdersScreen() {
           <EmptyState
             icon="receipt-outline"
             title={
-              debouncedSearch ? "Không tìm thấy đơn hàng" : "Chưa có đơn hàng"
+              selectedDate || debouncedSearch
+                ? "Không tìm thấy đơn hàng"
+                : "Chưa có đơn hàng"
             }
             description={
-              debouncedSearch
-                ? `Không tìm thấy đơn hàng với mã "${debouncedSearch}"`
-                : activeTab === "placed"
-                  ? "Bạn không có đơn hàng nào vừa đặt"
-                  : activeTab === "failed"
-                    ? "Bạn không có đơn hàng nào thất bại"
-                    : activeTab === "packed"
-                      ? "Bạn không có đơn hàng nào đang đóng gói"
-                      : activeTab === "shipped"
-                        ? "Bạn không có đơn hàng nào đang giao"
-                        : activeTab === "delivered"
-                          ? "Bạn không có đơn hàng nào đã hoàn thành"
-                          : activeTab === "cancelled"
-                            ? "Bạn không có đơn hàng nào đã hủy"
-                            : "Hãy bắt đầu mua sắm những sản phẩm nông sản tươi ngon!"
+              selectedDate
+                ? `Không tìm thấy đơn hàng vào ngày ${formatDateForDisplay(selectedDate)}`
+                : debouncedSearch
+                  ? `Không tìm thấy đơn hàng với mã "${debouncedSearch}"`
+                  : activeTab === "placed"
+                    ? "Bạn không có đơn hàng nào vừa đặt"
+                    : activeTab === "failed"
+                      ? "Bạn không có đơn hàng nào thất bại"
+                      : activeTab === "packed"
+                        ? "Bạn không có đơn hàng nào đang đóng gói"
+                        : activeTab === "shipped"
+                          ? "Bạn không có đơn hàng nào đang giao"
+                          : activeTab === "delivered"
+                            ? "Bạn không có đơn hàng nào đã hoàn thành"
+                            : activeTab === "cancelled"
+                              ? "Bạn không có đơn hàng nào đã hủy"
+                              : "Hãy bắt đầu mua sắm những sản phẩm nông sản tươi ngon!"
             }
-            actionLabel={debouncedSearch ? "Xóa bộ lọc" : "Khám phá sản phẩm"}
+            actionLabel={
+              selectedDate || debouncedSearch
+                ? "Xóa bộ lọc"
+                : "Khám phá sản phẩm"
+            }
             onActionPress={() => {
-              if (debouncedSearch) {
-                setSearchQuery("");
+              if (selectedDate || debouncedSearch) {
+                if (selectedDate) handleClearDate();
+                if (debouncedSearch) setSearchQuery("");
               } else {
                 router.push("/(app)/(tabs)/catalog");
               }
@@ -1021,11 +1071,11 @@ export default function OrdersScreen() {
 
       {/* Enhanced Apple-style header */}
       <View className="bg-white pt-12 pb-6">
-        {/* Search toggle button */}
-        <View className="px-4 mb-4">
+        {/* Search and Date filter buttons */}
+        <View className="px-4 mb-4 flex-row gap-3">
           <TouchableOpacity
             onPress={toggleSearch}
-            className="bg-gray-50 rounded-2xl p-4 flex-row items-center justify-between"
+            className="flex-1 bg-gray-50 rounded-2xl p-4 flex-row items-center justify-between"
             activeOpacity={0.7}
           >
             <View className="flex-row items-center">
@@ -1035,7 +1085,50 @@ export default function OrdersScreen() {
               </Text>
             </View>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              setShowDatePicker(true);
+              setTempDate(selectedDate || "");
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            className={`rounded-2xl p-4 flex-row items-center ${selectedDate ? "bg-green-100" : "bg-gray-50"
+              }`}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color={selectedDate ? "#047857" : "#6b7280"}
+            />
+            {selectedDate && (
+              <Text className="text-green-700 ml-2 font-medium text-xs">
+                {formatDateForDisplay(selectedDate)}
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
+
+        {/* Selected date indicator */}
+        {selectedDate && (
+          <View className="px-4 mb-2">
+            <TouchableOpacity
+              onPress={handleClearDate}
+              className="bg-green-50 rounded-xl px-3 py-2 flex-row items-center self-start"
+              activeOpacity={0.7}
+            >
+              <Text className="text-green-700 text-sm font-medium">
+                Ngày: {formatDateForDisplay(selectedDate)}
+              </Text>
+              <Ionicons
+                name="close-circle"
+                size={16}
+                color="#047857"
+                style={{ marginLeft: 8 }}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Search bar */}
         {renderSearchBar()}
@@ -1096,6 +1189,94 @@ export default function OrdersScreen() {
           paddingBottom: 110,
         }}
       />
+
+      {/* Date Picker Modal */}
+      <Modal
+        visible={showDatePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl p-6 pb-8">
+            <View className="flex-row items-center justify-between mb-6">
+              <Text className="text-xl font-bold text-gray-900">
+                Chọn ngày
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(false)}
+                className="p-2"
+              >
+                <Ionicons name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+
+            <Text className="text-sm text-gray-600 mb-4">
+              Nhập ngày theo định dạng YYYY-MM-DD (ví dụ: 2025-11-09)
+            </Text>
+
+            <TextInput
+              placeholder="2025-11-09"
+              value={tempDate}
+              onChangeText={setTempDate}
+              className="bg-gray-50 rounded-xl p-4 text-base text-gray-900 mb-4 border border-gray-200"
+              placeholderTextColor="#9ca3af"
+              autoCapitalize="none"
+            />
+
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={handleClearDate}
+                className="flex-1 bg-gray-100 rounded-xl py-4 items-center"
+                activeOpacity={0.7}
+              >
+                <Text className="text-gray-700 font-semibold">Xóa bộ lọc</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleDateSelect}
+                className="flex-1 bg-green-600 rounded-xl py-4 items-center"
+                activeOpacity={0.7}
+              >
+                <Text className="text-white font-semibold">Áp dụng</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Quick date buttons */}
+            <View className="mt-6 pt-6 border-t border-gray-200">
+              <Text className="text-sm text-gray-600 mb-3 font-medium">
+                Chọn nhanh:
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {[
+                  { label: "Hôm nay", days: 0 },
+                  { label: "Hôm qua", days: -1 },
+                  { label: "7 ngày trước", days: -7 },
+                  { label: "30 ngày trước", days: -30 },
+                ].map((option) => {
+                  const date = new Date();
+                  date.setDate(date.getDate() + option.days);
+                  const dateStr = date.toISOString().split("T")[0];
+                  return (
+                    <TouchableOpacity
+                      key={option.label}
+                      onPress={() => {
+                        setTempDate(dateStr);
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }}
+                      className="bg-gray-50 rounded-lg px-4 py-2 border border-gray-200"
+                      activeOpacity={0.7}
+                    >
+                      <Text className="text-gray-700 text-sm font-medium">
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
