@@ -8,10 +8,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "start:android": "expo start --android",
-    "gen:api": "openapi --input https://iotfarm.onrender.com/swagger/v1/swagger.json --output src/api --client axios --useOptions",
-    "clean": "expo start --clear",
-    "clean:full": "rm -rf node_modules package-lock.json && npm install && expo start --clear",
-    "reset-cache": "watchman watch-del-all && rm -rf $TMPDIR/react-* && rm -rf $TMPDIR/metro-* && expo start --clear"
+    "gen:api": "openapi --input https://iotfarm.onrender.com/swagger/v1/swagger.json --output src/api --client axios --useOptions"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
@@ -33,6 +30,7 @@
     "expo-image": "~3.0.8",
     "expo-image-manipulator": "^14.0.7",
     "expo-image-picker": "~17.0.8",
+    "expo-keep-awake": "~15.0.7",
     "expo-linear-gradient": "~15.0.7",
     "expo-linking": "~8.0.8",
     "expo-localization": "~17.0.7",

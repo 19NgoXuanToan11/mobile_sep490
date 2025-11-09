@@ -30,7 +30,7 @@ import {
   Button,
   Skeleton,
 } from "../../../src/shared/ui";
-import { ordersApi, cartApi } from "../../../src/shared/data/api";
+import { ordersApi } from "../../../src/shared/data/api";
 import { useLocalization, useAuth } from "../../../src/shared/hooks";
 import {
   formatCurrency,
@@ -75,7 +75,7 @@ export default function OrdersScreen() {
   const chipAnimations = {
     all: new Animated.Value(1),
     placed: new Animated.Value(0.8),
-    failed: new Animated.Value(0.8),
+    confirmed: new Animated.Value(0.8),
     packed: new Animated.Value(0.8),
     shipped: new Animated.Value(0.8),
     delivered: new Animated.Value(0.8),
@@ -94,8 +94,8 @@ export default function OrdersScreen() {
     switch (activeTab) {
       case "placed":
         return "1"; // PLACED
-      case "failed":
-        return "2"; // CONFIRMED (Thất bại)
+      case "confirmed":
+        return "2"; // CONFIRMED
       case "packed":
         return "3"; // PACKED
       case "shipped":
@@ -218,12 +218,12 @@ export default function OrdersScreen() {
         };
       case "CONFIRMED":
         return {
-          text: "Thất bại",
-          color: "#dc2626",
-          bgColor: "#fef2f2",
-          borderColor: "#f87171",
-          icon: "close-circle-outline",
-          gradient: ["#f87171", "#dc2626"],
+          text: "Xác nhận",
+          color: "#047857",
+          bgColor: "#ecfdf5",
+          borderColor: "#10b981",
+          icon: "checkmark-done-outline",
+          gradient: ["#10b981", "#047857"],
         };
       case "PACKED":
         return {
@@ -332,134 +332,6 @@ export default function OrdersScreen() {
     [activeTab, animateChip]
   );
 
-  // Handle payment retry for cancelled orders
-  const handleRetryPayment = async (orderId: string) => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-      Alert.alert(
-        "Thanh toán lại",
-        "Bạn có muốn thanh toán lại cho đơn hàng này?",
-        [
-          {
-            text: "Hủy",
-            style: "cancel",
-          },
-          {
-            text: "Thanh toán",
-            onPress: async () => {
-              const result = await ordersApi.createOrderPayment(orderId);
-
-              if (result.success && result.data.paymentUrl) {
-                // Open payment URL
-                await Linking.openURL(result.data.paymentUrl);
-
-                // Refresh orders after a delay
-                setTimeout(() => {
-                  refetch();
-                }, 2000);
-              } else {
-                Alert.alert(
-                  "Lỗi",
-                  result.message || "Không thể tạo thanh toán. Vui lòng thử lại.",
-                  [{ text: "Đóng" }]
-                );
-              }
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      Alert.alert(
-        "Lỗi",
-        "Đã xảy ra lỗi khi tạo thanh toán. Vui lòng thử lại.",
-        [{ text: "Đóng" }]
-      );
-    }
-  };
-
-  // Handle reorder - add all items from completed order back to cart
-  const handleReorder = async (order: Order) => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-      Alert.alert(
-        "Mua lại",
-        `Thêm ${order.itemCount} sản phẩm từ đơn hàng ${order.orderNumber} vào giỏ hàng?`,
-        [
-          {
-            text: "Hủy",
-            style: "cancel",
-          },
-          {
-            text: "Thêm vào giỏ",
-            onPress: async () => {
-              try {
-                let successCount = 0;
-                let failCount = 0;
-
-                // Add each item to cart
-                for (const item of order.items) {
-                  const result = await cartApi.addItem(
-                    item.productId,
-                    item.quantity,
-                    isAuthenticated
-                  );
-                  if (result.success) {
-                    successCount++;
-                  } else {
-                    failCount++;
-                  }
-                }
-
-                Haptics.notificationAsync(
-                  Haptics.NotificationFeedbackType.Success
-                );
-
-                if (failCount === 0) {
-                  Alert.alert(
-                    "Thành công",
-                    `Đã thêm ${successCount} sản phẩm vào giỏ hàng`,
-                    [
-                      {
-                        text: "Xem giỏ hàng",
-                        onPress: () => {
-                          router.push("/(app)/(tabs)/cart");
-                        },
-                      },
-                      { text: "Đóng" },
-                    ]
-                  );
-                } else {
-                  Alert.alert(
-                    "Hoàn thành",
-                    `Đã thêm ${successCount} sản phẩm. ${failCount} sản phẩm không thể thêm vào giỏ hàng.`,
-                    [{ text: "Đóng" }]
-                  );
-                }
-              } catch (error) {
-                Haptics.notificationAsync(
-                  Haptics.NotificationFeedbackType.Error
-                );
-                Alert.alert(
-                  "Lỗi",
-                  "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại.",
-                  [{ text: "Đóng" }]
-                );
-              }
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      Alert.alert(
-        "Lỗi",
-        "Đã xảy ra lỗi. Vui lòng thử lại.",
-        [{ text: "Đóng" }]
-      );
-    }
-  };
-
   // Enhanced filter chips configuration
   const filterChips = [
     {
@@ -479,12 +351,20 @@ export default function OrdersScreen() {
       bgColor: "#fffbeb",
     },
     {
-      id: "failed",
-      label: "Thất bại",
+      id: "confirmed",
+      label: "Xác nhận",
       count: getStatusCounts.confirmed,
-      icon: "close-circle-outline",
-      color: "#dc2626",
-      bgColor: "#fef2f2",
+      icon: "checkmark-done-outline",
+      color: "#047857",
+      bgColor: "#ecfdf5",
+    },
+    {
+      id: "packed",
+      label: "Đóng gói",
+      count: getStatusCounts.packed,
+      icon: "cube-outline",
+      color: "#8b5cf6",
+      bgColor: "#f5f3ff",
     },
     {
       id: "shipped",
@@ -510,6 +390,8 @@ export default function OrdersScreen() {
       color: "#ef4444",
       bgColor: "#fef2f2",
     },
+
+
   ];
 
   // Enhanced Apple-style order card renderer
@@ -559,7 +441,7 @@ export default function OrdersScreen() {
                 <Text className="text-sm text-gray-500 ml-2">
                   {formatDate(order.createdAt)}
                 </Text>
-                {typeof order.shippingAddress === 'object' && order.shippingAddress?.street && (
+                {order.shippingAddress?.street && (
                   <>
                     <View className="w-1 h-1 bg-gray-300 rounded-full mx-3" />
                     <Ionicons
@@ -715,7 +597,8 @@ export default function OrdersScreen() {
               <TouchableOpacity
                 onPress={(e) => {
                   e.stopPropagation();
-                  handleReorder(order);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/(app)/(tabs)/catalog");
                 }}
                 className="flex-1 bg-green-700 rounded-2xl py-4 items-center shadow-lg shadow-green-700/25"
                 activeOpacity={0.85}
@@ -724,23 +607,6 @@ export default function OrdersScreen() {
                   <Ionicons name="repeat-outline" size={20} color="white" />
                   <Text className="text-white font-bold text-base ml-2">
                     Mua lại
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
-            {(order.status === "CANCELLED" || order.status === "CONFIRMED") && (
-              <TouchableOpacity
-                onPress={(e) => {
-                  e.stopPropagation();
-                  handleRetryPayment(order.id);
-                }}
-                className="flex-1 bg-blue-600 rounded-2xl py-4 items-center shadow-lg shadow-blue-600/25"
-                activeOpacity={0.85}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons name="card-outline" size={20} color="white" />
-                  <Text className="text-white font-bold text-base ml-2">
-                    Thanh toán lại
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -939,6 +805,15 @@ export default function OrdersScreen() {
 
         {/* Enhanced Apple-style header */}
         <View className="bg-white pt-12 pb-6">
+          <View className="px-4 mb-8">
+            <Text className="text-3xl font-bold text-gray-900 mb-2">
+              Đơn hàng của bạn
+            </Text>
+            <Text className="text-lg text-gray-500">
+              Đang tải danh sách đơn hàng...
+            </Text>
+          </View>
+
           {/* Filter chips loading */}
           <View className="px-4">
             <FlatList

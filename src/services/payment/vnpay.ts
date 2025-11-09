@@ -79,13 +79,21 @@ export const verifyPayment = async (
 
 export const navigateToPaymentResult = (
   orderId: number,
-  success: boolean
+  success: boolean,
+  additionalParams?: {
+    amount?: string;
+    code?: string;
+    message?: string;
+  }
 ): void => {
   router.replace({
     pathname: "/(app)/payment-result",
     params: {
       orderId: String(orderId),
       success: success ? "true" : "false",
+      ...(additionalParams?.amount && { amount: additionalParams.amount }),
+      ...(additionalParams?.code && { code: additionalParams.code }),
+      ...(additionalParams?.message && { message: additionalParams.message }),
     },
   });
 };
@@ -102,7 +110,12 @@ export const completePaymentFlow = async (url: string): Promise<void> => {
 
     const verification = await verifyPayment(orderId);
 
-    navigateToPaymentResult(orderId, verification.success && isSuccess);
+    // Pass additional params from callback (amount, code, message)
+    navigateToPaymentResult(orderId, verification.success && isSuccess, {
+      amount: callbackParams.amount,
+      code: callbackParams.vnp_ResponseCode || callbackParams.code,
+      message: callbackParams.message || (isSuccess ? "PaymentSuccess" : "PaymentFailed"),
+    });
   } catch (error) {
     navigateToPaymentResult(0, false);
   }

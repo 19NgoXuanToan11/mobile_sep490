@@ -580,11 +580,13 @@ export const feedbackApi = {
 
 export const bannersApi = {
   async getActive(): Promise<ApiResponse<Banner[]>> {
+
     return { success: true, data: [] };
   },
 };
 
 export const cartApi = {
+
   async getItems(
     isAuthenticated: boolean = false
   ): Promise<ApiResponse<CartItem[]>> {
@@ -677,6 +679,7 @@ export const cartApi = {
         quantity,
         price: product.price,
         subtotal: product.price * quantity,
+        selected: true,
       };
       existingItems.push(newItem);
     }
@@ -693,6 +696,7 @@ export const cartApi = {
     isAuthenticated: boolean = false
   ): Promise<ApiResponse<CartItem[]>> {
     if (isAuthenticated) {
+
       return await realCartApi.updateQuantity(itemId, quantity);
     }
 
@@ -720,6 +724,7 @@ export const cartApi = {
     isAuthenticated: boolean = false
   ): Promise<ApiResponse<CartItem[]>> {
     if (isAuthenticated) {
+
       return await realCartApi.removeItem(itemId);
     }
 
@@ -787,12 +792,14 @@ export const ordersApi = {
           (params?.pageIndex ?? 1) * (params?.pageSize ?? 10) < totalCount
       );
       const mapped: Order[] = list.map((o: any, idx: number) => {
+
         const orderItemsImages = (o.orderItems ?? o.orderDetails ?? [])
           .map((item: any) => item.images)
           .filter((img: any) => img && img.trim() !== "");
         return {
           id: String(o.orderId ?? o.id ?? idx),
-          orderNumber: o.orderNumber ?? String(o.orderId ?? idx),
+          orderNumber:
+            o.orderNumber ?? `ORD-${String(o.orderId ?? idx).padStart(2, "0")}`,
           userId: String(o.userId ?? o.customerId ?? ""),
           items: (o.orderItems ?? o.orderDetails ?? []).map((item: any) => ({
             id: String(item.id ?? item.orderDetailId ?? idx),
@@ -834,8 +841,6 @@ export const ordersApi = {
               ? "CONFIRMED"
               : String(o.status ?? "3") === "3"
               ? "PACKED"
-              : String(o.status ?? "6") === "6"
-              ? "SHIPPED"
               : String(o.status ?? "4") === "4"
               ? "SHIPPED"
               : String(o.status ?? "5") === "5"
@@ -905,6 +910,7 @@ export const ordersApi = {
     }>
   > {
     try {
+
       const token = await authStorage.getAccessToken();
       if (!token) {
         return {
@@ -935,6 +941,7 @@ export const ordersApi = {
         (data.paymentUrl && typeof data.paymentUrl === "string") ||
         (data.message && data.message.includes("Order created"));
       if (isSuccess) {
+
         let orderId = data.orderId || data.data?.orderId || 0;
 
         if (!orderId && data.paymentUrl) {
@@ -985,6 +992,7 @@ export const ordersApi = {
     source?: string;
   }): Promise<ApiResponse<{ paymentUrl: string }>> {
     try {
+
       const token = await authStorage.getAccessToken();
       if (!token) {
         return {
@@ -1040,6 +1048,7 @@ export const ordersApi = {
     }>
   > {
     try {
+
       const token = await authStorage.getAccessToken();
       if (!token) {
         return {
@@ -1071,6 +1080,7 @@ export const ordersApi = {
         };
       }
       if ((data.status === 200 && data.data) || data.success !== undefined) {
+
         const vnpaySuccess = responseData.vnPayResponseCode === "00";
         const backendSuccess = responseData.success === true;
 
@@ -1100,57 +1110,66 @@ export const ordersApi = {
       };
     }
   },
-  async getById(id: string): Promise<ApiResponse<Order>> {
+
+  async createOrderPayment(
+    orderId: number
+  ): Promise<ApiResponse<{ message: string }>> {
     try {
+
       const token = await authStorage.getAccessToken();
       if (!token) {
         return {
           success: false,
-          data: null as any,
-          message: "Not authenticated",
+          data: { message: "" },
+          message: "Chưa đăng nhập - Vui lòng đăng nhập lại",
         };
       }
       OpenAPI.BASE = env.API_URL;
       OpenAPI.TOKEN = token;
-
+      const result = await OrderService.postApiV1OrderCreateOrderPayment({
+        orderId,
+      });
+      const data = (result as any)?.data ?? result;
+      return {
+        success: true,
+        data: { message: data.message || "Tạo bản ghi thanh toán thành công" },
+      };
+    } catch (error: any) {
+      console.error("Create order payment error:", error);
+      return {
+        success: false,
+        data: { message: "" },
+        message: error?.message || "Lỗi tạo bản ghi thanh toán",
+      };
+    }
+  },
+  async getById(id: string): Promise<ApiResponse<Order>> {
+    try {
       const res = await OrderService.getApiV1OrderOrder({
         orderId: Number(id),
       });
       const o: any = res?.data ?? res;
-
-      // Parse shipping address string to get name/phone
-      const shippingStr = String(o.shippingAddress ?? "");
-      const shippingLines = shippingStr.split("\n");
-      const firstLine = shippingLines[0] || "";
-      const [shippingName, shippingPhone] = firstLine.split(" - ");
-      const fullAddress = shippingLines.slice(1).join(", ");
-
       const order: Order = {
         id: String(o.orderId ?? o.id),
-        orderNumber: o.orderNumber ?? String(o.orderId ?? id),
+        orderNumber: o.orderNumber ?? `ORD-${id}`,
         userId: String(o.userId ?? ""),
-        email: o.email ?? undefined,
-        totalPrice: Number(o.totalPrice ?? o.total ?? 0),
-        items: (o.orderItems ?? []).map((item: any) => ({
-          id: String(item.orderDetailId ?? item.id ?? ""),
-          productId: String(item.productId ?? ""),
-          productName: item.productName ?? "",
-          quantity: Number(item.quantity ?? item.stockQuantity ?? 1),
-          price: Number(item.price ?? 0),
-          unit: item.unit ?? "kg",
-          image: item.images ?? "",
-        })),
-        orderItems: (o.orderItems ?? []).map((item: any) => ({
-          productId: String(item.productId ?? ""),
-          productName: item.productName ?? "",
-          price: Number(item.price ?? 0),
-          unit: item.unit ?? "kg",
-          stockQuantity: Number(item.quantity ?? item.stockQuantity ?? 1),
-          images: item.images ?? "",
-        })),
-        status: String(o.status ?? "1") as any,
+        items: [],
+        status: String(o.status ?? "PLACED") as any,
         statusHistory: [],
-        shippingAddress: shippingStr,
+        shippingAddress: {
+          id: "",
+          customerName: "",
+          phoneNumber: "",
+          province: "",
+          district: "",
+          street: String(o.shippingAddress ?? ""),
+          ward: "",
+          isDefault: false,
+
+          name: "",
+          phone: "",
+          city: "",
+        },
         paymentMethod: {
           id: "cod",
           type: "COD",
@@ -1158,11 +1177,11 @@ export const ordersApi = {
           description: "",
           isActive: true,
         },
-        itemCount: Number(o.itemCount ?? o.orderItems?.length ?? 0),
-        subtotal: Number(o.subtotal ?? o.totalPrice ?? 0),
+        itemCount: Number(o.itemCount ?? 0),
+        subtotal: Number(o.subtotal ?? 0),
         shippingFee: Number(o.shippingFee ?? 0),
         discount: Number(o.discount ?? 0),
-        total: Number(o.total ?? o.totalPrice ?? 0),
+        total: Number(o.total ?? 0),
         notes: o.notes ?? undefined,
         estimatedDelivery: o.estimatedDelivery ?? undefined,
         trackingNumber: o.trackingNumber ?? undefined,
@@ -1351,45 +1370,6 @@ export const ordersApi = {
         data: null as any,
         message:
           error instanceof Error ? error.message : "Failed to prepare order",
-      };
-    }
-  },
-
-  async createOrderPayment(
-    orderId: string
-  ): Promise<ApiResponse<{ paymentUrl?: string; message?: string }>> {
-    try {
-      const token = await authStorage.getAccessToken();
-      if (!token) {
-        return {
-          success: false,
-          data: {},
-          message: "Chưa đăng nhập - Vui lòng đăng nhập lại",
-        };
-      }
-      OpenAPI.BASE = env.API_URL;
-      OpenAPI.TOKEN = token;
-      const result = await __request(OpenAPI, {
-        method: "POST",
-        url: `/api/v1/order/createOrderPayment/${orderId}`,
-        mediaType: "application/json",
-      });
-      const data = (result as any)?.data ?? result;
-      return {
-        success: true,
-        data: {
-          paymentUrl: data.paymentUrl || data.data?.paymentUrl,
-          message: data.message || "Tạo thanh toán thành công",
-        },
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: {},
-        message:
-          error instanceof Error
-            ? error.message
-            : "Không thể tạo thanh toán. Vui lòng thử lại.",
       };
     }
   },
