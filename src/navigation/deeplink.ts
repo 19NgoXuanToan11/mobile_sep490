@@ -1,7 +1,7 @@
 import * as Linking from "expo-linking";
 import { completePaymentFlow } from "../services/payment/vnpay";
 export const DEEP_LINK_SCHEME = "ifms";
-export const DEEP_LINK_PREFIX = `${DEEP_LINK_SCHEME}:
+export const DEEP_LINK_PREFIX = `${DEEP_LINK_SCHEME}://`;
 export const DEEP_LINK_PATHS = {
   PAYMENT_CALLBACK: "payment-callback",
   ORDER_DETAIL: "order",
