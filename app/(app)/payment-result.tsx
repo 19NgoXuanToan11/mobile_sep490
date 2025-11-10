@@ -28,7 +28,7 @@ export default function PaymentResultScreen() {
   const { orderId, success, amount, code, message } = params;
   const toast = useToast();
   const { clearCart } = useCart();
-  
+
   // Initialize payment status based on params to avoid showing loading screen
   // if we already have payment result from deep link
   const getInitialPaymentStatus = (): "loading" | "success" | "failed" => {
@@ -43,7 +43,7 @@ export default function PaymentResultScreen() {
     // If no success param, we're polling for status
     return "loading";
   };
-  
+
   const [paymentStatus, setPaymentStatus] = useState<
     "loading" | "success" | "failed"
   >(getInitialPaymentStatus());
@@ -80,13 +80,13 @@ export default function PaymentResultScreen() {
       if (paymentResult.success) {
         // Clear cart
         await clearCart();
-        
+
         // Show success toast only once (use ref to get latest message)
         toast.success(
           "Thanh toán thành công",
           messageRef.current || "Đơn hàng đã được xử lý thành công"
         );
-        
+
         setOrderDetails(paymentResult.data);
         setPaymentStatus("success");
       } else {
@@ -118,7 +118,7 @@ export default function PaymentResultScreen() {
         if (!hasProcessedPaymentRef.current) {
           toast.error(
             "Thanh toán thất bại",
-            message || `Mã lỗi: ${code || "Unknown"}`
+            "Vui lòng thử lại"
           );
           hasProcessedPaymentRef.current = true; // Prevent duplicate toast
         }

@@ -14,14 +14,14 @@ interface BottomActionSheetProps {
     total: number;
     onCheckout: () => void;
     isAuthenticated: boolean;
-    hasSelectedItems: boolean;
 }
 export const BottomActionSheet = React.memo<BottomActionSheetProps>(
-    ({ itemCount, subtotal, total, onCheckout, isAuthenticated, hasSelectedItems }) => {
+    ({ itemCount, subtotal, total, onCheckout, isAuthenticated }) => {
         const [isLoading, setIsLoading] = useState(false);
         const scaleAnim = useRef(new Animated.Value(1)).current;
+        const hasItems = itemCount > 0;
         const handleCheckout = useCallback(async () => {
-            if (!hasSelectedItems) return;
+            if (!hasItems) return;
             setIsLoading(true);
             Animated.sequence([
                 Animated.timing(scaleAnim, {
@@ -40,7 +40,7 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                 setIsLoading(false);
                 onCheckout();
             }, 150);
-        }, [onCheckout, scaleAnim, hasSelectedItems]);
+        }, [onCheckout, scaleAnim, hasItems]);
         return (
             <View
                 style={{
@@ -60,9 +60,9 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                 }}
             >
                 <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16 }}>
-                    {}
+                    { }
                     <View style={{ gap: 12 }}>
-                        {}
+                        { }
                         <View
                             style={{
                                 flexDirection: "row",
@@ -88,7 +88,7 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                                 {formatCurrency(subtotal)}
                             </Text>
                         </View>
-                        {}
+                        { }
                         <View
                             style={{
                                 height: 1,
@@ -96,7 +96,7 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                                 marginVertical: 4,
                             }}
                         />
-                        {}
+                        { }
                         <View
                             style={{
                                 flexDirection: "row",
@@ -124,7 +124,7 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                             </Text>
                         </View>
                     </View>
-                    {}
+                    { }
                     <Animated.View
                         style={{
                             marginTop: 20,
@@ -133,13 +133,13 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                     >
                         <Pressable
                             onPress={handleCheckout}
-                            disabled={isLoading || !hasSelectedItems}
+                            disabled={isLoading || !hasItems}
                             style={({ pressed }) => ({
                                 opacity: pressed ? 0.9 : 1,
                             })}
                         >
                             <LinearGradient
-                                colors={hasSelectedItems ? ["#00A86B", "#009E60"] : ["#9CA3AF", "#6B7280"]}
+                                colors={hasItems ? ["#00A86B", "#009E60"] : ["#9CA3AF", "#6B7280"]}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 0 }}
                                 style={{
@@ -149,7 +149,7 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                                     alignItems: "center",
                                     justifyContent: "center",
                                     gap: 8,
-                                    shadowColor: hasSelectedItems ? "#00A86B" : "#9CA3AF",
+                                    shadowColor: hasItems ? "#00A86B" : "#9CA3AF",
                                     shadowOffset: { width: 0, height: 4 },
                                     shadowOpacity: 0.2,
                                     shadowRadius: 8,
@@ -166,11 +166,9 @@ export const BottomActionSheet = React.memo<BottomActionSheetProps>(
                                         color: "#FFFFFF",
                                     }}
                                 >
-                                    {!hasSelectedItems
-                                        ? "Chọn sản phẩm để thanh toán"
-                                        : isAuthenticated
-                                            ? "Thanh toán"
-                                            : "Đăng nhập để thanh toán"}
+                                    {isAuthenticated
+                                        ? "Thanh toán"
+                                        : "Đăng nhập để thanh toán"}
                                 </Text>
                             </LinearGradient>
                         </Pressable>

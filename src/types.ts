@@ -84,9 +84,11 @@ export interface OrderStatus {
   status:
     | "PLACED"
     | "CONFIRMED"
+    | "FAILED"
     | "PACKED"
     | "SHIPPED"
     | "DELIVERED"
+    | "COMPLETED"
     | "CANCELLED";
   timestamp: string;
   description: string;

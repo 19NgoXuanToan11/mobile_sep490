@@ -82,6 +82,14 @@ const getStatusInfo = (status: Order["status"]) => {
         borderColor: "#fbbf24",
         icon: "receipt-outline",
       };
+    case "FAILED":
+      return {
+        text: "Thất bại",
+        color: "#ef4444",
+        bgColor: "#fef2f2",
+        borderColor: "#f87171",
+        icon: "close-circle-outline",
+      };
     case "CONFIRMED":
       return {
         text: "Đã xác nhận",
@@ -109,6 +117,14 @@ const getStatusInfo = (status: Order["status"]) => {
     case "DELIVERED":
       return {
         text: "Đã giao hàng",
+        color: "#06b6d4",
+        bgColor: "#ecfeff",
+        borderColor: "#22d3ee",
+        icon: "car-outline",
+      };
+    case "COMPLETED":
+      return {
+        text: "Hoàn thành",
         color: "#10b981",
         bgColor: "#ecfdf5",
         borderColor: "#34d399",

@@ -123,7 +123,6 @@ export function validateEmail(email: string): boolean {
   return emailRegex.test(email);
 }
 export function validatePhone(phone: string): boolean {
-
   const phoneRegex = /^(?:\+84|0)[3|5|7|8|9][0-9]{8}$/;
   return phoneRegex.test(phone.replace(/\s/g, ""));
 }
@@ -141,9 +140,11 @@ export function getOrderStatusColor(status: string): string {
   const statusColors: Record<string, string> = {
     PLACED: "bg-blue-100 text-blue-800",
     CONFIRMED: "bg-indigo-100 text-indigo-800",
+    FAILED: "bg-red-100 text-red-800",
     PACKED: "bg-purple-100 text-purple-800",
     SHIPPED: "bg-yellow-100 text-yellow-800",
-    DELIVERED: "bg-green-100 text-green-800",
+    DELIVERED: "bg-cyan-100 text-cyan-800",
+    COMPLETED: "bg-green-100 text-green-800",
     CANCELLED: "bg-red-100 text-red-800",
   };
   return statusColors[status] || "bg-gray-100 text-gray-800";

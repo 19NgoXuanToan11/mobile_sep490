@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
@@ -61,6 +61,7 @@ const useDebounce = (value: string, delay: number) => {
 export default function OrdersScreen() {
   const { t } = useLocalization();
   const { isAuthenticated, isLoading, user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>("all");
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,7 +77,6 @@ export default function OrdersScreen() {
     all: new Animated.Value(1),
     placed: new Animated.Value(0.8),
     confirmed: new Animated.Value(0.8),
-    packed: new Animated.Value(0.8),
     shipped: new Animated.Value(0.8),
     delivered: new Animated.Value(0.8),
     cancelled: new Animated.Value(0.8),
@@ -89,21 +89,19 @@ export default function OrdersScreen() {
     }
   }, [isAuthenticated, isLoading]);
 
-  // Enhanced status filter with more granular control
+  // Enhanced status filter with more granular control - Mapping theo backend enum PaymentStatus
   const getStatusFilter = () => {
     switch (activeTab) {
       case "placed":
-        return "1"; // PLACED
+        return "0"; // UNPAID - Chờ thanh toán
       case "confirmed":
-        return "2"; // CONFIRMED
-      case "packed":
-        return "3"; // PACKED
+        return "1"; // PAID - Đã thanh toán/xác nhận
       case "shipped":
-        return "4"; // SHIPPED
+        return "3"; // PENDING - Đang giao
       case "delivered":
-        return "5"; // DELIVERED
+        return "5"; // COMPLETED - Hoàn thành (hoặc có thể filter cả 5 và 6)
       case "cancelled":
-        return "0"; // CANCELLED
+        return "4"; // CANCELLED - Đã hủy
       default:
         return undefined; // all statuses
     }
@@ -161,9 +159,8 @@ export default function OrdersScreen() {
       all: totalCount,
       placed: orders.filter((o) => o.status === "PLACED").length,
       confirmed: orders.filter((o) => o.status === "CONFIRMED").length,
-      packed: orders.filter((o) => o.status === "PACKED").length,
       shipped: orders.filter((o) => o.status === "SHIPPED").length,
-      delivered: orders.filter((o) => o.status === "DELIVERED").length,
+      delivered: orders.filter((o) => o.status === "COMPLETED").length,
       cancelled: orders.filter((o) => o.status === "CANCELLED").length,
     };
   }, [orders, totalCount]);
@@ -204,17 +201,65 @@ export default function OrdersScreen() {
     }
   }, [showSearch, searchAnimation]);
 
+  // Cancel order mutation
+  const cancelOrderMutation = useMutation({
+    mutationFn: (orderId: number) => ordersApi.cancelOrder(orderId),
+    onSuccess: () => {
+      // Invalidate and refetch orders
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert("Thành công", "Đơn hàng đã được hủy thành công");
+    },
+    onError: (error: any) => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert(
+        "Lỗi",
+        error?.message || "Không thể hủy đơn hàng. Vui lòng thử lại."
+      );
+    },
+  });
+
+  // Handle cancel order
+  const handleCancelOrder = (orderId: string) => {
+    Alert.alert(
+      "Xác nhận hủy đơn",
+      "Bạn có chắc chắn muốn hủy đơn hàng này?",
+      [
+        {
+          text: "Không",
+          style: "cancel",
+        },
+        {
+          text: "Có, hủy đơn",
+          style: "destructive",
+          onPress: () => {
+            cancelOrderMutation.mutate(Number(orderId));
+          },
+        },
+      ]
+    );
+  };
+
   // Enhanced status info with better colors and animations
   const getStatusInfo = (status: Order["status"]) => {
     switch (status) {
       case "PLACED":
         return {
-          text: "Đã đặt hàng",
+          text: "Chưa thanh toán",
           color: "#f59e0b",
           bgColor: "#fffbeb",
           borderColor: "#fbbf24",
           icon: "receipt-outline",
           gradient: ["#fbbf24", "#f59e0b"],
+        };
+      case "FAILED":
+        return {
+          text: "Thất bại",
+          color: "#ef4444",
+          bgColor: "#fef2f2",
+          borderColor: "#f87171",
+          icon: "close-circle-outline",
+          gradient: ["#f87171", "#ef4444"],
         };
       case "CONFIRMED":
         return {
@@ -227,7 +272,7 @@ export default function OrdersScreen() {
         };
       case "PACKED":
         return {
-          text: "Đóng gói",
+          text: "Đang chuẩn bị",
           color: "#8b5cf6",
           bgColor: "#f5f3ff",
           borderColor: "#a78bfa",
@@ -244,6 +289,15 @@ export default function OrdersScreen() {
           gradient: ["#22d3ee", "#06b6d4"],
         };
       case "DELIVERED":
+        return {
+          text: "Đã giao",
+          color: "#06b6d4",
+          bgColor: "#ecfeff",
+          borderColor: "#22d3ee",
+          icon: "car-outline",
+          gradient: ["#22d3ee", "#06b6d4"],
+        };
+      case "COMPLETED":
         return {
           text: "Hoàn thành",
           color: "#10b981",
@@ -357,14 +411,6 @@ export default function OrdersScreen() {
       icon: "checkmark-done-outline",
       color: "#047857",
       bgColor: "#ecfdf5",
-    },
-    {
-      id: "packed",
-      label: "Đóng gói",
-      count: getStatusCounts.packed,
-      icon: "cube-outline",
-      color: "#8b5cf6",
-      bgColor: "#f5f3ff",
     },
     {
       id: "shipped",
@@ -593,7 +639,57 @@ export default function OrdersScreen() {
 
           {/* Action Buttons */}
           <View className="flex-row space-x-3">
-            {order.status === "DELIVERED" && (
+            {order.status === "PLACED" && (
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  handleCancelOrder(order.id);
+                }}
+                disabled={cancelOrderMutation.isPending}
+                className="flex-1 bg-red-600 rounded-2xl py-4 items-center shadow-lg shadow-red-600/25"
+                activeOpacity={0.85}
+                style={{
+                  opacity: cancelOrderMutation.isPending ? 0.6 : 1,
+                }}
+              >
+                <View className="flex-row items-center">
+                  {cancelOrderMutation.isPending ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Ionicons name="close-circle-outline" size={20} color="white" />
+                  )}
+                  <Text className="text-white font-bold text-base ml-2">
+                    {cancelOrderMutation.isPending ? "Đang hủy..." : "Hủy đơn"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            {order.status === "FAILED" && (
+              <TouchableOpacity
+                onPress={async (e) => {
+                  e.stopPropagation();
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  try {
+                    await ordersApi.createOrderPayment(Number(order.id));
+                    Alert.alert("Đã tạo yêu cầu", "Đã tạo yêu cầu thanh toán lại");
+                    queryClient.invalidateQueries({ queryKey: ["orders"] });
+                  } catch (err: any) {
+                    Alert.alert("Lỗi", err?.message || "Không thể tạo thanh toán");
+                  }
+                }}
+                className="flex-1 bg-green-700 rounded-2xl py-4 items-center shadow-lg shadow-green-700/25"
+                activeOpacity={0.85}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="repeat-outline" size={20} color="white" />
+                  <Text className="text-white font-bold text-base ml-2">
+                    Mua lại
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            {order.status === "COMPLETED" && (
               <TouchableOpacity
                 onPress={(e) => {
                   e.stopPropagation();

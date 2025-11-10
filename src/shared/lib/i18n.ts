@@ -7,7 +7,6 @@ import { storage, STORAGE_KEYS } from "./storage";
 const resources = {
   en: {
     translation: {
-
       common: {
         ok: "OK",
         cancel: "Cancel",
@@ -145,6 +144,7 @@ const resources = {
         PACKED: "Packed",
         SHIPPED: "Shipped",
         DELIVERED: "Delivered",
+        COMPLETED: "Completed",
         CANCELLED: "Cancelled",
       },
 
@@ -218,7 +218,6 @@ const resources = {
   },
   vi: {
     translation: {
-
       common: {
         ok: "OK",
         cancel: "Hủy",
@@ -356,6 +355,7 @@ const resources = {
         PACKED: "Đã đóng gói",
         SHIPPED: "Đang giao",
         DELIVERED: "Đã giao",
+        COMPLETED: "Hoàn thành",
         CANCELLED: "Đã hủy",
       },
 
@@ -432,7 +432,6 @@ const resources = {
 const initI18n = async () => {
   let savedLanguage = await storage.getItem<string>(STORAGE_KEYS.LANGUAGE);
   if (!savedLanguage) {
-
     savedLanguage = "vi";
     await storage.setItem(STORAGE_KEYS.LANGUAGE, savedLanguage);
   }

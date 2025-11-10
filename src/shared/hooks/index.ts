@@ -282,15 +282,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
 export const useCart = () => {
   const store = useCartStore();
   const cart = useMemo((): Cart => {
-    const selectedItems = store.items.filter((item) => item.selected);
-    const itemCount = selectedItems.reduce(
-      (sum, item) => sum + item.quantity,
-      0
-    );
-    const subtotal = selectedItems.reduce(
-      (sum, item) => sum + item.subtotal,
-      0
-    );
+    const itemCount = store.items.reduce((sum, item) => sum + item.quantity, 0);
+    const subtotal = store.items.reduce((sum, item) => sum + item.subtotal, 0);
     const shippingFee = 0; // Không tính phí ship
     const discount = 0;
     const total = subtotal - discount; // Tổng thanh toán = tạm tính - giảm giá
@@ -309,8 +302,6 @@ export const useCart = () => {
   return {
     ...store,
     cart,
-    toggleItemSelection: store.toggleItemSelection,
-    toggleAllSelection: store.toggleAllSelection,
   };
 };
 

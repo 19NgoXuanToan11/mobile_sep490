@@ -19,20 +19,8 @@ import {
 } from "../../../src/features/cart/components";
 
 export default function CartScreen() {
-  const { cart, updateQuantity, removeItem, clearCart, isLoading, toggleItemSelection, toggleAllSelection } = useCart();
+  const { cart, updateQuantity, removeItem, clearCart, isLoading } = useCart();
   const { isAuthenticated } = useAuth();
-
-  // Check if all items are selected
-  const allSelected = useMemo(
-    () => cart.items.length > 0 && cart.items.every((item) => item.selected),
-    [cart.items]
-  );
-
-  // Check if any items are selected
-  const hasSelectedItems = useMemo(
-    () => cart.items.some((item) => item.selected),
-    [cart.items]
-  );
 
   // Memoized handlers to prevent re-renders
   const handleRemoveItem = useCallback(
@@ -69,10 +57,10 @@ export default function CartScreen() {
   }, [clearCart]);
 
   const handleCheckout = useCallback(() => {
-    if (!hasSelectedItems) {
+    if (cart.items.length === 0) {
       Alert.alert(
-        "Chưa chọn sản phẩm",
-        "Vui lòng chọn ít nhất một sản phẩm để thanh toán."
+        "Giỏ hàng trống",
+        "Vui lòng thêm sản phẩm vào giỏ hàng để thanh toán."
       );
       return;
     }
@@ -92,7 +80,7 @@ export default function CartScreen() {
       return;
     }
     router.push("/(app)/checkout");
-  }, [isAuthenticated, hasSelectedItems]);
+  }, [isAuthenticated, cart.items.length]);
 
   const handleAddMore = useCallback(() => {
     router.push("/(app)/(tabs)/catalog");
@@ -105,10 +93,9 @@ export default function CartScreen() {
         item={item}
         onUpdateQuantity={updateQuantity}
         onRemove={handleRemoveItem}
-        onToggleSelection={toggleItemSelection}
       />
     ),
-    [updateQuantity, handleRemoveItem, toggleItemSelection]
+    [updateQuantity, handleRemoveItem]
   );
 
   // Stable keyExtractor
@@ -173,8 +160,6 @@ export default function CartScreen() {
         itemCount={cart.items.length}
         onClearCart={handleClearCart}
         onAddMore={handleAddMore}
-        allSelected={allSelected}
-        onToggleAll={toggleAllSelection}
       />
 
       {/* Cart Items List */}
@@ -203,7 +188,6 @@ export default function CartScreen() {
         total={cart.total}
         onCheckout={handleCheckout}
         isAuthenticated={isAuthenticated}
-        hasSelectedItems={hasSelectedItems}
       />
     </SafeAreaView>
   );

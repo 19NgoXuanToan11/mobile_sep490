@@ -65,18 +65,15 @@ export const useCheckout = (options?: UseCheckoutOptions) => {
     [paymentMethods, selectedPaymentMethodId]
   );
 
-  const selectedItems = useMemo(
-    () => cart.items.filter((item) => item.selected),
-    [cart.items]
-  );
+  const selectedItems = useMemo(() => cart.items, [cart.items]);
 
   const canProceed = useMemo(() => {
     return (
-      selectedItems.length > 0 &&
+      cart.items.length > 0 &&
       selectedAddressId !== "" &&
       selectedPaymentMethodId !== ""
     );
-  }, [selectedItems.length, selectedAddressId, selectedPaymentMethodId]);
+  }, [cart.items.length, selectedAddressId, selectedPaymentMethodId]);
 
   const createOrderMutation = useMutation({
     mutationFn: async () => {
@@ -98,14 +95,12 @@ export const useCheckout = (options?: UseCheckoutOptions) => {
         const { orderId, paymentUrl } = response.data;
 
         if (selectedPaymentMethod?.type === "E_WALLET" && paymentUrl) {
-
           await clearCart();
 
           await Linking.openURL(paymentUrl);
 
           router.replace(`/(app)/payment-result?orderId=${orderId}`);
         } else {
-
           await vnpayApi.createOrderPayment(orderId);
           await clearCart();
           toast.success("Đặt hàng thành công", "Đơn hàng của bạn đã được tạo");
@@ -152,7 +147,6 @@ export const useCheckout = (options?: UseCheckoutOptions) => {
     toast,
   ]);
   return {
-
     addresses,
     paymentMethods,
     selectedAddress,

@@ -70,13 +70,13 @@ export default function CheckoutScreen() {
     }
   }, [isAuthenticated, isAuthLoading]);
 
-  // Redirect if no selected items
+  // Redirect if cart is empty
   useEffect(() => {
-    if (!isLoading && selectedItems && selectedItems.length === 0) {
-      toast.info("Chưa chọn sản phẩm", "Vui lòng chọn sản phẩm trong giỏ hàng để thanh toán");
+    if (!isLoading && cart.items.length === 0) {
+      toast.info("Giỏ hàng trống", "Vui lòng thêm sản phẩm vào giỏ hàng để thanh toán");
       router.back();
     }
-  }, [selectedItems, isLoading]);
+  }, [cart.items.length, isLoading]);
 
   // Refresh addresses when screen focuses
   useEffect(() => {

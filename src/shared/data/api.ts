@@ -580,13 +580,11 @@ export const feedbackApi = {
 
 export const bannersApi = {
   async getActive(): Promise<ApiResponse<Banner[]>> {
-
     return { success: true, data: [] };
   },
 };
 
 export const cartApi = {
-
   async getItems(
     isAuthenticated: boolean = false
   ): Promise<ApiResponse<CartItem[]>> {
@@ -696,7 +694,6 @@ export const cartApi = {
     isAuthenticated: boolean = false
   ): Promise<ApiResponse<CartItem[]>> {
     if (isAuthenticated) {
-
       return await realCartApi.updateQuantity(itemId, quantity);
     }
 
@@ -724,7 +721,6 @@ export const cartApi = {
     isAuthenticated: boolean = false
   ): Promise<ApiResponse<CartItem[]>> {
     if (isAuthenticated) {
-
       return await realCartApi.removeItem(itemId);
     }
 
@@ -792,14 +788,12 @@ export const ordersApi = {
           (params?.pageIndex ?? 1) * (params?.pageSize ?? 10) < totalCount
       );
       const mapped: Order[] = list.map((o: any, idx: number) => {
-
         const orderItemsImages = (o.orderItems ?? o.orderDetails ?? [])
           .map((item: any) => item.images)
           .filter((img: any) => img && img.trim() !== "");
         return {
           id: String(o.orderId ?? o.id ?? idx),
-          orderNumber:
-            o.orderNumber ?? `ORD-${String(o.orderId ?? idx).padStart(2, "0")}`,
+          orderNumber: o.orderNumber ?? String(o.orderId ?? idx),
           userId: String(o.userId ?? o.customerId ?? ""),
           items: (o.orderItems ?? o.orderDetails ?? []).map((item: any) => ({
             id: String(item.id ?? item.orderDetailId ?? idx),
@@ -835,18 +829,20 @@ export const ordersApi = {
             },
           })),
           status:
-            String(o.status ?? "1") === "1"
-              ? "PLACED"
+            String(o.status ?? "0") === "0"
+              ? "PLACED" // UNPAID - Chờ thanh toán
+              : String(o.status ?? "1") === "1"
+              ? "CONFIRMED" // PAID - Đã thanh toán/xác nhận
               : String(o.status ?? "2") === "2"
-              ? "CONFIRMED"
+              ? "FAILED" // UNDISCHARGED - Thanh toán thất bại
               : String(o.status ?? "3") === "3"
-              ? "PACKED"
+              ? "SHIPPED" // PENDING - Đang giao
               : String(o.status ?? "4") === "4"
-              ? "SHIPPED"
+              ? "CANCELLED" // CANCELLED - Đã hủy
               : String(o.status ?? "5") === "5"
-              ? "DELIVERED"
-              : String(o.status ?? "0") === "0"
-              ? "CANCELLED"
+              ? "COMPLETED" // COMPLETED - Hoàn thành
+              : String(o.status ?? "6") === "6"
+              ? "DELIVERED" // DELIVERED - Đã giao
               : "PLACED",
           statusHistory: [],
           shippingAddress: {
@@ -910,7 +906,6 @@ export const ordersApi = {
     }>
   > {
     try {
-
       const token = await authStorage.getAccessToken();
       if (!token) {
         return {
@@ -941,7 +936,6 @@ export const ordersApi = {
         (data.paymentUrl && typeof data.paymentUrl === "string") ||
         (data.message && data.message.includes("Order created"));
       if (isSuccess) {
-
         let orderId = data.orderId || data.data?.orderId || 0;
 
         if (!orderId && data.paymentUrl) {
@@ -992,7 +986,6 @@ export const ordersApi = {
     source?: string;
   }): Promise<ApiResponse<{ paymentUrl: string }>> {
     try {
-
       const token = await authStorage.getAccessToken();
       if (!token) {
         return {
@@ -1048,7 +1041,6 @@ export const ordersApi = {
     }>
   > {
     try {
-
       const token = await authStorage.getAccessToken();
       if (!token) {
         return {
@@ -1080,7 +1072,6 @@ export const ordersApi = {
         };
       }
       if ((data.status === 200 && data.data) || data.success !== undefined) {
-
         const vnpaySuccess = responseData.vnPayResponseCode === "00";
         const backendSuccess = responseData.success === true;
 
@@ -1115,7 +1106,6 @@ export const ordersApi = {
     orderId: number
   ): Promise<ApiResponse<{ message: string }>> {
     try {
-
       const token = await authStorage.getAccessToken();
       if (!token) {
         return {
@@ -1149,25 +1139,31 @@ export const ordersApi = {
         orderId: Number(id),
       });
       const o: any = res?.data?.data ?? res?.data ?? res;
-      
+
       // Map orderDetails to items
       const items = (o.orderDetails ?? []).map((item: any) => ({
         id: String(item.orderDetailId ?? ""),
         productId: String(item.productId ?? ""),
         quantity: Number(item.quantity ?? 1),
         price: Number(item.unitPrice ?? item.price ?? 0),
-        subtotal: Number(item.quantity ?? 1) * Number(item.unitPrice ?? item.price ?? 0),
+        subtotal:
+          Number(item.quantity ?? 1) *
+          Number(item.unitPrice ?? item.price ?? 0),
         selected: false,
         product: {
           id: String(item.productId ?? ""),
-          name: String(item.product?.productName ?? item.productName ?? "Sản phẩm"),
+          name: String(
+            item.product?.productName ?? item.productName ?? "Sản phẩm"
+          ),
           slug: "",
           sku: "",
           description: String(item.product?.description ?? ""),
           price: Number(item.product?.price ?? item.unitPrice ?? 0),
           categoryId: String(item.product?.categoryId ?? ""),
-          images: item.product?.images 
-            ? (typeof item.product.images === 'string' ? [item.product.images] : [])
+          images: item.product?.images
+            ? typeof item.product.images === "string"
+              ? [item.product.images]
+              : []
             : [],
           rating: 0,
           reviewCount: 0,
@@ -1189,19 +1185,20 @@ export const ordersApi = {
       const phoneNumber = namePhone[1]?.trim() ?? "";
       const fullAddress = addressParts.slice(1).join(", ");
 
-      // Map status
+      // Map status - Mapping theo backend enum PaymentStatus
       const statusMap: Record<string, Order["status"]> = {
-        "1": "PLACED",
-        "2": "CONFIRMED",
-        "3": "PACKED",
-        "4": "SHIPPED",
-        "5": "DELIVERED",
-        "0": "CANCELLED",
+        "0": "PLACED", // UNPAID - Chờ thanh toán
+        "1": "CONFIRMED", // PAID - Đã thanh toán/xác nhận
+        "2": "PACKED", // UNDISCHARGED - Đang chuẩn bị
+        "3": "SHIPPED", // PENDING - Đang giao
+        "4": "CANCELLED", // CANCELLED - Đã hủy
+        "5": "COMPLETED", // COMPLETED - Hoàn thành
+        "6": "DELIVERED", // DELIVERED - Đã giao
       };
 
       const order: Order = {
         id: String(o.orderId ?? o.id),
-        orderNumber: o.orderNumber ?? `ORD-${String(o.orderId ?? id).padStart(3, "0")}`,
+        orderNumber: o.orderNumber ?? String(o.orderId ?? id),
         userId: String(o.customerId ?? o.userId ?? ""),
         items: items,
         status: statusMap[String(o.status ?? "1")] ?? "PLACED",
@@ -1215,9 +1212,6 @@ export const ordersApi = {
           street: fullAddress,
           ward: "",
           isDefault: false,
-          name: customerName,
-          phone: phoneNumber,
-          city: "",
         },
         paymentMethod: {
           id: "cod",
@@ -1255,7 +1249,11 @@ export const ordersApi = {
       const fullData = res?.data?.data ?? res?.data ?? res;
       return { success: true, data: fullData };
     } catch (error: any) {
-      return { success: false, data: null, message: error?.message || "Order not found" };
+      return {
+        success: false,
+        data: null,
+        message: error?.message || "Order not found",
+      };
     }
   },
 
@@ -1343,20 +1341,20 @@ export const ordersApi = {
             },
           })),
           status:
-            String(o.status ?? "1") === "1"
-              ? "PLACED"
+            String(o.status ?? "0") === "0"
+              ? "PLACED" // UNPAID - Chờ thanh toán
+              : String(o.status ?? "1") === "1"
+              ? "CONFIRMED" // PAID - Đã thanh toán/xác nhận
               : String(o.status ?? "2") === "2"
-              ? "CONFIRMED"
+              ? "PACKED" // UNDISCHARGED - Đang chuẩn bị
               : String(o.status ?? "3") === "3"
-              ? "PACKED"
-              : String(o.status ?? "6") === "6"
-              ? "SHIPPED"
+              ? "SHIPPED" // PENDING - Đang giao
               : String(o.status ?? "4") === "4"
-              ? "SHIPPED"
+              ? "CANCELLED" // CANCELLED - Đã hủy
               : String(o.status ?? "5") === "5"
-              ? "DELIVERED"
-              : String(o.status ?? "0") === "0"
-              ? "CANCELLED"
+              ? "COMPLETED" // COMPLETED - Hoàn thành
+              : String(o.status ?? "6") === "6"
+              ? "DELIVERED" // DELIVERED - Đã giao
               : "PLACED",
           statusHistory: [],
           shippingAddress: {
@@ -1368,9 +1366,6 @@ export const ordersApi = {
             street: String(o.shippingAddress ?? ""),
             ward: "",
             isDefault: false,
-            name: "",
-            phone: "",
-            city: "",
           },
           paymentMethod: {
             id: "cod",
@@ -1435,6 +1430,38 @@ export const ordersApi = {
         data: null as any,
         message:
           error instanceof Error ? error.message : "Failed to prepare order",
+      };
+    }
+  },
+
+  async cancelOrder(
+    orderId: number
+  ): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: { message: "" },
+          message: "Chưa đăng nhập - Vui lòng đăng nhập lại",
+        };
+      }
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+      const result = await OrderService.putApiV1OrderUpdateCancelStatus({
+        orderId,
+      });
+      const data = (result as any)?.data ?? result;
+      return {
+        success: true,
+        data: { message: data.message || "Hủy đơn hàng thành công" },
+      };
+    } catch (error: any) {
+      console.error("Cancel order error:", error);
+      return {
+        success: false,
+        data: { message: "" },
+        message: error?.message || "Lỗi hủy đơn hàng",
       };
     }
   },
