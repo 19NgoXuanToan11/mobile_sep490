@@ -23,7 +23,8 @@
           "(app)": {
             "screens": {
               "payment-result": "payment-result",
-              "payment-callback": "payment-callback"
+              "payment-callback": "payment-callback",
+              "order": "order"
             }
           }
         }

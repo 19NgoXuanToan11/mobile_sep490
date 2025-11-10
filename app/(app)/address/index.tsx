@@ -47,7 +47,7 @@ export default function MyAddressScreen() {
     mutationFn: addressesApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
-      toast.success("Cập nhật thành công 🎉", "Địa chỉ đã được xóa");
+      toast.success("Cập nhật thành công", "Địa chỉ đã được xóa");
     },
     onError: () => {
       toast.error("Thao tác thất bại", "Vui lòng thử lại");
@@ -59,7 +59,7 @@ export default function MyAddressScreen() {
       addressesApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
-      toast.success("Cập nhật thành công 🎉", "Địa chỉ mặc định đã được đặt");
+      toast.success("Cập nhật thành công", "Địa chỉ mặc định đã được đặt");
     },
     onError: () => {
       toast.error("Thao tác thất bại", "Vui lòng thử lại");

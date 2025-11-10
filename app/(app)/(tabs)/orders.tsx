@@ -803,34 +803,6 @@ export default function OrdersScreen() {
           translucent
         />
 
-        {/* Enhanced Apple-style header */}
-        <View className="bg-white pt-12 pb-6">
-          <View className="px-4 mb-8">
-            <Text className="text-3xl font-bold text-gray-900 mb-2">
-              Đơn hàng của bạn
-            </Text>
-            <Text className="text-lg text-gray-500">
-              Đang tải danh sách đơn hàng...
-            </Text>
-          </View>
-
-          {/* Filter chips loading */}
-          <View className="px-4">
-            <FlatList
-              data={filterChips}
-              renderItem={({ item }) => (
-                <View className="mr-3 px-4 py-3 bg-gray-50 rounded-2xl border-2 border-gray-200">
-                  <Skeleton className="h-8 w-16 rounded" />
-                </View>
-              )}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingRight: 20 }}
-            />
-          </View>
-        </View>
-
         <FlatList
           data={[1, 2, 3, 4, 5]}
           renderItem={() => renderLoadingSkeleton()}

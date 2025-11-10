@@ -1148,26 +1148,75 @@ export const ordersApi = {
       const res = await OrderService.getApiV1OrderOrder({
         orderId: Number(id),
       });
-      const o: any = res?.data ?? res;
+      const o: any = res?.data?.data ?? res?.data ?? res;
+      
+      // Map orderDetails to items
+      const items = (o.orderDetails ?? []).map((item: any) => ({
+        id: String(item.orderDetailId ?? ""),
+        productId: String(item.productId ?? ""),
+        quantity: Number(item.quantity ?? 1),
+        price: Number(item.unitPrice ?? item.price ?? 0),
+        subtotal: Number(item.quantity ?? 1) * Number(item.unitPrice ?? item.price ?? 0),
+        selected: false,
+        product: {
+          id: String(item.productId ?? ""),
+          name: String(item.product?.productName ?? item.productName ?? "Sản phẩm"),
+          slug: "",
+          sku: "",
+          description: String(item.product?.description ?? ""),
+          price: Number(item.product?.price ?? item.unitPrice ?? 0),
+          categoryId: String(item.product?.categoryId ?? ""),
+          images: item.product?.images 
+            ? (typeof item.product.images === 'string' ? [item.product.images] : [])
+            : [],
+          rating: 0,
+          reviewCount: 0,
+          stock: Number(item.product?.stockQuantity ?? 0),
+          isInStock: true,
+          isFeatured: false,
+          tags: [],
+          unit: "",
+          createdAt: item.product?.createdAt ?? new Date().toISOString(),
+          updatedAt: item.product?.updatedAt ?? new Date().toISOString(),
+        },
+      }));
+
+      // Parse shipping address
+      const shippingAddr = String(o.shippingAddress ?? "");
+      const addressParts = shippingAddr.split("\n");
+      const namePhone = addressParts[0]?.split(" - ") ?? [];
+      const customerName = namePhone[0]?.trim() ?? "";
+      const phoneNumber = namePhone[1]?.trim() ?? "";
+      const fullAddress = addressParts.slice(1).join(", ");
+
+      // Map status
+      const statusMap: Record<string, Order["status"]> = {
+        "1": "PLACED",
+        "2": "CONFIRMED",
+        "3": "PACKED",
+        "4": "SHIPPED",
+        "5": "DELIVERED",
+        "0": "CANCELLED",
+      };
+
       const order: Order = {
         id: String(o.orderId ?? o.id),
-        orderNumber: o.orderNumber ?? `ORD-${id}`,
-        userId: String(o.userId ?? ""),
-        items: [],
-        status: String(o.status ?? "PLACED") as any,
+        orderNumber: o.orderNumber ?? `ORD-${String(o.orderId ?? id).padStart(3, "0")}`,
+        userId: String(o.customerId ?? o.userId ?? ""),
+        items: items,
+        status: statusMap[String(o.status ?? "1")] ?? "PLACED",
         statusHistory: [],
         shippingAddress: {
           id: "",
-          customerName: "",
-          phoneNumber: "",
+          customerName: customerName,
+          phoneNumber: phoneNumber,
           province: "",
           district: "",
-          street: String(o.shippingAddress ?? ""),
+          street: fullAddress,
           ward: "",
           isDefault: false,
-
-          name: "",
-          phone: "",
+          name: customerName,
+          phone: phoneNumber,
           city: "",
         },
         paymentMethod: {
@@ -1177,20 +1226,36 @@ export const ordersApi = {
           description: "",
           isActive: true,
         },
-        itemCount: Number(o.itemCount ?? 0),
-        subtotal: Number(o.subtotal ?? 0),
-        shippingFee: Number(o.shippingFee ?? 0),
-        discount: Number(o.discount ?? 0),
-        total: Number(o.total ?? 0),
+        itemCount: items.length,
+        subtotal: Number(o.totalPrice ?? 0),
+        shippingFee: 0,
+        discount: 0,
+        total: Number(o.totalPrice ?? 0),
         notes: o.notes ?? undefined,
         estimatedDelivery: o.estimatedDelivery ?? undefined,
         trackingNumber: o.trackingNumber ?? undefined,
+        images: items
+          .map((item: any) => item.product?.images?.[0])
+          .filter((img: any) => img),
         createdAt: o.createdAt ?? new Date().toISOString(),
         updatedAt: o.updatedAt ?? new Date().toISOString(),
       };
       return { success: true, data: order };
     } catch (error) {
       return { success: false, data: null as any, message: "Order not found" };
+    }
+  },
+
+  // Get full order detail with all backend data (customer, payments, etc.)
+  async getFullDetailById(id: string): Promise<ApiResponse<any>> {
+    try {
+      const res = await OrderService.getApiV1OrderOrder({
+        orderId: Number(id),
+      });
+      const fullData = res?.data?.data ?? res?.data ?? res;
+      return { success: true, data: fullData };
+    } catch (error: any) {
+      return { success: false, data: null, message: error?.message || "Order not found" };
     }
   },
 

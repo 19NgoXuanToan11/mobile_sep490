@@ -6,13 +6,15 @@ import {
     Platform,
     Animated,
 } from "react-native";
+import { Image } from "expo-image";
 interface ProfileSummaryCardProps {
     fullName: string;
     email: string;
     role: string;
+    avatarUri?: string;
 }
 export const ProfileSummaryCard = React.memo<ProfileSummaryCardProps>(
-    ({ fullName, email, role }) => {
+    ({ fullName, email, role, avatarUri }) => {
         const fadeAnim = React.useRef(new Animated.Value(0)).current;
         const scaleAnim = React.useRef(new Animated.Value(0.95)).current;
         React.useEffect(() => {
@@ -63,7 +65,15 @@ export const ProfileSummaryCard = React.memo<ProfileSummaryCardProps>(
                 ]}
             >
                 <View style={styles.avatarContainer}>
-                    <Text style={styles.avatarText}>{getInitials(fullName)}</Text>
+                    {avatarUri ? (
+                        <Image
+                            source={{ uri: avatarUri }}
+                            style={styles.avatarImage}
+                            contentFit="cover"
+                        />
+                    ) : (
+                        <Text style={styles.avatarText}>{getInitials(fullName)}</Text>
+                    )}
                 </View>
                 <View style={styles.infoContainer}>
                     <Text style={styles.name} numberOfLines={1}>
@@ -140,6 +150,11 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: "#00A86B",
         letterSpacing: 0.5,
+    },
+    avatarImage: {
+        width: 88,
+        height: 88,
+        borderRadius: 44,
     },
     infoContainer: {
         alignItems: "center",

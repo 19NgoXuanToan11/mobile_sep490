@@ -1,8 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { View, ScrollView, StatusBar, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useAuth, useAuthActions } from "../../../src/shared/hooks";
+import { profileApi } from "../../../src/shared/data/api";
 import {
   ProfileCard,
   AccountSection,
@@ -15,6 +16,26 @@ import {
 export default function AccountScreen() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { logout } = useAuthActions();
+  const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isAuthenticated) {
+        loadProfile();
+      }
+    }, [isAuthenticated])
+  );
+
+  const loadProfile = async () => {
+    try {
+      const response = await profileApi.getProfile();
+      if (response.success && response.data?.images) {
+        setAvatarUri(response.data.images);
+      }
+    } catch (error) {
+      // Silent fail
+    }
+  };
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -96,6 +117,7 @@ export default function AccountScreen() {
           <ProfileCard
             name={user?.name || "Người dùng"}
             email={user?.email || ""}
+            avatarUri={avatarUri}
             onEditPress={handleEditProfile}
           />
 

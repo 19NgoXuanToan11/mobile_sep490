@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../../src/shared/hooks";
 import { profileApi } from "../../../src/shared/data/api";
 import {
@@ -24,6 +23,7 @@ import {
   Toast,
 } from "../../../src/features/profile/components";
 import { useToast } from "../../../src/features/profile/hooks/useToast";
+import { useUploadAvatar } from "../../../src/hooks/useUploadAvatar";
 
 interface EditProfileForm {
   name: string;
@@ -48,6 +48,10 @@ export default function EditProfileScreen() {
   });
   const [errors, setErrors] = useState<Partial<EditProfileForm>>({});
   const [showGenderPicker, setShowGenderPicker] = useState(false);
+
+  // Avatar upload hook
+  const userId = user?.id || "0";
+  const avatarUpload = useUploadAvatar(userId);
 
   // Refs for input focus management
   const nameRef = useRef<TextInput>(null);
@@ -109,7 +113,7 @@ export default function EditProfileScreen() {
       });
 
       if (response.success) {
-        showToast("Cập nhật thành công 🎉", "success");
+        showToast("Cập nhật thành công", "success");
         // Wait for toast to show before navigating back
         setTimeout(() => {
           router.back();
@@ -128,29 +132,24 @@ export default function EditProfileScreen() {
   };
 
   const handlePickImage = useCallback(async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      showToast("Cần quyền truy cập thư viện ảnh", "error");
-      return;
+    try {
+      await avatarUpload.start();
+      // If upload succeeds, reload profile to get updated avatar URL
+      const profileResponse = await profileApi.getProfile();
+      if (profileResponse.success && profileResponse.data) {
+        setFormData((prev) => ({
+          ...prev,
+          avatar: profileResponse.data.images || prev.avatar,
+        }));
+        showToast("Cập nhật ảnh đại diện thành công", "success");
+      }
+    } catch (err) {
+      // Error is already handled in hook, just show toast if needed
+      if (avatarUpload.error && avatarUpload.error !== "Đã hủy tải lên") {
+        showToast(avatarUpload.error, "error");
+      }
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      setFormData((prev) => ({
-        ...prev,
-        avatar: result.assets[0].uri,
-      }));
-      showToast("Ảnh đã được chọn", "success");
-    }
-  }, [showToast]);
+  }, [avatarUpload, showToast]);
 
   const updateField = useCallback(
     (field: keyof EditProfileForm, value: string | number) => {
@@ -250,6 +249,38 @@ export default function EditProfileScreen() {
             avatarUri={formData.avatar}
             onPress={handlePickImage}
           />
+
+          {/* Upload Progress & Cancel */}
+          {avatarUpload.isUploading && (
+            <View style={styles.uploadContainer}>
+              <View style={styles.progressContainer}>
+                <Text style={styles.progressText}>
+                  Đang tải lên {Math.min(100, avatarUpload.progress)}%
+                </Text>
+                <View style={styles.progressBar}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: `${Math.min(100, avatarUpload.progress)}%` },
+                    ]}
+                  />
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={avatarUpload.cancel}
+                style={styles.cancelButton}
+              >
+                <Text style={styles.cancelButtonText}>Huỷ tải lên</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Upload Error */}
+          {avatarUpload.error && !avatarUpload.isUploading && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{avatarUpload.error}</Text>
+            </View>
+          )}
 
           {/* Form Section */}
           <View style={styles.formSection}>
@@ -505,5 +536,61 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
     }),
+  },
+  uploadContainer: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  progressContainer: {
+    marginBottom: 12,
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#374151",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#00A86B",
+    borderRadius: 4,
+  },
+  cancelButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#6B7280",
+  },
+  errorContainer: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: "#FEF2F2",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#DC2626",
+    textAlign: "center",
   },
 });

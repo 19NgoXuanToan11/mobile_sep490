@@ -6,6 +6,7 @@ import {
     StyleSheet,
     Platform,
 } from "react-native";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
     useAnimatedStyle,
@@ -56,17 +57,23 @@ export const AvatarEditCard = React.memo<AvatarEditCardProps>(
                     style={animatedStyle}
                 >
                     <View style={styles.avatarContainer}>
-                        {}
-                        <View style={styles.avatar}>
-                            <Text style={styles.initials}>{getInitials()}</Text>
-                        </View>
-                        {}
+                        {avatarUri ? (
+                            <Image
+                                source={{ uri: avatarUri }}
+                                style={styles.avatar}
+                                contentFit="cover"
+                            />
+                        ) : (
+                            <View style={styles.avatar}>
+                                <Text style={styles.initials}>{getInitials()}</Text>
+                            </View>
+                        )}
                         <View style={styles.cameraButton}>
                             <Ionicons name="camera" size={18} color="#FFFFFF" />
                         </View>
                     </View>
                 </AnimatedTouchable>
-                {}
+                { }
                 <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
                     <Text style={styles.editText}>Thay đổi ảnh đại diện</Text>
                 </TouchableOpacity>
@@ -107,6 +114,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#E8F9F1",
         alignItems: "center",
         justifyContent: "center",
+        overflow: "hidden",
         ...Platform.select({
             ios: {
                 shadowColor: "#000000",

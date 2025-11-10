@@ -46,7 +46,11 @@ export const Toast = React.memo<ToastProps>(
         const opacity = useSharedValue(0);
         useEffect(() => {
             if (visible) {
+                // Reset và hiển thị toast
+                translateY.value = -100;
+                opacity.value = 0;
 
+                // Animate in
                 translateY.value = withSpring(0, {
                     damping: 20,
                     stiffness: 300,
@@ -56,29 +60,29 @@ export const Toast = React.memo<ToastProps>(
                     stiffness: 300,
                 });
 
-                const hideTimer = withDelay(
-                    duration,
-                    withSequence(
-                        withSpring(-100, {
-                            damping: 20,
-                            stiffness: 300,
-                        }),
-                        withSpring(0, {}, (finished) => {
-                            if (finished && onHide) {
-                                runOnJS(onHide)();
-                            }
-                        })
-                    )
-                );
-                const opacityTimer = withDelay(
-                    duration,
-                    withSpring(0, {
+                // Animate out sau duration
+                const hideTimer = setTimeout(() => {
+                    translateY.value = withSpring(-100, {
                         damping: 20,
                         stiffness: 300,
-                    })
-                );
-                translateY.value = hideTimer;
-                opacity.value = opacityTimer;
+                    });
+                    opacity.value = withSpring(0, {
+                        damping: 20,
+                        stiffness: 300,
+                    }, (finished) => {
+                        if (finished && onHide) {
+                            runOnJS(onHide)();
+                        }
+                    });
+                }, duration);
+
+                return () => {
+                    clearTimeout(hideTimer);
+                };
+            } else {
+                // Reset khi không visible
+                translateY.value = -100;
+                opacity.value = 0;
             }
         }, [visible, duration, onHide]);
         const animatedStyle = useAnimatedStyle(() => ({

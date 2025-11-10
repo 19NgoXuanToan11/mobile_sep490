@@ -7,14 +7,16 @@ import {
     Animated,
     Platform,
 } from "react-native";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 interface ProfileCardProps {
     name?: string;
     email?: string;
+    avatarUri?: string;
     onEditPress: () => void;
 }
 export const ProfileCard = React.memo<ProfileCardProps>(
-    ({ name = "Người dùng", email = "", onEditPress }) => {
+    ({ name = "Người dùng", email = "", avatarUri, onEditPress }) => {
         const fadeAnim = useRef(new Animated.Value(0)).current;
         const scaleAnim = useRef(new Animated.Value(0.95)).current;
         const avatarBounce = useRef(new Animated.Value(0)).current;
@@ -83,18 +85,26 @@ export const ProfileCard = React.memo<ProfileCardProps>(
                     },
                 ]}
             >
-                {}
+                { }
                 <Animated.View
                     style={[
                         styles.avatarContainer,
                         { transform: [{ scale: avatarScale }] },
                     ]}
                 >
-                    <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>{getInitials(name)}</Text>
-                    </View>
+                    {avatarUri ? (
+                        <Image
+                            source={{ uri: avatarUri }}
+                            style={styles.avatar}
+                            contentFit="cover"
+                        />
+                    ) : (
+                        <View style={styles.avatar}>
+                            <Text style={styles.avatarText}>{getInitials(name)}</Text>
+                        </View>
+                    )}
                 </Animated.View>
-                {}
+                { }
                 <View style={styles.infoContainer}>
                     <Text style={styles.name} numberOfLines={1}>
                         {name}
@@ -105,7 +115,7 @@ export const ProfileCard = React.memo<ProfileCardProps>(
                         </Text>
                     ) : null}
                 </View>
-                {}
+                { }
                 <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
                     <TouchableOpacity
                         style={styles.editButton}

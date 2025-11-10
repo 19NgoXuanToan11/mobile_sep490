@@ -21,16 +21,35 @@ import {
 import {
   bannersApi,
   productsApi,
+  profileApi,
 } from "../../../src/shared/data/api";
 import { useAuth, useCart } from "../../../src/shared/hooks";
 import { useToast } from "../../../src/shared/ui/toast";
 import { appleDesign } from "../../../src/shared/lib/theme";
 
 export default function HomeScreen() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const toast = useToast();
   const { addItem } = useCart();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [avatarUri, setAvatarUri] = React.useState<string | undefined>(undefined);
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      loadProfile();
+    }
+  }, [isAuthenticated]);
+
+  const loadProfile = async () => {
+    try {
+      const response = await profileApi.getProfile();
+      if (response.success && response.data?.images) {
+        setAvatarUri(response.data.images);
+      }
+    } catch (error) {
+      // Silent fail
+    }
+  };
 
   // Animation values
   const scrollY = React.useRef(new Animated.Value(0)).current;
@@ -152,14 +171,27 @@ export default function HomeScreen() {
                     backgroundColor: "#FFFFFF",
                     alignItems: "center",
                     justifyContent: "center",
+                    overflow: "hidden",
                     ...appleDesign.shadows.soft,
                   }}
                 >
-                  <Ionicons
-                    name="person-outline"
-                    size={20}
-                    color={appleDesign.colors.text.secondary}
-                  />
+                  {avatarUri ? (
+                    <Image
+                      source={{ uri: avatarUri }}
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
+                      }}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <Ionicons
+                      name="person-outline"
+                      size={20}
+                      color={appleDesign.colors.text.secondary}
+                    />
+                  )}
                 </TouchableOpacity>
               </Animated.View>
             </View>

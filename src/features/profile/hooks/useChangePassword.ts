@@ -24,7 +24,7 @@ export function useChangePassword() {
     },
     onSuccess: () => {
       toast.success(
-        "Đổi mật khẩu thành công 🎉",
+        "Đổi mật khẩu thành công",
         "Mật khẩu của bạn đã được cập nhật"
       );
 

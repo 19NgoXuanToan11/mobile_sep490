@@ -10,7 +10,7 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../../src/shared/hooks";
 import { profileApi, ProfileData } from "../../../src/shared/data/api";
@@ -53,11 +53,7 @@ export default function PersonalInfoScreen() {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       setLoading(true);
       const response = await profileApi.getProfile();
@@ -68,7 +64,13 @@ export default function PersonalInfoScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [loadProfile])
+  );
 
   const getRoleText = (role?: string) => {
     switch (role) {
@@ -155,6 +157,7 @@ export default function PersonalInfoScreen() {
                 "Chưa cập nhật"
               }
               role={getRoleText(profileData?.role || user?.role)}
+              avatarUri={profileData?.images}
             />
 
             {/* Personal Information Section */}
