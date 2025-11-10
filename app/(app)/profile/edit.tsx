@@ -18,7 +18,6 @@ import { profileApi } from "../../../src/shared/data/api";
 import {
   AvatarEditCard,
   FormInput,
-  GenderPicker,
   SaveButton,
   Toast,
 } from "../../../src/features/profile/components";
@@ -30,7 +29,6 @@ interface EditProfileForm {
   email: string;
   phone: string;
   address: string;
-  gender: number; // 0: Không xác định, 1: Nam, 2: Nữ
   avatar?: string;
 }
 
@@ -43,11 +41,9 @@ export default function EditProfileScreen() {
     email: user?.email || "",
     phone: user?.phone || "",
     address: "",
-    gender: 0,
     avatar: user?.avatar,
   });
   const [errors, setErrors] = useState<Partial<EditProfileForm>>({});
-  const [showGenderPicker, setShowGenderPicker] = useState(false);
 
   // Avatar upload hook
   const userId = user?.id || "0";
@@ -108,7 +104,6 @@ export default function EditProfileScreen() {
         fullname: formData.name,
         phone: formData.phone,
         address: formData.address,
-        gender: formData.gender,
         images: formData.avatar,
       });
 
@@ -161,24 +156,7 @@ export default function EditProfileScreen() {
     [errors]
   );
 
-  const handleGenderSelect = useCallback(
-    (value: number) => {
-      updateField("gender", value);
-      setShowGenderPicker(false);
-    },
-    [updateField]
-  );
 
-  const getGenderLabel = (value: number): string => {
-    switch (value) {
-      case 1:
-        return "Nam";
-      case 2:
-        return "Nữ";
-      default:
-        return "Không xác định";
-    }
-  };
 
   // Load profile data on component mount
   useEffect(() => {
@@ -191,7 +169,6 @@ export default function EditProfileScreen() {
             email: response.data.email || user?.email || "",
             phone: response.data.phone || user?.phone || "",
             address: response.data.address || "",
-            gender: response.data.gender ? Number(response.data.gender) : 0,
             avatar: response.data.images || user?.avatar,
           });
         }
@@ -344,28 +321,7 @@ export default function EditProfileScreen() {
                 returnKeyType="done"
               />
 
-              {/* Gender Picker */}
-              <View style={styles.genderContainer}>
-                <Text style={styles.genderLabel}>Giới tính</Text>
-                <TouchableOpacity
-                  onPress={() => setShowGenderPicker(true)}
-                  activeOpacity={0.7}
-                  style={styles.genderButton}
-                >
-                  <View style={styles.genderButtonContent}>
-                    <Ionicons
-                      name="transgender-outline"
-                      size={20}
-                      color="#6B7280"
-                      style={styles.genderIcon}
-                    />
-                    <Text style={styles.genderValue}>
-                      {getGenderLabel(formData.gender)}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-                </TouchableOpacity>
-              </View>
+
             </View>
           </View>
         </ScrollView>
@@ -380,13 +336,7 @@ export default function EditProfileScreen() {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Gender Picker Modal */}
-      <GenderPicker
-        visible={showGenderPicker}
-        selectedValue={formData.gender}
-        onSelect={handleGenderSelect}
-        onClose={() => setShowGenderPicker(false)}
-      />
+
     </View>
   );
 }
@@ -468,51 +418,6 @@ const styles = StyleSheet.create({
   },
   formContent: {
     gap: 4,
-  },
-  genderContainer: {
-    marginBottom: 20,
-  },
-  genderLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#374151",
-    marginBottom: 8,
-    letterSpacing: 0.2,
-  },
-  genderButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-    paddingHorizontal: 14,
-    minHeight: 52,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.03,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  genderButtonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  genderIcon: {
-    marginRight: 10,
-  },
-  genderValue: {
-    fontSize: 16,
-    fontWeight: "400",
-    color: "#111827",
-    letterSpacing: 0.3,
   },
   bottomButtonContainer: {
     position: "absolute",

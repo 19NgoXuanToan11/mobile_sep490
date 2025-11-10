@@ -85,18 +85,6 @@ export default function PersonalInfoScreen() {
     }
   };
 
-  const getGenderText = (gender?: string) => {
-    if (!gender) return "Chưa cập nhật";
-    switch (gender.toLowerCase()) {
-      case "male":
-        return "Nam";
-      case "female":
-        return "Nữ";
-      default:
-        return "Không xác định";
-    }
-  };
-
   const handleEditProfile = useCallback(() => {
     router.push("/profile/edit");
   }, []);
@@ -199,12 +187,6 @@ export default function PersonalInfoScreen() {
                     ? "Đã xác thực"
                     : "Chưa thêm số điện thoại"
                 }
-              />
-
-              <InfoRow
-                icon="transgender-outline"
-                label="Giới tính"
-                value={getGenderText(profileData?.gender)}
               />
 
               <InfoRow
