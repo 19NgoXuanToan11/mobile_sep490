@@ -7,6 +7,7 @@ export type FeedbackListItem = {
   rating?: number | null;
   createdAt?: string;
   phone?: string;
+  fullName?: string;
 };
 export interface FeedbackListProps {
   data: FeedbackListItem[];
@@ -57,8 +58,10 @@ const Item = ({
           </Text>
         </View>
       )}
-      {item.phone && (
-        <Text className="text-xs text-neutral-400 mt-2">{item.phone}</Text>
+      {(item.fullName || item.phone) && (
+        <Text className="text-xs text-neutral-400 mt-2">
+          {item.fullName || item.phone}
+        </Text>
       )}
     </View>
   );

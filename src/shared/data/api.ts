@@ -462,6 +462,7 @@ export interface FeedbackItem {
   rating?: number | null;
   createdAt?: string;
   phone?: string;
+  fullName?: string;
   customerId?: number;
 }
 export const feedbackApi = {
@@ -573,6 +574,51 @@ export const feedbackApi = {
         data: null as any,
         message:
           error instanceof Error ? error.message : "Failed to update feedback",
+      } as const;
+    }
+  },
+  async getByProduct(productId: number) {
+    try {
+      OpenAPI.BASE = env.API_URL;
+      const res = await FeedbackService.getApiV1FeedbackFeedbackByProduct({
+        productId,
+      });
+      const payload: any = (res as any)?.data ?? (res as any);
+      // Handle both array and object with items/data property
+      let list: any[] = [];
+      if (Array.isArray(payload)) {
+        list = payload;
+      } else if (payload?.items) {
+        list = payload.items;
+      } else if (payload?.data) {
+        list = Array.isArray(payload.data) ? payload.data : [payload.data];
+      }
+
+      const items: FeedbackItem[] = list.map((f: any, idx: number) => ({
+        id: String(f.feedbackId ?? f.id ?? idx),
+        comment: f.comment ?? "",
+        rating: f.rating ?? null,
+        createdAt:
+          typeof f.createdAt === "string"
+            ? f.createdAt
+            : f.createdAt?.toString?.() ?? new Date().toISOString(),
+        phone: f.phone ?? f.customer?.accountProfile?.phone ?? f.email,
+        fullName:
+          f.fullName ??
+          f.customer?.accountProfile?.fullname ??
+          f.customer?.fullname,
+        customerId: Number(f.customerId ?? f.customer?.accountId ?? 0),
+      }));
+      return {
+        success: true,
+        data: items,
+      } as const;
+    } catch (error) {
+      return {
+        success: false,
+        data: [] as FeedbackItem[],
+        message:
+          error instanceof Error ? error.message : "Failed to fetch feedback",
       } as const;
     }
   },

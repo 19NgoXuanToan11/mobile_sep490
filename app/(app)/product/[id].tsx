@@ -31,6 +31,7 @@ import FeedbackList, {
 import FeedbackFormModal from "../../../src/shared/ui/feedback-form-modal";
 import { ProductService } from "../../../src/api/services/ProductService";
 import { FeedbackService } from "../../../src/api/services/FeedbackService";
+import { feedbackApi } from "../../../src/shared/data/api";
 import { useAuth, useCart } from "../../../src/shared/hooks";
 import { useToast } from "../../../src/shared/ui/toast";
 
@@ -110,24 +111,32 @@ export default function ProductDetailScreen() {
         refetch: refetchFeedback,
     } = useQuery({
         queryKey: ["feedback", productId],
-        queryFn: () =>
-            FeedbackService.getApiV1FeedbackFeedbackByProduct({ productId }),
+        queryFn: async () => {
+            const result = await feedbackApi.getByProduct(productId);
+            return result.success ? result.data : [];
+        },
         enabled: !!productId,
     });
 
     // 创建评价
     const createFeedbackMutation = useMutation({
-        mutationFn: (data: { comment: string; rating: number | null }) =>
-            FeedbackService.postApiV1FeedbackCreateFeedback({
+        mutationFn: async (data: { comment: string; rating: number | null }) => {
+            if (!user?.id) {
+                throw new Error("User not logged in");
+            }
+            return await FeedbackService.postApiV1FeedbackCreateFeedback({
                 requestBody: {
                     comment: data.comment,
                     rating: data.rating,
-                    orderDetailId: 1, // 这里需要根据实际订单详情ID来设置
+                    orderDetailId: 1, // TODO: Get from actual order detail if available
                 },
-            }),
+            });
+        },
         onSuccess: () => {
             toast.success("Đánh giá thành công", "Cảm ơn bạn đã đánh giá sản phẩm!");
             setFeedbackModalVisible(false);
+            // Invalidate and refetch feedback immediately
+            queryClient.invalidateQueries({ queryKey: ["feedback", productId] });
             refetchFeedback();
         },
         onError: (error) => {
@@ -279,7 +288,8 @@ export default function ProductDetailScreen() {
     }
 
     const productData = product?.data;
-    const feedbacks: FeedbackListItem[] = feedbackData?.data || [];
+    // Parse feedback data - feedbackData is already an array from getByProduct
+    const feedbacks: FeedbackListItem[] = Array.isArray(feedbackData) ? feedbackData : [];
 
     // 计算平均评分
     const averageRating = feedbacks.length > 0
