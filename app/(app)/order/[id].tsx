@@ -132,7 +132,7 @@ const getStatusInfo = (status: Order["status"]) => {
       };
     case "CANCELLED":
       return {
-        text: "Đã hủy",
+        text: "Thất bại",
         color: "#ef4444",
         bgColor: "#fef2f2",
         borderColor: "#f87171",

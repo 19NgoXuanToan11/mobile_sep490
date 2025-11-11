@@ -356,7 +356,7 @@ const resources = {
         SHIPPED: "Đang giao",
         DELIVERED: "Đã giao",
         COMPLETED: "Hoàn thành",
-        CANCELLED: "Đã hủy",
+        CANCELLED: "Thất bại",
       },
 
       account: {

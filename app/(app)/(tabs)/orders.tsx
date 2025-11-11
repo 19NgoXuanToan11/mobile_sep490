@@ -308,7 +308,7 @@ export default function OrdersScreen() {
         };
       case "CANCELLED":
         return {
-          text: "Đã hủy",
+          text: "Thất bại",
           color: "#ef4444",
           bgColor: "#fef2f2",
           borderColor: "#f87171",
@@ -397,14 +397,6 @@ export default function OrdersScreen() {
       bgColor: "#ecfdf5",
     },
     {
-      id: "placed",
-      label: "Đặt hàng",
-      count: getStatusCounts.placed,
-      icon: "receipt-outline",
-      color: "#f59e0b",
-      bgColor: "#fffbeb",
-    },
-    {
       id: "confirmed",
       label: "Xác nhận",
       count: getStatusCounts.confirmed,
@@ -430,7 +422,7 @@ export default function OrdersScreen() {
     },
     {
       id: "cancelled",
-      label: "Đã hủy",
+      label: "Thất bại",
       count: getStatusCounts.cancelled,
       icon: "close-circle-outline",
       color: "#ef4444",
