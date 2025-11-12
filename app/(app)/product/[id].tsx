@@ -55,7 +55,6 @@ export default function ProductDetailScreen() {
     const [quantity, setQuantity] = React.useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
     const [feedbackModalVisible, setFeedbackModalVisible] = React.useState(false);
-    const [isFavorite, setIsFavorite] = React.useState(false);
     const [addedToCart, setAddedToCart] = React.useState(false);
 
     // Animation values
@@ -63,7 +62,6 @@ export default function ProductDetailScreen() {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.95)).current;
     const priceSlideAnim = useRef(new Animated.Value(20)).current;
-    const favoriteScaleAnim = useRef(new Animated.Value(1)).current;
     const quantityScaleAnim = useRef(new Animated.Value(1)).current;
     const cartButtonScaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -150,22 +148,6 @@ export default function ProductDetailScreen() {
         setRefreshing(false);
     }, [refetchProduct, refetchFeedback]);
 
-    // Animate favorite toggle
-    const handleToggleFavorite = () => {
-        setIsFavorite(!isFavorite);
-        Animated.sequence([
-            Animated.spring(favoriteScaleAnim, {
-                toValue: 1.3,
-                friction: 3,
-                useNativeDriver: true,
-            }),
-            Animated.spring(favoriteScaleAnim, {
-                toValue: 1,
-                friction: 3,
-                useNativeDriver: true,
-            }),
-        ]).start();
-    };
 
     // Animate quantity change
     const handleQuantityChange = (newQuantity: number) => {
@@ -345,28 +327,6 @@ export default function ProductDetailScreen() {
                     >
                         Chi tiết sản phẩm
                     </Animated.Text>
-
-                    {/* Favorite Button */}
-                    <Animated.View style={{ transform: [{ scale: favoriteScaleAnim }] }}>
-                        <Pressable
-                            onPress={handleToggleFavorite}
-                            className="w-11 h-11 rounded-full items-center justify-center"
-                            style={{
-                                backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                                shadowColor: '#000',
-                                shadowOffset: { width: 0, height: 2 },
-                                shadowOpacity: 0.08,
-                                shadowRadius: 8,
-                                elevation: 3,
-                            }}
-                        >
-                            <Ionicons
-                                name={isFavorite ? "heart" : "heart-outline"}
-                                size={22}
-                                color={isFavorite ? "#00A86B" : "#111827"}
-                            />
-                        </Pressable>
-                    </Animated.View>
                 </View>
             </SafeAreaView>
 
