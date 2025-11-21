@@ -116,7 +116,7 @@ const getStatusInfo = (status: Order["status"]) => {
       };
     case "DELIVERED":
       return {
-        text: "Đã giao hàng",
+        text: "Đang giao hàng",
         color: "#06b6d4",
         bgColor: "#ecfeff",
         borderColor: "#22d3ee",

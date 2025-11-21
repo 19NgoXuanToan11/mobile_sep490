@@ -290,7 +290,7 @@ export default function OrdersScreen() {
         };
       case "DELIVERED":
         return {
-          text: "Đã giao",
+          text: "Đang giao",
           color: "#06b6d4",
           bgColor: "#ecfeff",
           borderColor: "#22d3ee",

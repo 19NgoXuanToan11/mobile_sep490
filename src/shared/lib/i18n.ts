@@ -354,7 +354,7 @@ const resources = {
         CONFIRMED: "Đã xác nhận",
         PACKED: "Đã đóng gói",
         SHIPPED: "Đang giao",
-        DELIVERED: "Đã giao",
+        DELIVERED: "Đang giao",
         COMPLETED: "Hoàn thành",
         CANCELLED: "Thất bại",
       },
