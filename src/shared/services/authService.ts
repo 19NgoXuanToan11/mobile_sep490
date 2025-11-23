@@ -75,11 +75,51 @@ export class AuthService {
           confirmPassword: userData.confirmPassword,
         } as any,
       });
-      const token = result?.data?.token ?? result?.token ?? result?.accessToken;
-      if (token) {
-        await authStorage.setTokens(token);
-        OpenAPI.TOKEN = token;
+
+      // Backend returns { Status: 201, Message: "..." } on success (HTTP 200)
+      // or { Status: 400, Message: "..." } on error (HTTP 400)
+      const responseStatus = result?.Status ?? result?.status;
+      const responseMessage = result?.Message ?? result?.message;
+
+      // Check if registration was successful
+      if (responseStatus !== 201) {
+        // Registration failed - return error message from backend
+        return {
+          success: false,
+          data: null as any,
+          message: responseMessage || "Registration failed",
+          errors: {
+            general: [responseMessage || "Registration failed"],
+          },
+        };
       }
+
+      // Registration successful, but backend doesn't return a token
+      // We need to auto-login to get the token
+      const loginResult = await AccountService.postApiV1AccountLogin({
+        requestBody: {
+          email: userData.email,
+          password: userData.password,
+        },
+      });
+
+      const token =
+        loginResult?.data?.token ??
+        loginResult?.token ??
+        loginResult?.accessToken;
+
+      if (!token) {
+        return {
+          success: false,
+          data: null as any,
+          message: "Registration successful but failed to login automatically",
+        };
+      }
+
+      await authStorage.setTokens(token);
+      OpenAPI.TOKEN = token;
+
+      // Now fetch profile with the token
       const profileResp =
         await AccountProfileService.getApiV1AccountProfileProfile();
       const user: User = {
@@ -93,20 +133,38 @@ export class AuthService {
           profileResp?.fullname ??
           userData.email.split("@")[0],
         email: profileResp?.data?.email ?? profileResp?.email ?? userData.email,
+        phone: profileResp?.data?.phone ?? profileResp?.phone,
+        gender: profileResp?.data?.gender ?? profileResp?.gender,
+        address: profileResp?.data?.address ?? profileResp?.address,
+        avatar: profileResp?.data?.images ?? profileResp?.images,
         role: "CUSTOMER",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      return { success: true, data: { user, token: token ?? "" } };
-    } catch (error) {
+      return { success: true, data: { user, token } };
+    } catch (error: any) {
+      // Extract error message from API error response if available
+      let errorMessage = "Registration failed";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      // Check if error has response body with message
+      if (error?.body?.Message || error?.body?.message) {
+        errorMessage = error.body.Message || error.body.message;
+      } else if (
+        error?.response?.data?.Message ||
+        error?.response?.data?.message
+      ) {
+        errorMessage =
+          error.response.data.Message || error.response.data.message;
+      }
+
       return {
         success: false,
         data: null as any,
-        message: error instanceof Error ? error.message : "Registration failed",
+        message: errorMessage,
         errors: {
-          general: [
-            error instanceof Error ? error.message : "Registration failed",
-          ],
+          general: [errorMessage],
         },
       };
     }
