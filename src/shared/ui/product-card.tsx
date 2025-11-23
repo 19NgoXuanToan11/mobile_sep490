@@ -53,7 +53,7 @@ const formatCurrency = (amount: number) => {
     currency: "VND",
   }).format(amount);
 };
-export const ProductCard: React.FC<ProductCardProps> = ({
+export const ProductCard = React.memo<ProductCardProps>(({
   product,
   size,
   onPress,
@@ -108,7 +108,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <Text className="text-neutral-500 text-xs mt-2">Không có hình ảnh</Text>
           </View>
         )}
-        {}
+        { }
         <View className="absolute top-1.5 left-1.5 space-y-1">
           {hasDiscount && (
             <View className="bg-red-500 px-1.5 py-0.5 rounded-md">
@@ -123,7 +123,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </View>
           )}
         </View>
-        {}
+        { }
         {product.tags?.includes("organic") && (
           <View className="absolute top-1.5 right-1.5">
             <View className="bg-green-500 px-1.5 py-0.5 rounded-md">
@@ -131,7 +131,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </View>
           </View>
         )}
-        {}
+        { }
         {showQuickView && (
           <View
             className="absolute top-1.5 right-1.5"
@@ -145,7 +145,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </TouchableOpacity>
           </View>
         )}
-        {}
+        { }
         {product.isInStock === false && (
           <View
             className="absolute inset-0 items-center justify-center"
@@ -178,16 +178,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   };
   const renderContent = () => (
     <View className="flex-1 justify-between pt-3">
-      {}
+      { }
       <View className="space-y-2 flex-1">
-        {}
+        { }
         <Text
           className="font-semibold text-neutral-900 text-sm leading-5"
           numberOfLines={2}
         >
           {product.name}
         </Text>
-        {}
+        { }
         {(product.origin || product.harvestDate) && (
           <View className="flex-row items-center flex-wrap gap-x-3 gap-y-1">
             {product.origin && (
@@ -211,7 +211,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </View>
         )}
-        {}
+        { }
         <View className="space-y-1.5">
           {product.rating && (
             <RatingDisplay
@@ -220,9 +220,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               size="sm"
             />
           )}
-          {}
+          { }
           <View className="flex-row items-center flex-wrap gap-x-3 gap-y-1">
-            {}
+            { }
             {product.soldCount && (
               <View className="flex-row items-center gap-1">
                 <Ionicons name="checkmark-circle" size={11} color="#16a34a" />
@@ -234,7 +234,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 </Text>
               </View>
             )}
-            {}
+            { }
             {product.certifications?.includes("VietGAP") && (
               <View className="flex-row items-center gap-1">
                 <Ionicons name="shield-checkmark" size={11} color="#2563eb" />
@@ -246,9 +246,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </View>
         </View>
       </View>
-      {}
+      { }
       <View className="space-y-2.5 mt-2">
-        {}
+        { }
         <View className="space-y-1">
           <View className="flex-row items-baseline gap-2 flex-wrap">
             <Text className="text-base font-bold text-primary-600">
@@ -258,7 +258,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <Text className="text-xs text-neutral-500">/{product.unit}</Text>
             )}
           </View>
-          {}
+          { }
           {hasDiscount && (
             <View className="flex-row items-center gap-2">
               <Text className="text-sm text-neutral-400 line-through">
@@ -272,7 +272,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </View>
           )}
         </View>
-        {}
+        { }
         {showAddToCart && product.isInStock !== false && (
           <TouchableOpacity
             onPress={onAddToCart}
@@ -328,4 +328,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </Animated.View>
     </TouchableOpacity>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.product.id === nextProps.product.id &&
+    prevProps.product.price === nextProps.product.price &&
+    prevProps.product.isInStock === nextProps.product.isInStock &&
+    prevProps.size === nextProps.size &&
+    prevProps.showAddToCart === nextProps.showAddToCart &&
+    prevProps.showQuickView === nextProps.showQuickView
+  );
+});
+
+ProductCard.displayName = "ProductCard";

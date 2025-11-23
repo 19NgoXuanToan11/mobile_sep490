@@ -1,5 +1,4 @@
 import * as Linking from "expo-linking";
-import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
 import { vnpayApi } from "../../shared/data/paymentApiService";
 
@@ -17,15 +16,44 @@ export interface VNPayCallbackParams {
   [key: string]: string | undefined;
 }
 
-export const openPayment = async (paymentUrl: string): Promise<void> => {
+/**
+ * Mở payment URL trong WebView component trực tiếp trong app
+ * Navigate đến payment-webview screen với paymentUrl
+ */
+export const openPayment = async (
+  paymentUrl: string,
+  orderId?: number
+): Promise<void> => {
   try {
-    const result = await WebBrowser.openBrowserAsync(paymentUrl, {
-      presentationStyle: WebBrowser.WebBrowserPresentationStyle.FORM_SHEET,
-      controlsColor: "#00A86B",
-      toolbarColor: "#FFFFFF",
+    if (!paymentUrl) {
+      throw new Error("Payment URL is required");
+    }
+
+    const params = {
+      paymentUrl,
+      ...(orderId && { orderId: String(orderId) }),
+    };
+
+    // Navigate đến payment-webview screen với paymentUrl
+    // Sử dụng setTimeout để đảm bảo navigation không bị conflict với các navigation khác
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        try {
+          router.push({
+            pathname: "/(app)/payment-webview",
+            params,
+          });
+          resolve();
+        } catch (error) {
+          resolve(); // Resolve anyway để không block flow
+        }
+      }, 100); // Delay nhỏ để tránh navigation conflict
     });
   } catch (error) {
-    await Linking.openURL(paymentUrl);
+    // Fallback: nếu navigate không hoạt động, mở trình duyệt hệ thống
+    if (paymentUrl) {
+      await Linking.openURL(paymentUrl);
+    }
   }
 };
 
@@ -114,7 +142,9 @@ export const completePaymentFlow = async (url: string): Promise<void> => {
     navigateToPaymentResult(orderId, verification.success && isSuccess, {
       amount: callbackParams.amount,
       code: callbackParams.vnp_ResponseCode || callbackParams.code,
-      message: callbackParams.message || (isSuccess ? "PaymentSuccess" : "PaymentFailed"),
+      message:
+        callbackParams.message ||
+        (isSuccess ? "PaymentSuccess" : "PaymentFailed"),
     });
   } catch (error) {
     navigateToPaymentResult(0, false);

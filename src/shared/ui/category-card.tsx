@@ -39,7 +39,7 @@ export interface CategoryCardProps
   showCount?: boolean;
   className?: string;
 }
-export const CategoryCard: React.FC<CategoryCardProps> = ({
+export const CategoryCard = React.memo<CategoryCardProps>(({
   category,
   size,
   layout,
@@ -105,7 +105,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
           ...appleDesign.shadows.medium,
         }}
       >
-        {}
+        { }
         <LinearGradient
           colors={["rgba(0,168,107,0.12)", "rgba(0,168,107,0.08)"]}
           start={{ x: 0, y: 0 }}
@@ -195,4 +195,14 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       </TouchableOpacity>
     </Animated.View>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.category.id === nextProps.category.id &&
+    prevProps.category.count === nextProps.category.count &&
+    prevProps.size === nextProps.size &&
+    prevProps.layout === nextProps.layout &&
+    prevProps.showCount === nextProps.showCount
+  );
+});
+
+CategoryCard.displayName = "CategoryCard";

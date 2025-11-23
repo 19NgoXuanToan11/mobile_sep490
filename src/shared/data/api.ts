@@ -30,430 +30,35 @@ import {
 import { request as __request } from "../../api/core/request";
 import env from "../../config/env";
 import { realCartApi } from "./cartApiService";
-
-const normalizeImageUrl = (url: string): string => {
-  if (!url || typeof url !== "string") return "";
-
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    return url;
-  }
-
-  const baseUrl = env.API_URL.replace(/\/$/, "");
-  const imagePath = url.startsWith("/") ? url : `/${url}`;
-  return `${baseUrl}${imagePath}`;
-};
+import { authService } from "../services/authService";
+import { productService, categoryService } from "../services/productService";
 
 const withDelay = async <T>(data: T, delay?: number): Promise<T> => {
   await sleep(delay ?? getRandomDelay());
   return data;
 };
 
+// Auth API - Uses service layer
 export const authApi = {
-  async login(
-    credentials: LoginFormData
-  ): Promise<ApiResponse<{ user: User; token: string }>> {
-    try {
-      OpenAPI.BASE = env.API_URL;
-      const result = await AccountService.postApiV1AccountLogin({
-        requestBody: {
-          email: credentials.email,
-          password: credentials.password,
-        },
-      });
-      const token = result?.data?.token ?? result?.token ?? result?.accessToken;
-      if (!token) {
-        return {
-          success: false,
-          data: null as any,
-          message: "No token returned",
-        };
-      }
-      await authStorage.setTokens(token);
-
-      OpenAPI.TOKEN = token;
-
-      const profileResp =
-        await AccountProfileService.getApiV1AccountProfileProfile();
-      const user: User = {
-        id: String(
-          profileResp?.data?.accountProfileId ??
-            profileResp?.accountProfileId ??
-            "0"
-        ),
-        name:
-          profileResp?.data?.fullname ??
-          profileResp?.fullname ??
-          credentials.email.split("@")[0],
-        email:
-          profileResp?.data?.email ?? profileResp?.email ?? credentials.email,
-        phone: profileResp?.data?.phone ?? profileResp?.phone,
-        gender: profileResp?.data?.gender ?? profileResp?.gender,
-        address: profileResp?.data?.address ?? profileResp?.address,
-        avatar: profileResp?.data?.images ?? profileResp?.images,
-        role: "CUSTOMER",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      return { success: true, data: { user, token } };
-    } catch (error) {
-      return {
-        success: false,
-        data: null as any,
-        message: error instanceof Error ? error.message : "Login failed",
-      };
-    }
-  },
-  async register(
-    userData: RegisterFormData
-  ): Promise<ApiResponse<{ user: User; token: string }>> {
-    try {
-      OpenAPI.BASE = env.API_URL;
-      const result = await AccountService.postApiV1AccountRegister({
-        requestBody: {
-          email: userData.email,
-          password: userData.password,
-          confirmPassword: userData.confirmPassword,
-        } as any,
-      });
-      const token = result?.data?.token ?? result?.token ?? result?.accessToken;
-      if (token) {
-        await authStorage.setTokens(token);
-
-        OpenAPI.TOKEN = token;
-      }
-      const profileResp =
-        await AccountProfileService.getApiV1AccountProfileProfile();
-      const user: User = {
-        id: String(
-          profileResp?.data?.accountProfileId ??
-            profileResp?.accountProfileId ??
-            "0"
-        ),
-        name:
-          profileResp?.data?.fullname ??
-          profileResp?.fullname ??
-          userData.email.split("@")[0],
-        email: profileResp?.data?.email ?? profileResp?.email ?? userData.email,
-        role: "CUSTOMER",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      return { success: true, data: { user, token: token ?? "" } };
-    } catch (error) {
-      return {
-        success: false,
-        data: null as any,
-        message: error instanceof Error ? error.message : "Registration failed",
-        errors: {
-          general: [
-            error instanceof Error ? error.message : "Registration failed",
-          ],
-        },
-      };
-    }
-  },
-  async logout(): Promise<ApiResponse<null>> {
-    await sleep(200);
-    await authStorage.clearTokens();
-
-    OpenAPI.TOKEN = undefined;
-    return {
-      success: true,
-      data: null,
-    };
-  },
-  async getCurrentUser(): Promise<ApiResponse<User>> {
-    const token = await authStorage.getAccessToken();
-    if (!token) {
-      return {
-        success: false,
-        data: null as any,
-        message: "Not authenticated",
-      };
-    }
-    try {
-      OpenAPI.BASE = env.API_URL;
-
-      OpenAPI.TOKEN = token;
-      const profileResp =
-        await AccountProfileService.getApiV1AccountProfileProfile();
-      const user: User = {
-        id: String(
-          profileResp?.data?.accountProfileId ??
-            profileResp?.accountProfileId ??
-            "0"
-        ),
-        name: profileResp?.data?.fullname ?? profileResp?.fullname ?? "User",
-        email: profileResp?.data?.email ?? profileResp?.email ?? "",
-        role: "CUSTOMER",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      return { success: true, data: user };
-    } catch (error) {
-      return {
-        success: false,
-        data: null as any,
-        message:
-          error instanceof Error ? error.message : "Failed to get current user",
-      };
-    }
-  },
+  login: (credentials: LoginFormData) => authService.login(credentials),
+  register: (userData: RegisterFormData) => authService.register(userData),
+  logout: () => authService.logout(),
+  getCurrentUser: () => authService.getCurrentUser(),
 };
 
+// Categories API - Uses service layer
 export const categoriesApi = {
-  async getAll(): Promise<ApiResponse<Category[]>> {
-    try {
-      const res = await CategoryService.getApiV1CategoryGetAll();
-      const items: Category[] = (res?.data ?? res ?? []).map((c: any) => ({
-        id: String(c.categoryId ?? c.id),
-        name: c.categoryName ?? c.name,
-        slug: (c.categoryName ?? c.name ?? "")
-          .toLowerCase()
-          .replace(/\s+/g, "-"),
-        image: c.image || "",
-        description: c.description ?? "",
-        sortOrder: c.sortOrder ?? 0,
-      }));
-      return { success: true, data: items };
-    } catch (error) {
-      return { success: true, data: [], message: "Failed to fetch categories" };
-    }
-  },
-  async getById(id: string): Promise<ApiResponse<Category>> {
-    try {
-      const res = await CategoryService.getApiV1Category({ id: Number(id) });
-      const c: any = res?.data ?? res;
-      const category: Category = {
-        id: String(c.categoryId ?? c.id),
-        name: c.categoryName ?? c.name,
-        slug: (c.categoryName ?? c.name ?? "")
-          .toLowerCase()
-          .replace(/\s+/g, "-"),
-        image: c.image || "",
-        description: c.description ?? "",
-        sortOrder: c.sortOrder ?? 0,
-      };
-      return { success: true, data: category };
-    } catch (error) {
-      return {
-        success: false,
-        data: null as any,
-        message: "Category not found",
-      };
-    }
-  },
+  getAll: () => categoryService.getAll(),
+  getById: (id: string) => categoryService.getById(id),
 };
 
+// Products API - Uses service layer
 export const productsApi = {
-  async getAll(
-    filters?: Partial<FilterState>,
-    page = 1,
-    limit = 20
-  ): Promise<ApiResponse<PaginatedResponse<Product>>> {
-    try {
-      const res = await ProductService.getApiV1ProductsProductsList({
-        pageIndex: page,
-        pageSize: limit,
-      });
-      const payload = res?.data ?? res;
-      const items: Product[] = (payload?.items ?? payload?.data ?? []).map(
-        (p: any) => ({
-          id: String(p.productId ?? p.id),
-          name: p.productName ?? p.name ?? "",
-          slug: (p.productName ?? p.name ?? "")
-            .toLowerCase()
-            .replace(/\s+/g, "-"),
-          sku: String(p.productId ?? p.id ?? ""),
-          description: p.description ?? "",
-          price: Number(p.price ?? 0),
-          originalPrice: Number(p.originalPrice ?? p.price ?? 0),
-          categoryId: String(p.categoryId ?? ""),
-          images: p.images
-            ? Array.isArray(p.images)
-              ? p.images
-              : [p.images]
-            : [],
-          rating: Number(p.rating ?? 0),
-          reviewCount: Number(p.reviewCount ?? 0),
-          soldCount: Number(p.soldCount ?? 0),
-          stock: Number(p.stockQuantity ?? p.stock ?? 0),
-          isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
-          isFeatured: Boolean(p.isFeatured ?? false),
-          tags: Array.isArray(p.tags) ? p.tags : [],
-          unit: p.unit ?? "kg",
-          origin: p.origin ?? undefined,
-          harvestDate: p.harvestDate ?? undefined,
-          createdAt: p.createdAt ?? new Date().toISOString(),
-          updatedAt: p.updatedAt ?? new Date().toISOString(),
-        })
-      );
-      const pagination = payload?.pagination ?? {
-        page,
-        limit,
-        total: Number(payload?.totalItemCount ?? items.length),
-        totalPages: Math.ceil(
-          Number(payload?.totalItemCount ?? items.length) / limit
-        ),
-        hasNext: page * limit < Number(payload?.totalItemCount ?? items.length),
-        hasPrev: page > 1,
-      };
-      return { success: true, data: { data: items, pagination } };
-    } catch (error) {
-      return {
-        success: true,
-        data: {
-          data: [],
-          pagination: {
-            page,
-            limit,
-            total: 0,
-            totalPages: 0,
-            hasNext: false,
-            hasPrev: page > 1,
-          },
-        },
-        message: "Failed to fetch products",
-      };
-    }
-  },
-  async getById(id: string): Promise<ApiResponse<Product>> {
-    try {
-      const res = await ProductService.getApiV1ProductsGetProduct({
-        productId: Number(id),
-      });
-      const p: any = res?.data ?? res;
-
-      let images: string[] = [];
-      if (p.images) {
-        images = Array.isArray(p.images) ? p.images : [p.images];
-      } else if (p.imageUrl) {
-        images = Array.isArray(p.imageUrl) ? p.imageUrl : [p.imageUrl];
-      } else if (p.image) {
-        images = Array.isArray(p.image) ? p.image : [p.image];
-      } else if (p.image_url) {
-        images = Array.isArray(p.image_url) ? p.image_url : [p.image_url];
-      }
-
-      images = images
-        .filter(
-          (img: any) => img && typeof img === "string" && img.trim().length > 0
-        )
-        .map((img: string) => normalizeImageUrl(img.trim()));
-      const product: Product = {
-        id: String(p.productId ?? p.id),
-        name: p.productName ?? p.name ?? "",
-        slug: (p.productName ?? p.name ?? "")
-          .toLowerCase()
-          .replace(/\s+/g, "-"),
-        sku: String(p.productId ?? p.id ?? ""),
-        description: p.description ?? "",
-        price: Number(p.price ?? 0),
-        originalPrice: Number(p.originalPrice ?? p.price ?? 0),
-        categoryId: String(p.categoryId ?? ""),
-        images: images,
-        rating: Number(p.rating ?? 0),
-        reviewCount: Number(p.reviewCount ?? 0),
-        soldCount: Number(p.soldCount ?? 0),
-        stock: Number(p.stockQuantity ?? p.stock ?? 0),
-        isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
-        isFeatured: Boolean(p.isFeatured ?? false),
-        tags: Array.isArray(p.tags) ? p.tags : [],
-        unit: p.unit ?? "kg",
-        origin: p.origin ?? undefined,
-        harvestDate: p.harvestDate ?? undefined,
-        createdAt: p.createdAt ?? new Date().toISOString(),
-        updatedAt: p.updatedAt ?? new Date().toISOString(),
-      };
-      return { success: true, data: product };
-    } catch (error) {
-      return {
-        success: false,
-        data: null as any,
-        message: "Product not found",
-      };
-    }
-  },
-  async getFeatured(limit = 6): Promise<ApiResponse<Product[]>> {
-    const res = await ProductService.getApiV1ProductsProductFilter({
-      pageIndex: 1,
-      pageSize: limit,
-      sortByStockAsc: false,
-    });
-    const payload = res?.data ?? res;
-    const items: Product[] = (payload?.items ?? payload?.data ?? []).map(
-      (p: any) => ({
-        id: String(p.productId ?? p.id),
-        name: p.productName ?? p.name ?? "",
-        slug: (p.productName ?? p.name ?? "")
-          .toLowerCase()
-          .replace(/\s+/g, "-"),
-        sku: String(p.productId ?? p.id ?? ""),
-        description: p.description ?? "",
-        price: Number(p.price ?? 0),
-        originalPrice: Number(p.originalPrice ?? p.price ?? 0),
-        categoryId: String(p.categoryId ?? ""),
-        images: p.images
-          ? Array.isArray(p.images)
-            ? p.images
-            : [p.images]
-          : [],
-        rating: Number(p.rating ?? 0),
-        reviewCount: Number(p.reviewCount ?? 0),
-        soldCount: Number(p.soldCount ?? 0),
-        stock: Number(p.stockQuantity ?? p.stock ?? 0),
-        isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
-        isFeatured: Boolean(p.isFeatured ?? false),
-        tags: Array.isArray(p.tags) ? p.tags : [],
-        unit: p.unit ?? "kg",
-        origin: p.origin ?? undefined,
-        harvestDate: p.harvestDate ?? undefined,
-        createdAt: p.createdAt ?? new Date().toISOString(),
-        updatedAt: p.updatedAt ?? new Date().toISOString(),
-      })
-    );
-    return { success: true, data: items };
-  },
-  async search(query: string, limit = 20): Promise<ApiResponse<Product[]>> {
-    const res = await ProductService.getApiV1ProductsSearchProduct({
-      productName: query,
-      pageIndex: 1,
-      pageSize: limit,
-    });
-    const payload = res?.data ?? res;
-    const items: Product[] = (payload?.items ?? payload?.data ?? []).map(
-      (p: any) => ({
-        id: String(p.productId ?? p.id),
-        name: p.productName ?? p.name ?? "",
-        slug: (p.productName ?? p.name ?? "")
-          .toLowerCase()
-          .replace(/\s+/g, "-"),
-        sku: String(p.productId ?? p.id ?? ""),
-        description: p.description ?? "",
-        price: Number(p.price ?? 0),
-        originalPrice: Number(p.originalPrice ?? p.price ?? 0),
-        categoryId: String(p.categoryId ?? ""),
-        images: p.images
-          ? Array.isArray(p.images)
-            ? p.images
-            : [p.images]
-          : [],
-        rating: Number(p.rating ?? 0),
-        reviewCount: Number(p.reviewCount ?? 0),
-        soldCount: Number(p.soldCount ?? 0),
-        stock: Number(p.stockQuantity ?? p.stock ?? 0),
-        isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
-        isFeatured: Boolean(p.isFeatured ?? false),
-        tags: Array.isArray(p.tags) ? p.tags : [],
-        unit: p.unit ?? "kg",
-        origin: p.origin ?? undefined,
-        harvestDate: p.harvestDate ?? undefined,
-        createdAt: p.createdAt ?? new Date().toISOString(),
-        updatedAt: p.updatedAt ?? new Date().toISOString(),
-      })
-    );
-    return { success: true, data: items };
-  },
+  getAll: (filters?: Partial<FilterState>, page = 1, limit = 20) =>
+    productService.getAll(filters, page, limit),
+  getById: (id: string) => productService.getById(id),
+  getFeatured: (limit = 6) => productService.getFeatured(limit),
+  search: (query: string, limit = 20) => productService.search(query, limit),
 };
 
 export interface FeedbackItem {
@@ -880,9 +485,9 @@ export const ordersApi = {
               : String(o.status ?? "1") === "1"
               ? "CONFIRMED" // PAID - Đã thanh toán/xác nhận
               : String(o.status ?? "2") === "2"
-              ? "FAILED" // UNDISCHARGED - Thanh toán thất bại
+              ? "PACKED" // UNDISCHARGED - Đang chuẩn bị
               : String(o.status ?? "3") === "3"
-              ? "SHIPPED" // PENDING - Đang giao
+              ? "PENDING" // PENDING - Chờ xác nhận
               : String(o.status ?? "4") === "4"
               ? "CANCELLED" // CANCELLED - Đã hủy
               : String(o.status ?? "5") === "5"
@@ -1171,7 +776,6 @@ export const ordersApi = {
         data: { message: data.message || "Tạo bản ghi thanh toán thành công" },
       };
     } catch (error: any) {
-      console.error("Create order payment error:", error);
       return {
         success: false,
         data: { message: "" },
@@ -1236,7 +840,7 @@ export const ordersApi = {
         "0": "PLACED", // UNPAID - Chờ thanh toán
         "1": "CONFIRMED", // PAID - Đã thanh toán/xác nhận
         "2": "PACKED", // UNDISCHARGED - Đang chuẩn bị
-        "3": "SHIPPED", // PENDING - Đang giao
+        "3": "PENDING", // PENDING - Chờ xác nhận
         "4": "CANCELLED", // CANCELLED - Đã hủy
         "5": "COMPLETED", // COMPLETED - Hoàn thành
         "6": "DELIVERED", // DELIVERED - Đã giao
@@ -1394,7 +998,7 @@ export const ordersApi = {
               : String(o.status ?? "2") === "2"
               ? "PACKED" // UNDISCHARGED - Đang chuẩn bị
               : String(o.status ?? "3") === "3"
-              ? "SHIPPED" // PENDING - Đang giao
+              ? "PENDING" // PENDING - Chờ xác nhận
               : String(o.status ?? "4") === "4"
               ? "CANCELLED" // CANCELLED - Đã hủy
               : String(o.status ?? "5") === "5"
@@ -1503,7 +1107,6 @@ export const ordersApi = {
         data: { message: data.message || "Hủy đơn hàng thành công" },
       };
     } catch (error: any) {
-      console.error("Cancel order error:", error);
       return {
         success: false,
         data: { message: "" },

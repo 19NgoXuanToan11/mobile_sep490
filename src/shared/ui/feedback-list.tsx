@@ -66,7 +66,7 @@ const Item = ({
     </View>
   );
 };
-export default function FeedbackList({
+const FeedbackList = React.memo(function FeedbackList({
   data,
   isLoading,
   onEndReached,
@@ -87,22 +87,38 @@ export default function FeedbackList({
       </View>
     );
   }
+  const renderItem = React.useCallback(
+    ({ item }: { item: FeedbackListItem }) => (
+      <Item
+        item={item}
+        canEdit={Boolean(
+          item.id && currentUserPhone && item.phone === currentUserPhone
+        )}
+        onEditPress={onEditPress}
+      />
+    ),
+    [currentUserPhone, onEditPress]
+  );
+
+  const keyExtractor = React.useCallback(
+    (item: FeedbackListItem, idx: number) => item.id ?? String(idx),
+    []
+  );
+
   return (
     <FlatList
       data={data}
-      renderItem={({ item }) => (
-        <Item
-          item={item}
-          canEdit={Boolean(
-            item.id && currentUserPhone && item.phone === currentUserPhone
-          )}
-          onEditPress={onEditPress}
-        />
-      )}
-      keyExtractor={(item, idx) => item.id ?? String(idx)}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
       scrollEnabled={false}
+      initialNumToRender={5}
+      maxToRenderPerBatch={5}
+      windowSize={5}
+      removeClippedSubviews={true}
     />
   );
-}
+});
+
+export default FeedbackList;

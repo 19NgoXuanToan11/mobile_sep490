@@ -97,7 +97,7 @@ export default function OrdersScreen() {
       case "confirmed":
         return "1"; // PAID - Đã thanh toán/xác nhận
       case "shipped":
-        return "3"; // PENDING - Đang giao
+        return "3"; // PENDING - Chờ xác nhận
       case "delivered":
         return "5"; // COMPLETED - Hoàn thành (hoặc có thể filter cả 5 và 6)
       case "cancelled":
@@ -159,7 +159,7 @@ export default function OrdersScreen() {
       all: totalCount,
       placed: orders.filter((o) => o.status === "PLACED").length,
       confirmed: orders.filter((o) => o.status === "CONFIRMED").length,
-      shipped: orders.filter((o) => o.status === "SHIPPED").length,
+      shipped: orders.filter((o) => o.status === "PENDING").length,
       delivered: orders.filter((o) => o.status === "COMPLETED").length,
       cancelled: orders.filter((o) => o.status === "CANCELLED").length,
     };
@@ -278,6 +278,15 @@ export default function OrdersScreen() {
           borderColor: "#a78bfa",
           icon: "cube-outline",
           gradient: ["#a78bfa", "#8b5cf6"],
+        };
+      case "PENDING":
+        return {
+          text: "Chưa thanh toán",
+          color: "#f59e0b",
+          bgColor: "#fffbeb",
+          borderColor: "#fbbf24",
+          icon: "time-outline",
+          gradient: ["#fbbf24", "#f59e0b"],
         };
       case "SHIPPED":
         return {
@@ -433,7 +442,7 @@ export default function OrdersScreen() {
   ];
 
   // Enhanced Apple-style order card renderer
-  const renderOrder = ({ item: order }: { item: Order }) => {
+  const renderOrder = useCallback(({ item: order }: { item: Order }) => {
     const statusInfo = getStatusInfo(order.status);
 
     // Ưu tiên hiển thị order images từ backend, nếu không có thì dùng product images
@@ -611,7 +620,7 @@ export default function OrdersScreen() {
           </View>
 
           {/* Delivery Status */}
-          {order.status === "SHIPPED" && order.estimatedDelivery && (
+          {(order.status === "PENDING" || order.status === "SHIPPED") && order.estimatedDelivery && (
             <View className="bg-green-50 rounded-2xl p-4 mb-5 border border-green-100">
               <View className="flex-row items-center">
                 <View className="w-12 h-12 bg-green-100 rounded-full items-center justify-center mr-4">
@@ -703,7 +712,7 @@ export default function OrdersScreen() {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [handleCancelOrder, cancelOrderMutation]);
 
   // Enhanced Apple-style skeleton loader
   const renderLoadingSkeleton = () => (
@@ -1086,7 +1095,17 @@ export default function OrdersScreen() {
         data={filteredOrders}
         renderItem={renderOrder}
         keyExtractor={(item) => item.id}
+        getItemLayout={(_, index) => ({
+          length: 400, // Approximate order card height
+          offset: 400 * index,
+          index,
+        })}
         showsVerticalScrollIndicator={false}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={5}
+        removeClippedSubviews={true}
+        updateCellsBatchingPeriod={50}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
