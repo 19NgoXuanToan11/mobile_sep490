@@ -86,6 +86,7 @@ export interface OrderStatus {
     | "CONFIRMED"
     | "FAILED"
     | "PACKED"
+    | "PENDING"
     | "SHIPPED"
     | "DELIVERED"
     | "COMPLETED"

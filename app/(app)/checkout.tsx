@@ -70,14 +70,6 @@ export default function CheckoutScreen() {
     }
   }, [isAuthenticated, isAuthLoading]);
 
-  // Redirect if cart is empty
-  useEffect(() => {
-    if (!isLoading && cart.items.length === 0) {
-      toast.info("Giỏ hàng trống", "Vui lòng thêm sản phẩm vào giỏ hàng để thanh toán");
-      router.back();
-    }
-  }, [cart.items.length, isLoading]);
-
   // Refresh addresses when screen focuses
   useEffect(() => {
     refetchAddresses();

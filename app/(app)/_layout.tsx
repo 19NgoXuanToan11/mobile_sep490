@@ -80,6 +80,12 @@ export default function AppLayout() {
         }}
       />
       <Stack.Screen
+        name="payment-webview"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="order/[id]"
         options={{
           headerShown: false,

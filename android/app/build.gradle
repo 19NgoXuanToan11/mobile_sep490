@@ -180,3 +180,32 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+// Fix for CMake clean task failing when codegen directories don't exist
+// Make externalNativeBuildClean tasks skip gracefully when codegen directories don't exist
+afterEvaluate {
+    def externalNativeBuildCleanTasks = [
+        "externalNativeBuildCleanDebug",
+        "externalNativeBuildCleanRelease",
+        "externalNativeBuildCleanDebugOptimized"
+    ]
+    externalNativeBuildCleanTasks.each { taskName ->
+        def task = project.tasks.findByName(taskName)
+        if (task != null) {
+            task.onlyIf {
+                // Check if codegen directories exist before running CMake clean
+                def codegenDirs = [
+                    "${projectRoot}/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni",
+                    "${projectRoot}/node_modules/react-native-gesture-handler/android/build/generated/source/codegen/jni",
+                    "${projectRoot}/node_modules/react-native-reanimated/android/build/generated/source/codegen/jni",
+                    "${projectRoot}/node_modules/react-native-worklets/android/build/generated/source/codegen/jni"
+                ]
+                def allDirsExist = codegenDirs.every { new File(it).exists() }
+                if (!allDirsExist) {
+                    logger.warn("Skipping ${taskName} because codegen directories don't exist yet. This is normal after a clean.")
+                }
+                return allDirsExist
+            }
+        }
+    }
+}

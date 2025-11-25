@@ -37,7 +37,7 @@ export const LoginForm: React.FC = () => {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "cus03@email.com",
-      password: "Nxt1911@@?!",
+      password: "123123",
     },
   });
   const focusNextField = useCallback(

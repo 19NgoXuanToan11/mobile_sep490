@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import {
   ordersApi,
@@ -8,6 +7,7 @@ import {
   paymentMethodsApi,
 } from "../../../shared/data/api";
 import { vnpayApi } from "../../../shared/data/paymentApiService";
+import { openPayment } from "../../../services/payment/vnpay";
 import { useToast } from "../../../shared/ui/toast";
 import { useAuth, useCart } from "../../../shared/hooks";
 import { Address, PaymentMethod } from "../../../types";
@@ -97,9 +97,12 @@ export const useCheckout = (options?: UseCheckoutOptions) => {
         if (selectedPaymentMethod?.type === "E_WALLET" && paymentUrl) {
           await clearCart();
 
-          await Linking.openURL(paymentUrl);
-
-          router.replace(`/(app)/payment-result?orderId=${orderId}`);
+          // Mở WebView thanh toán trong app với paymentUrl và orderId
+          // WebView sẽ tự động detect deep link callback và navigate đến payment-result
+          await openPayment(paymentUrl, orderId);
+          // KHÔNG gọi options?.onSuccess?.() ở đây để tránh navigate đi chỗ khác
+          // WebView sẽ tự xử lý navigation khi payment hoàn tất
+          return; // Exit early để không chạy code bên dưới
         } else {
           await vnpayApi.createOrderPayment(orderId);
           await clearCart();

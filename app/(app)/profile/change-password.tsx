@@ -54,7 +54,7 @@ export default function ChangePasswordScreen() {
     });
 
     const focusNextField = useCallback(
-        (nextFieldRef: React.RefObject<TextInput>) => {
+        (nextFieldRef: React.RefObject<TextInput | null>) => {
             setTimeout(() => nextFieldRef.current?.focus(), 100);
         },
         []
