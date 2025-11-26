@@ -13,6 +13,7 @@ import { userPreferences } from "../src/shared/lib/storage";
 import { OpenAPI } from "../src/api";
 import env from "../src/config/env";
 import { initializeDeepLinkListener } from "../src/navigation/deeplink";
+import { orderNotificationService } from "../src/services/realtime/orderNotificationService";
 import "../global.css";
 
 // Prevent the splash screen from auto-hiding
@@ -53,6 +54,12 @@ export default function RootLayout() {
   useEffect(() => {
     const cleanup = initializeDeepLinkListener();
     return cleanup;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      orderNotificationService.dispose();
+    };
   }, []);
 
   if (!fontsLoaded) {

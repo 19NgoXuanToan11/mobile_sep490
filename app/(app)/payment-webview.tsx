@@ -20,11 +20,6 @@ import axios from "axios";
 import { completePaymentFlow } from "../../src/services/payment/vnpay";
 import env from "../../src/config/env";
 
-/**
- * Payment WebView Screen
- * Hiển thị payment URL trong WebView component trực tiếp trong app
- * Tự động detect VNPay callback và navigate đến payment-result
- */
 export default function PaymentWebViewScreen() {
   const params = useLocalSearchParams<{
     paymentUrl: string;
@@ -40,7 +35,7 @@ export default function PaymentWebViewScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [loadingTime, setLoadingTime] = useState(0);
-  const [processedUrls, setProcessedUrls] = useState<Record<string, boolean>>({});
+  const [webviewVisible, setWebviewVisible] = useState(true);
 
   const redirectCount = useRef(0);
   const currentUrl = useRef("");
@@ -58,7 +53,6 @@ export default function PaymentWebViewScreen() {
     // Validate paymentUrl
     if (paymentUrl) {
       try {
-        setProcessedUrls({ [paymentUrl]: true });
         if (!paymentUrl.includes("vnpayment.vn")) {
           if (
             paymentUrl.includes("172.20.10.4:5139") ||
@@ -232,43 +226,49 @@ export default function PaymentWebViewScreen() {
       processingCallbackRef.current = true;
       setIsProcessingPayment(true);
 
+      let callbackParams: Record<string, string> = {};
       try {
-        let params: Record<string, string> = {};
 
-        if (typeof url === "string" && url.includes("vnp_ResponseCode=")) {
+        if (typeof url === "string") {
           try {
             const urlObj = new URL(url);
             urlObj.searchParams.forEach((value, key) => {
-              params[key] = value;
+              callbackParams[key] = value;
             });
           } catch (e) {
-            // Nếu URL không hợp lệ, thử parse thủ công
             const urlParts = url.split("?");
             if (urlParts.length > 1) {
               const queryString = urlParts[1];
               queryString.split("&").forEach((pair) => {
                 const [key, value] = pair.split("=");
                 if (key && value) {
-                  params[decodeURIComponent(key)] = decodeURIComponent(value);
+                  callbackParams[decodeURIComponent(key)] = decodeURIComponent(value);
                 }
               });
             }
           }
         } else if (typeof url === "object") {
-          params = url as any;
+          callbackParams = url as any;
         }
 
-        const responseCode = params.vnp_ResponseCode || "";
+        const responseCode =
+          callbackParams.vnp_ResponseCode || callbackParams.code || "";
 
-        // Update payment status on backend
-        updatePaymentStatusOnBackend(params);
+        // Đóng WebView ngay lập tức
+        setWebviewVisible(false);
+        setLoading(false);
+
+        // Update payment status on backend (async, không chờ) nếu có dữ liệu VNPay
+        if (callbackParams.vnp_ResponseCode) {
+          updatePaymentStatusOnBackend(callbackParams);
+        }
 
         // Stop WebView và cleanup
         if (webViewRef.current) {
           try {
             webViewRef.current.injectJavaScript(`
               window.stop();
-              document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;gap:10px;"><p style="font-size:16px;color:#00A86B;">Đang xử lý kết quả thanh toán...</p><p style="font-size:14px;color:#666;">Vui lòng đợi trong giây lát</p></div>';
+              document.body.innerHTML = '';
               if (window.ReactNativeWebView) {
                 window.ReactNativeWebView.postMessage('WEBVIEW_CLEANUP_COMPLETE');
               }
@@ -279,37 +279,53 @@ export default function PaymentWebViewScreen() {
           }
         }
 
-        // Navigate sau delay ngắn
-        setTimeout(() => {
-          if (responseCode === "00") {
-            router.replace({
-              pathname: "/(app)/payment-result",
-              params: {
-                orderId: orderId || params.vnp_TxnRef || "",
-                success: "true",
-                transactionId: params.vnp_TransactionNo || "",
-                amount: params.vnp_Amount ? (Number(params.vnp_Amount) / 100).toString() : undefined,
-              },
-            });
-          } else {
-            const errorCode = params.vnp_ResponseCode || "99";
-            router.replace({
-              pathname: "/(app)/payment-result",
-              params: {
-                orderId: orderId || params.vnp_TxnRef || "",
-                success: "false",
-                code: errorCode,
-                message: getVNPayErrorMessage(errorCode),
-              },
-            });
-          }
-        }, 300);
+        const derivedOrderId =
+          callbackParams.orderId || callbackParams.vnp_TxnRef || orderId || "";
+        const amountValue = callbackParams.amount
+          ? callbackParams.amount
+          : callbackParams.vnp_Amount
+            ? (Number(callbackParams.vnp_Amount) / 100).toString()
+            : undefined;
+        const successFlag =
+          callbackParams.success &&
+          callbackParams.success.toLowerCase() === "true";
+
+        // Navigate ngay lập tức đến payment-result screen
+        if (responseCode === "00" || successFlag) {
+          router.replace({
+            pathname: "/(app)/payment-result",
+            params: {
+              orderId: derivedOrderId,
+              success: "true",
+              transactionId: callbackParams.vnp_TransactionNo || "",
+              amount: amountValue,
+              message: callbackParams.message,
+            },
+          });
+        } else {
+          const errorCode = responseCode || "99";
+          const message =
+            callbackParams.message || getVNPayErrorMessage(errorCode);
+          router.replace({
+            pathname: "/(app)/payment-result",
+            params: {
+              orderId: derivedOrderId,
+              success: "false",
+              code: errorCode,
+              message,
+            },
+          });
+        }
       } catch (error) {
         console.error("❌ [PaymentWebView] Error processing VNPay response:", error);
         router.replace({
           pathname: "/(app)/payment-result",
           params: {
-            orderId: orderId || "",
+            orderId:
+              callbackParams.orderId ||
+              callbackParams.vnp_TxnRef ||
+              orderId ||
+              "",
             success: "false",
             code: "99",
             message: "Lỗi xử lý kết quả thanh toán",
@@ -413,10 +429,15 @@ export default function PaymentWebViewScreen() {
         }
       }
 
-      // Detect VNPay response từ URL
-      if (navState.url && navState.url.includes("vnp_ResponseCode=")) {
+      // Detect VNPay response từ URL hoặc URL đã redirect về payment-result
+      const url = navState.url || "";
+      const hasVNPayParams = url.includes("vnp_ResponseCode=");
+      const hasPaymentResultParams =
+        url.includes("payment-result") && url.includes("success=");
+
+      if (url && (hasVNPayParams || hasPaymentResultParams)) {
         if (!processingCallbackRef.current) {
-          handleVNPayResponse(navState.url);
+          handleVNPayResponse(url);
         }
         return false;
       }
@@ -744,7 +765,7 @@ export default function PaymentWebViewScreen() {
       {/* Error hoặc WebView */}
       {error ? (
         renderError()
-      ) : (
+      ) : webviewVisible ? (
         <>
           {paymentUrl ? (
             <WebView
@@ -774,7 +795,11 @@ export default function PaymentWebViewScreen() {
                     if (!url || typeof url !== 'string') return null;
                     
                     // Check nếu URL chứa VNPay response parameters
-                    if (url.includes('vnp_ResponseCode=') || url.includes('vnp_TransactionNo=')) {
+                    if (
+                      url.includes('vnp_ResponseCode=') ||
+                      url.includes('vnp_TransactionNo=') ||
+                      url.includes('success=')
+                    ) {
                       return url;
                     }
                     
@@ -895,6 +920,12 @@ export default function PaymentWebViewScreen() {
           )}
           {renderLoading()}
         </>
+      ) : (
+        // WebView đã đóng, đang chuyển đến payment-result screen
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#00A86B" />
+          <Text style={styles.loadingText}>Đang xử lý kết quả thanh toán...</Text>
+        </View>
       )}
     </SafeAreaView>
   );

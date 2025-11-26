@@ -1,31 +1,32 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StatusBar,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, StatusBar, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { Button, Card } from "../../src/shared/ui";
 import { ordersApi } from "../../src/shared/data/api";
 import { useToast } from "../../src/shared/ui/toast";
 import { useCart } from "../../src/shared/hooks";
+import { Ionicons } from "@expo/vector-icons";
 import { formatCurrency } from "../../src/shared/lib/utils";
 
 export default function PaymentResultScreen() {
   const params = useLocalSearchParams<{
-    orderId: string;
-    success?: string;
-    amount?: string;
-    code?: string;
-    message?: string;
+    orderId?: string | string[];
+    success?: string | string[];
+    amount?: string | string[];
+    code?: string | string[];
+    message?: string | string[];
   }>();
-  const { orderId, success, amount, code, message } = params;
+
+  const getParamValue = (value?: string | string[]) =>
+    Array.isArray(value) ? value[0] : value;
+
+  const orderId = getParamValue(params.orderId);
+  const success = getParamValue(params.success);
+  const amount = getParamValue(params.amount);
+  const code = getParamValue(params.code);
+  const message = getParamValue(params.message);
   const toast = useToast();
   const { clearCart } = useCart();
 
@@ -47,9 +48,8 @@ export default function PaymentResultScreen() {
   const [paymentStatus, setPaymentStatus] = useState<
     "loading" | "success" | "failed"
   >(getInitialPaymentStatus());
-  const [orderDetails, setOrderDetails] = useState<any>(null);
-  const hasProcessedPaymentRef = useRef(false); // Track if payment has been processed
-  const isProcessingRef = useRef(false); // Track if currently processing
+  const hasProcessedPaymentRef = useRef(false);
+  const isProcessingRef = useRef(false);
 
   // Store message in ref to avoid recreating callback
   const messageRef = useRef(message);
@@ -63,7 +63,6 @@ export default function PaymentResultScreen() {
     isProcessingRef.current = false;
   }, [orderId]);
 
-  // Memoize handlePaymentSuccess to prevent recreation on every render
   const handlePaymentSuccess = useCallback(async () => {
     // Prevent multiple simultaneous calls
     if (isProcessingRef.current || hasProcessedPaymentRef.current) {
@@ -80,14 +79,7 @@ export default function PaymentResultScreen() {
       if (paymentResult.success) {
         // Clear cart
         await clearCart();
-
-        // Show success toast only once (use ref to get latest message)
-        toast.success(
-          "Thanh toán thành công",
-          messageRef.current || "Đơn hàng đã được xử lý thành công"
-        );
-
-        setOrderDetails(paymentResult.data);
+        // Không hiển thị toast thành công để tránh trùng với UI màn kết quả
         setPaymentStatus("success");
       } else {
         toast.error("Lỗi thanh toán", "Không thể hoàn tất đơn hàng");
@@ -118,13 +110,19 @@ export default function PaymentResultScreen() {
         if (!hasProcessedPaymentRef.current) {
           toast.error(
             "Thanh toán thất bại",
-            "Vui lòng thử lại"
+            message || "Vui lòng thử lại"
           );
           hasProcessedPaymentRef.current = true; // Prevent duplicate toast
         }
       }
     }
-  }, [success, code, message, handlePaymentSuccess, toast]);
+  }, [
+    code,
+    handlePaymentSuccess,
+    message,
+    success,
+    toast,
+  ]);
 
   // Check payment status (only if not from deep link)
   const { data: paymentData, isLoading } = useQuery({
@@ -139,19 +137,13 @@ export default function PaymentResultScreen() {
     refetchIntervalInBackground: false,
   });
 
-  // Get order details
-  const { data: orderData } = useQuery({
-    queryKey: ["order", orderId],
-    queryFn: async () => {
-      if (!orderId) throw new Error("Order ID not found");
-      return await ordersApi.getById(orderId);
-    },
-    enabled: !!orderId && paymentStatus === "success",
-  });
-
   useEffect(() => {
     // Only process API data if not from deep link and haven't processed yet
-    if (success === undefined && paymentData?.success && !hasProcessedPaymentRef.current) {
+    if (
+      success === undefined &&
+      paymentData?.success &&
+      !hasProcessedPaymentRef.current
+    ) {
       const { isSuccess, vnpayResponseCode, isPending } = paymentData.data;
 
       // Check isPending first
@@ -177,8 +169,12 @@ export default function PaymentResultScreen() {
         paymentData.message || "Vui lòng thử lại"
       );
     }
-  }, [paymentData, success, handlePaymentSuccess, toast]);
-
+  }, [
+    paymentData,
+    success,
+    handlePaymentSuccess,
+    toast,
+  ]);
 
   const handleRetry = () => {
     router.replace("/(app)/checkout");
@@ -226,8 +222,7 @@ export default function PaymentResultScreen() {
                     Đang xử lý thanh toán
                   </Text>
                   <Text className="text-neutral-600 text-center">
-                    Vui lòng đợi trong khi chúng tôi xác nhận thanh toán của
-                    bạn...
+                    Vui lòng đợi trong khi chúng tôi xác nhận thanh toán của bạn...
                   </Text>
                 </View>
                 <View className="bg-blue-50 p-4 rounded-lg w-full">
@@ -251,29 +246,33 @@ export default function PaymentResultScreen() {
                     Đơn hàng của bạn đã được thanh toán và đang được xử lý
                   </Text>
                 </View>
-                <View className="bg-green-50 p-4 rounded-lg w-full space-y-2">
-                  <Text className="text-green-800 text-sm text-center font-medium">
-                    Mã đơn hàng: #{orderId}
-                  </Text>
-                  {amount && (
-                    <Text className="text-green-800 text-sm text-center">
-                      Số tiền: {formatCurrency(Number(amount))}
+                <View className="bg-green-50 p-4 rounded-lg w-full space-y-4">
+                  <View className="space-y-2">
+                    <Text className="text-green-800 text-sm text-center font-medium">
+                      Mã đơn hàng: #{orderId}
                     </Text>
-                  )}
-                </View>
-                <View className="w-full space-y-3">
-                  <Button
-                    title="Xem đơn hàng của tôi"
-                    onPress={handleGoToOrders}
-                    size="lg"
-                    variant="primary"
-                  />
-                  <Button
-                    title="Tiếp tục mua sắm"
-                    onPress={handleGoHome}
-                    size="lg"
-                    variant="outline"
-                  />
+                    {amount && (
+                      <Text className="text-green-800 text-sm text-center">
+                        Số tiền: {formatCurrency(Number(amount))}
+                      </Text>
+                    )}
+                  </View>
+                  <View className="space-y-3">
+                    <Button
+                      title="Đơn hàng"
+                      onPress={handleGoToOrders}
+                      size="lg"
+                      variant="primary"
+                      fullWidth
+                    />
+                    <Button
+                      title="Trang chủ"
+                      onPress={handleGoHome}
+                      size="lg"
+                      variant="outline"
+                      fullWidth
+                    />
+                  </View>
                 </View>
               </>
             )}
@@ -291,12 +290,22 @@ export default function PaymentResultScreen() {
                     Giao dịch của bạn không thành công. Vui lòng thử lại.
                   </Text>
                 </View>
-                <View className="bg-red-50 p-4 rounded-lg w-full mt-5">
-                  <Text className="text-red-800 text-sm text-center">
+                <View className="bg-red-50 p-4 rounded-lg w-full space-y-2">
+                  <Text className="text-red-800 text-sm text-center font-medium">
                     Mã đơn hàng: #{orderId}
                   </Text>
+                  {code && (
+                    <Text className="text-red-700 text-sm text-center">
+                      Mã lỗi: {code}
+                    </Text>
+                  )}
+                  {message && (
+                    <Text className="text-red-700 text-sm text-center">
+                      {message}
+                    </Text>
+                  )}
                 </View>
-                <View className="w-full space-y-3 mt-5">
+                <View className="w-full space-y-3">
                   <Button
                     title="Thử lại"
                     onPress={handleRetry}
@@ -304,7 +313,7 @@ export default function PaymentResultScreen() {
                     variant="primary"
                   />
                   <Button
-                    title="Về trang chủ"
+                    title="Trang chủ"
                     onPress={handleGoHome}
                     size="lg"
                     variant="outline"
