@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Button } from "../../../src/shared/ui";
 import { useOrderDetail } from "../../../src/features/order/hooks/useOrderDetail";
+import { useOrderStatusUpdates } from "../../../src/features/order/hooks/useOrderStatusUpdates";
 import {
   OrderHeaderCard,
   OrderItemCard,
@@ -23,6 +24,7 @@ import {
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { order, isLoading, error, refreshing, onRefresh } = useOrderDetail(id);
+  useOrderStatusUpdates({ orderId: id });
 
   if (isLoading) {
     return (

@@ -38,6 +38,7 @@ import {
   getOrderStatusColor,
 } from "../../../src/shared/lib/utils";
 import { Order } from "../../../src/types";
+import { useOrderStatusUpdates } from "../../../src/features/order/hooks/useOrderStatusUpdates";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -62,6 +63,7 @@ export default function OrdersScreen() {
   const { t } = useLocalization();
   const { isAuthenticated, isLoading, user } = useAuth();
   const queryClient = useQueryClient();
+  useOrderStatusUpdates({ enableToast: false });
   const [activeTab, setActiveTab] = useState<string>("all");
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
