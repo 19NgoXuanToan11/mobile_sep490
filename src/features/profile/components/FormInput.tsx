@@ -171,8 +171,8 @@ const styles = StyleSheet.create({
     },
     iconContainer: {
         marginRight: 10,
-        alignSelf: "flex-start",
-        paddingTop: 2,
+        justifyContent: "center",
+        alignItems: "center",
     },
     input: {
         flex: 1,
