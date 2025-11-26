@@ -61,16 +61,14 @@ export default function CatalogScreen() {
   const filterButtonScale = useRef(new Animated.Value(1)).current;
   const modalSlideAnim = useRef(new Animated.Value(0)).current;
 
-  // Localize category names from English to Vietnamese
-  const getLocalizedCategoryName = (categoryName: string): string => {
-    const name = categoryName.toLowerCase();
-    if (name.includes("vegetable")) return "Rau củ";
-    if (name.includes("fruit")) return "Trái cây";
-    if (name.includes("grain") || name.includes("rice")) return "Ngũ cốc";
-    if (name.includes("dairy") || name.includes("milk")) return "Sản phẩm sữa";
-    if (name.includes("meat") || name.includes("poultry"))
-      return "Thịt & Gia cầm";
-    return categoryName; // Fallback to original name if no match
+  // Use backend category names, preferring the Vietnamese part if available.
+  // Example: "Leafy Vegetables - Rau Ăn Lá" -> "Rau Ăn Lá"
+  const getDisplayCategoryName = (categoryName: string): string => {
+    if (!categoryName) return "";
+    const parts = categoryName.split(" - ");
+    const vietnameseName =
+      parts.length > 1 ? parts[parts.length - 1].trim() : categoryName.trim();
+    return vietnameseName || categoryName;
   };
 
   const { data: categories = [] } = useQuery({
@@ -257,12 +255,12 @@ export default function CatalogScreen() {
     item,
     isSelected,
     onPress,
-    getLocalizedCategoryName
+    getDisplayCategoryName,
   }: {
     item: any;
     isSelected: boolean;
     onPress: () => void;
-    getLocalizedCategoryName: (name: string) => string;
+    getDisplayCategoryName: (name: string) => string;
   }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -305,9 +303,7 @@ export default function CatalogScreen() {
               letterSpacing: -0.2,
             }}
           >
-            {item.id === null
-              ? item.name
-              : getLocalizedCategoryName(item.name)}
+            {item.id === null ? item.name : getDisplayCategoryName(item.name)}
           </Text>
         </Animated.View>
       </TouchableOpacity>
@@ -633,7 +629,7 @@ export default function CatalogScreen() {
               item={item}
               isSelected={selectedCategory === item.id}
               onPress={() => setSelectedCategory(item.id)}
-              getLocalizedCategoryName={getLocalizedCategoryName}
+              getDisplayCategoryName={getDisplayCategoryName}
             />
           ))}
         </ScrollView>

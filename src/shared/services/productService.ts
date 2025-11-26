@@ -5,7 +5,8 @@ import {
   PaginatedResponse,
   FilterState,
 } from "../../types";
-import { ProductService, CategoryService } from "../../api";
+import { OpenAPI, ProductService, CategoryService } from "../../api";
+import env from "../../config/env";
 import { normalizeImageUrl } from "./utils/imageUtils";
 
 export class ProductServiceClass {
@@ -15,10 +16,22 @@ export class ProductServiceClass {
     limit = 20
   ): Promise<ApiResponse<PaginatedResponse<Product>>> {
     try {
-      const res = await ProductService.getApiV1ProductsProductsList({
-        pageIndex: page,
-        pageSize: limit,
-      });
+      // Ensure API base URL is configured
+      OpenAPI.BASE = env.API_URL;
+
+      const hasCategoryFilter =
+        filters?.categories && filters.categories.length > 0;
+
+      const res = hasCategoryFilter
+        ? await ProductService.getApiV1ProductsProductFilter({
+            pageIndex: page,
+            pageSize: limit,
+            categoryId: Number(filters!.categories![0]),
+          })
+        : await ProductService.getApiV1ProductsProductsList({
+            pageIndex: page,
+            pageSize: limit,
+          });
       const payload = res?.data ?? res;
       const items: Product[] = (payload?.items ?? payload?.data ?? []).map(
         (p: any) => this.mapProduct(p)
@@ -145,6 +158,9 @@ export class ProductServiceClass {
 export class CategoryServiceClass {
   async getAll(): Promise<ApiResponse<Category[]>> {
     try {
+      // Ensure API base URL is configured
+      OpenAPI.BASE = env.API_URL;
+
       const res = await CategoryService.getApiV1CategoryGetAll();
       const items: Category[] = (res?.data ?? res ?? []).map((c: any) => ({
         id: String(c.categoryId ?? c.id),
