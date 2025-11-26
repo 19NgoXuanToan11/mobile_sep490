@@ -323,53 +323,9 @@ export const useNotificationStore = create<NotificationStore>()(
       loadNotifications: async () => {
         try {
           set({ isLoading: true });
-
-          const mockNotifications: Notification[] = [
-            {
-              id: "1",
-              title: "Đơn hàng",
-              message:
-                "Đơn hàng #12345 đã được xác nhận\nĐơn hàng của bạn đã được xác nhận và đang được chuẩn bị. Dự kiến giao hàng trong 2-3 ngày.",
-              type: "order",
-              isRead: false,
-              timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-            },
-            {
-              id: "2",
-              title: "Khuyến mãi",
-              message:
-                "🎉 Khuyến mãi đặc biệt 20%\nGiảm giá 20% cho tất cả sản phẩm rau củ quả tươi. Áp dụng từ hôm nay đến hết tuần!",
-              type: "promotion",
-              isRead: false,
-              timestamp: new Date(
-                Date.now() - 2 * 60 * 60 * 1000
-              ).toISOString(),
-            },
-            {
-              id: "3",
-              title: "Thanh toán",
-              message:
-                "Thanh toán thành công\nThanh toán đơn hàng #12344 đã được xử lý thành công qua VNPay.",
-              type: "payment",
-              isRead: true,
-              timestamp: new Date(
-                Date.now() - 24 * 60 * 60 * 1000
-              ).toISOString(),
-            },
-            {
-              id: "4",
-              title: "Giao hàng",
-              message:
-                "Đơn hàng đang được giao\nĐơn hàng #12343 đang trên đường giao đến bạn. Mã vận đơn: GH123456789",
-              type: "delivery",
-              isRead: true,
-              timestamp: new Date(
-                Date.now() - 2 * 24 * 60 * 60 * 1000
-              ).toISOString(),
-            },
-          ];
-          const unreadCount = mockNotifications.filter((n) => !n.isRead).length;
-          set({ notifications: mockNotifications, unreadCount });
+          // TODO: Integrate with real notifications API.
+          // For now, ensure no mock/placeholder notifications are loaded.
+          set({ notifications: [], unreadCount: 0 });
         } catch (error) {
         } finally {
           set({ isLoading: false });

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
     View,
     Text,
@@ -14,10 +14,8 @@ import { EmptyState } from "../../../src/shared/ui";
 import { useNotifications, Notification } from "../../../src/shared/hooks";
 import {
     NotificationCard,
-    NotificationTabs,
     NotificationSkeleton,
     NotificationHeader,
-    NotificationFilter,
 } from "../../../src/features/notifications/components";
 
 // Group notifications by time
@@ -96,41 +94,15 @@ const groupNotificationsByTime = (
 };
 
 export default function NotificationsScreen() {
-    const [activeFilter, setActiveFilter] = useState<NotificationFilter>("all");
-    const [refreshing, setRefreshing] = useState(false);
+    const [refreshing, setRefreshing] = React.useState(false);
 
-    const {
-        notifications,
-        unreadCount,
-        isLoading,
-        markAsRead,
-        loadNotifications,
-    } = useNotifications();
+    const { notifications, isLoading, markAsRead, loadNotifications } =
+        useNotifications();
 
-    // Filter notifications
-    const filteredNotifications = useMemo(() => {
-        return notifications.filter((notification) => {
-            switch (activeFilter) {
-                case "unread":
-                    return !notification.isRead;
-                case "order":
-                    return notification.type === "order";
-                case "promotion":
-                    return notification.type === "promotion";
-                case "payment":
-                    return notification.type === "payment";
-                case "delivery":
-                    return notification.type === "delivery";
-                default:
-                    return true;
-            }
-        });
-    }, [notifications, activeFilter]);
-
-    // Group notifications by time
+    // Group notifications by time (single consolidated list)
     const groupedData = useMemo(() => {
-        return groupNotificationsByTime(filteredNotifications);
-    }, [filteredNotifications]);
+        return groupNotificationsByTime(notifications);
+    }, [notifications]);
 
     // Handlers
     const onRefresh = useCallback(async () => {
@@ -153,10 +125,6 @@ export default function NotificationsScreen() {
         },
         [markAsRead]
     );
-
-    const handleFilterChange = useCallback((filter: NotificationFilter) => {
-        setActiveFilter(filter);
-    }, []);
 
     // FlatList optimization
     const keyExtractor = useCallback(
@@ -197,17 +165,6 @@ export default function NotificationsScreen() {
         []
     );
 
-    const ListHeaderComponent = useMemo(
-        () => (
-            <NotificationTabs
-                activeFilter={activeFilter}
-                onFilterChange={handleFilterChange}
-                unreadCount={unreadCount}
-            />
-        ),
-        [activeFilter, handleFilterChange, unreadCount]
-    );
-
     const ListEmptyComponent = useMemo(() => {
         if (isLoading) {
             return <NotificationSkeleton count={3} />;
@@ -216,19 +173,11 @@ export default function NotificationsScreen() {
         return (
             <EmptyState
                 icon="notifications-outline"
-                title={
-                    activeFilter === "unread"
-                        ? "Không có thông báo chưa đọc"
-                        : "Không có thông báo"
-                }
-                description={
-                    activeFilter === "unread"
-                        ? "Tất cả thông báo đã được đọc"
-                        : "Chưa có thông báo nào được gửi đến bạn"
-                }
+                title={"Không có thông báo"}
+                description={"Chưa có thông báo nào được gửi đến bạn"}
             />
         );
-    }, [isLoading, activeFilter]);
+    }, [isLoading]);
 
     return (
         <View style={styles.container}>
@@ -248,7 +197,6 @@ export default function NotificationsScreen() {
                 data={groupedData}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
-                ListHeaderComponent={ListHeaderComponent}
                 ListEmptyComponent={ListEmptyComponent}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
