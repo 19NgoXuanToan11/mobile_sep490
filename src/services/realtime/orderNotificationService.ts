@@ -10,9 +10,28 @@ import env from "../../config/env";
 import { authStorage } from "../../shared/lib/storage";
 import { useAuthStore, useNotificationStore } from "../../shared/hooks";
 
+/**
+ * Order status values matching backend PaymentStatus enum
+ */
+export type OrderStatus =
+  | "COMPLETED"
+  | "CANCELLED"
+  | "DELIVERED"
+  | "SHIPPING"
+  | "PENDING"
+  | "CONFIRMED"
+  | "PLACED"
+  | "FAILED"
+  | "PACKED"
+  | "SHIPPED";
+
+/**
+ * Order status update message matching backend OrderStatusNotification
+ * Backend sends: OrderId (long), Message (string), Status (string), Timestamp (DateTime)
+ */
 export type OrderStatusUpdateMessage = {
   orderId: number;
-  status: string;
+  status: OrderStatus;
   message: string;
   timestamp?: string;
 };
@@ -88,12 +107,15 @@ class OrderNotificationService {
       .configureLogging(isDev ? LogLevel.Information : LogLevel.Error)
       .build();
 
-    connection.on("ReceiveOrderStatusUpdate", (payload: OrderStatusUpdateMessage) => {
-      if (!payload) {
-        return;
+    connection.on(
+      "ReceiveOrderStatusUpdate",
+      (payload: OrderStatusUpdateMessage) => {
+        if (!payload) {
+          return;
+        }
+        this.handleIncomingMessage(payload);
       }
-      this.handleIncomingMessage(payload);
-    });
+    );
 
     connection.onreconnected(() => {
       this.flushReconnectTimer();
@@ -162,14 +184,19 @@ class OrderNotificationService {
   }
 
   private handleIncomingMessage(update: OrderStatusUpdateMessage) {
-    const timestamp =
-      update.timestamp ?? new Date().toISOString();
+    const timestamp = update.timestamp ?? new Date().toISOString();
+
+    // Determine notification title and type based on status
+    const { title, notificationType } = this.getNotificationDetails(
+      update.status
+    );
 
     const { addNotification } = useNotificationStore.getState();
     addNotification({
-      title: "Cập nhật đơn hàng",
-      message: update.message || `Đơn hàng #${update.orderId} vừa được cập nhật`,
-      type: "order",
+      title,
+      message:
+        update.message || this.getDefaultMessage(update.status, update.orderId),
+      type: notificationType,
       isRead: false,
       timestamp,
       metadata: {
@@ -177,6 +204,16 @@ class OrderNotificationService {
         status: update.status,
       },
     });
+
+    // Log critical status changes for debugging
+    if (
+      isDev &&
+      (update.status === "COMPLETED" || update.status === "CANCELLED")
+    ) {
+      console.log(
+        `[OrderNotificationService] Critical status update: Order #${update.orderId} -> ${update.status}`
+      );
+    }
 
     this.listeners.forEach((listener) => {
       try {
@@ -188,6 +225,81 @@ class OrderNotificationService {
         console.error("[OrderNotificationService] listener error:", error);
       }
     });
+  }
+
+  /**
+   * Get notification title and type based on order status
+   */
+  private getNotificationDetails(status: OrderStatus): {
+    title: string;
+    notificationType: "order" | "payment" | "delivery";
+  } {
+    switch (status) {
+      case "COMPLETED":
+        return {
+          title: "Đơn hàng hoàn thành",
+          notificationType: "order",
+        };
+      case "CANCELLED":
+        return {
+          title: "Đơn hàng đã hủy",
+          notificationType: "order",
+        };
+      case "DELIVERED":
+      case "SHIPPING":
+      case "SHIPPED":
+        return {
+          title: "Cập nhật giao hàng",
+          notificationType: "delivery",
+        };
+      case "CONFIRMED":
+      case "PACKED":
+        return {
+          title: "Đơn hàng đã xác nhận",
+          notificationType: "order",
+        };
+      case "PLACED":
+      case "PENDING":
+        return {
+          title: "Cập nhật đơn hàng",
+          notificationType: "order",
+        };
+      case "FAILED":
+        return {
+          title: "Đơn hàng thất bại",
+          notificationType: "payment",
+        };
+      default:
+        return {
+          title: "Cập nhật đơn hàng",
+          notificationType: "order",
+        };
+    }
+  }
+
+  /**
+   * Get default message if backend doesn't provide one
+   */
+  private getDefaultMessage(status: OrderStatus, orderId: number): string {
+    switch (status) {
+      case "COMPLETED":
+        return `Đơn hàng #${orderId} đã được hoàn thành thành công. Cảm ơn bạn đã mua sắm!`;
+      case "CANCELLED":
+        return `Đơn hàng #${orderId} đã bị hủy. Nếu bạn có thắc mắc, vui lòng liên hệ hỗ trợ.`;
+      case "DELIVERED":
+        // Check if this is actually a shipping status (from updateDeliveryStatus endpoint)
+        // Backend sends "DELIVERED" with "is on the way" message for shipping
+        return `Đơn hàng #${orderId} đang trên đường giao đến bạn.`;
+      case "SHIPPING":
+      case "SHIPPED":
+        return `Đơn hàng #${orderId} đang trên đường giao đến bạn.`;
+      case "CONFIRMED":
+        return `Đơn hàng #${orderId} đã được xác nhận và đang được chuẩn bị.`;
+      case "PACKED":
+        return `Đơn hàng #${orderId} đã được đóng gói và sẵn sàng giao hàng.`;
+      default:
+        return `Đơn hàng #${orderId} vừa được cập nhật trạng thái.`;
+    }
   }
 
   subscribe(listener: Listener) {
@@ -226,4 +338,3 @@ class OrderNotificationService {
 }
 
 export const orderNotificationService = new OrderNotificationService();
-
