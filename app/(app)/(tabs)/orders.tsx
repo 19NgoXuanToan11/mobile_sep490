@@ -25,7 +25,6 @@ import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import {
   Card,
-  Badge,
   EmptyState,
   Button,
   Skeleton,
@@ -151,21 +150,6 @@ export default function OrdersScreen() {
   // Flatten all orders from all pages
   const orders =
     data?.pages.flatMap((page) => (page.success ? page.data.orders : [])) ?? [];
-  const totalCount = data?.pages[0]?.success
-    ? data.pages[0].data.totalCount
-    : 0;
-
-  // Enhanced status counts calculation
-  const getStatusCounts = useMemo(() => {
-    return {
-      all: totalCount,
-      placed: orders.filter((o) => o.status === "PLACED").length,
-      confirmed: orders.filter((o) => o.status === "CONFIRMED").length,
-      shipped: orders.filter((o) => o.status === "PENDING").length,
-      delivered: orders.filter((o) => o.status === "COMPLETED").length,
-      cancelled: orders.filter((o) => o.status === "CANCELLED").length,
-    };
-  }, [orders, totalCount]);
 
   // Filter orders by search query
   const filteredOrders = useMemo(() => {
@@ -402,7 +386,6 @@ export default function OrdersScreen() {
     {
       id: "all",
       label: "Tất cả",
-      count: getStatusCounts.all,
       icon: "apps-outline",
       color: "#047857",
       bgColor: "#ecfdf5",
@@ -410,7 +393,6 @@ export default function OrdersScreen() {
     {
       id: "confirmed",
       label: "Xác nhận",
-      count: getStatusCounts.confirmed,
       icon: "checkmark-done-outline",
       color: "#047857",
       bgColor: "#ecfdf5",
@@ -418,7 +400,6 @@ export default function OrdersScreen() {
     {
       id: "shipped",
       label: "Đang giao",
-      count: getStatusCounts.shipped,
       icon: "car-outline",
       color: "#06b6d4",
       bgColor: "#ecfeff",
@@ -426,7 +407,6 @@ export default function OrdersScreen() {
     {
       id: "delivered",
       label: "Hoàn thành",
-      count: getStatusCounts.delivered,
       icon: "checkmark-circle-outline",
       color: "#10b981",
       bgColor: "#ecfdf5",
@@ -434,7 +414,6 @@ export default function OrdersScreen() {
     {
       id: "cancelled",
       label: "Thất bại",
-      count: getStatusCounts.cancelled,
       icon: "close-circle-outline",
       color: "#ef4444",
       bgColor: "#fef2f2",
@@ -806,19 +785,6 @@ export default function OrdersScreen() {
               >
                 {chip.label}
               </Text>
-              {chip.count > 0 && (
-                <View
-                  className={`px-2 py-0.5 rounded-full mt-1 ${isActive ? "bg-green-500" : "bg-gray-300"
-                    }`}
-                >
-                  <Text
-                    className={`text-xs font-bold ${isActive ? "text-white" : "text-gray-600"
-                      }`}
-                  >
-                    {chip.count}
-                  </Text>
-                </View>
-              )}
             </View>
           </View>
         </TouchableOpacity>
