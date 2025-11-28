@@ -29,8 +29,8 @@ import {
   Button,
   Skeleton,
 } from "../../../src/shared/ui";
-import { ordersApi } from "../../../src/shared/data/api";
-import { useLocalization, useAuth } from "../../../src/shared/hooks";
+import { ordersApi, productsApi } from "../../../src/shared/data/api";
+import { useLocalization, useAuth, useCart } from "../../../src/shared/hooks";
 import {
   formatCurrency,
   formatDate,
@@ -61,6 +61,7 @@ const useDebounce = (value: string, delay: number) => {
 export default function OrdersScreen() {
   const { t } = useLocalization();
   const { isAuthenticated, isLoading, user } = useAuth();
+  const { addItem } = useCart();
   const queryClient = useQueryClient();
   useOrderStatusUpdates({ enableToast: false });
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -71,6 +72,7 @@ export default function OrdersScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState<string>("");
   const debouncedSearch = useDebounce(searchQuery, 300);
+  const [repurchaseOrderId, setRepurchaseOrderId] = useState<string | null>(null);
 
   // Animation values
   const searchAnimation = new Animated.Value(0);
@@ -225,6 +227,128 @@ export default function OrdersScreen() {
       ]
     );
   };
+
+  const waitForAcknowledgement = useCallback(
+    (title: string, message: string) =>
+      new Promise<void>((resolve) => {
+        Alert.alert(title, message, [{ text: "Đã hiểu", onPress: () => resolve() }], {
+          cancelable: false,
+        });
+      }),
+    []
+  );
+
+  const precheckOrderItems = useCallback(async (order: Order) => {
+    const blockingIssues: string[] = [];
+    const warnings: string[] = [];
+    const sanitizedItems: Array<{ productId: string; quantity: number; name: string }> =
+      [];
+
+    await Promise.all(
+      order.items.map(async (item) => {
+        try {
+          const response = await productsApi.getById(item.productId);
+          const product = response?.data;
+
+          if (!response?.success || !product) {
+            blockingIssues.push(
+              `${item.product?.name || "Sản phẩm"} không còn khả dụng trong kho.`
+            );
+            return;
+          }
+
+          if (!product.isInStock || product.stock <= 0) {
+            blockingIssues.push(`${product.name} hiện đã hết hàng.`);
+            return;
+          }
+
+          const permittedQuantity = Math.min(item.quantity, product.stock);
+          if (permittedQuantity < item.quantity) {
+            blockingIssues.push(
+              `${product.name} chỉ còn ${permittedQuantity} sản phẩm, vui lòng điều chỉnh số lượng.`
+            );
+            return;
+          }
+
+          if (product.price !== item.price) {
+            warnings.push(
+              `${product.name}: ${formatCurrency(item.price)} → ${formatCurrency(
+                product.price
+              )}`
+            );
+          }
+
+          sanitizedItems.push({
+            productId: String(product.id ?? item.productId),
+            quantity: permittedQuantity,
+            name: product.name,
+          });
+        } catch (error) {
+          blockingIssues.push(
+            `${item.product?.name || "Sản phẩm"} tạm thời không thể kiểm tra.`
+          );
+        }
+      })
+    );
+
+    return { blockingIssues, warnings, sanitizedItems };
+  }, []);
+
+  const handleRepurchase = useCallback(
+    async (order: Order) => {
+      if (!order.items.length) {
+        Alert.alert("Không thể mua lại", "Đơn hàng không có sản phẩm hợp lệ.");
+        return;
+      }
+
+      setRepurchaseOrderId(order.id);
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        const { blockingIssues, warnings, sanitizedItems } = await precheckOrderItems(order);
+
+        if (blockingIssues.length) {
+          Alert.alert(
+            "Không thể mua lại",
+            `Vui lòng kiểm tra lại:\n• ${blockingIssues.join("\n• ")}`
+          );
+          return;
+        }
+
+        if (!sanitizedItems.length) {
+          Alert.alert(
+            "Không có sản phẩm khả dụng",
+            "Tất cả sản phẩm trong đơn cũ đã hết hàng hoặc không còn bán."
+          );
+          return;
+        }
+
+        if (warnings.length) {
+          await waitForAcknowledgement(
+            "Giá đã thay đổi",
+            `Một số sản phẩm đã cập nhật giá và sẽ áp dụng giá mới trong giỏ hàng:\n• ${warnings.join(
+              "\n• "
+            )}`
+          );
+        }
+
+        for (const item of sanitizedItems) {
+          await addItem(item.productId, item.quantity);
+        }
+
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        router.push("/(app)/(tabs)/cart");
+      } catch (error) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Alert.alert(
+          "Không thể mua lại",
+          "Đã xảy ra lỗi khi xử lý yêu cầu. Vui lòng thử lại sau."
+        );
+      } finally {
+        setRepurchaseOrderId(null);
+      }
+    },
+    [addItem, precheckOrderItems, waitForAcknowledgement]
+  );
 
   // Enhanced status info with better colors and animations
   const getStatusInfo = (status: Order["status"]) => {
@@ -422,278 +546,201 @@ export default function OrdersScreen() {
 
   ];
 
-  // Enhanced Apple-style order card renderer
-  const renderOrder = useCallback(({ item: order }: { item: Order }) => {
-    const statusInfo = getStatusInfo(order.status);
+  // Compact order card renderer with pre-checkout flow
+  const renderOrder = useCallback(
+    ({ item: order }: { item: Order }) => {
+      const statusInfo = getStatusInfo(order.status);
 
-    // Ưu tiên hiển thị order images từ backend, nếu không có thì dùng product images
-    const orderImages = order.images && order.images.length > 0 ? order.images : [];
-    const displayItems = order.items.slice(0, 2);
-    const hasOrderImages = orderImages.length > 0;
+      const orderImages = order.images && order.images.length > 0 ? order.images : [];
+      const hasOrderImages = orderImages.length > 0;
+      const fallbackItems = order.items.slice(0, 3);
+      const remainingCount = hasOrderImages
+        ? Math.max(orderImages.length - 3, 0)
+        : Math.max(order.items.length - 3, 0);
+      // Re-purchase is available only when an order reached a final state
+      const canRepurchase = ["COMPLETED", "DELIVERED"].includes(order.status);
 
-    return (
-      <TouchableOpacity
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          router.push(`/(app)/track/${order.id}` as any);
-        }}
-        activeOpacity={0.98}
-        className="mx-4 mb-4"
-      >
-        <View className="bg-white rounded-3xl p-6 shadow-lg shadow-black/5 border border-gray-100">
-          {/* Premium Header */}
-          <View className="flex-row items-start justify-between mb-5">
-            <View className="flex-1">
-              <View className="flex-row items-center mb-2">
-                <Text className="text-xl font-bold text-gray-900 mr-3">
+      return (
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push(`/(app)/track/${order.id}` as any);
+          }}
+          activeOpacity={0.95}
+          className="mx-4 mb-3"
+        >
+          <View className="bg-white rounded-2xl p-4 shadow-md shadow-black/5 border border-gray-100">
+            <View className="flex-row items-start justify-between">
+              <View className="flex-1">
+                <Text className="text-base font-semibold text-gray-900">
                   {order.orderNumber}
                 </Text>
-                <View
-                  className="px-3 py-1.5 rounded-full border"
-                  style={{
-                    backgroundColor: statusInfo.bgColor,
-                    borderColor: statusInfo.borderColor,
-                  }}
-                >
-                  <Text
-                    className="text-sm font-semibold"
-                    style={{ color: statusInfo.color }}
-                  >
-                    {statusInfo.text}
+                <View className="flex-row items-center mt-1">
+                  <Ionicons name="calendar-outline" size={14} color="#6B7280" />
+                  <Text className="text-xs text-gray-500 ml-1">
+                    {formatDate(order.createdAt)}
                   </Text>
                 </View>
               </View>
-
-              <View className="flex-row items-center mb-3">
-                <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-                <Text className="text-sm text-gray-500 ml-2">
-                  {formatDate(order.createdAt)}
+              <View
+                className="px-3 py-1 rounded-full border"
+                style={{
+                  backgroundColor: statusInfo.bgColor,
+                  borderColor: statusInfo.borderColor,
+                }}
+              >
+                <Text
+                  className="text-xs font-semibold"
+                  style={{ color: statusInfo.color }}
+                >
+                  {statusInfo.text}
                 </Text>
-                {order.shippingAddress?.street && (
-                  <>
-                    <View className="w-1 h-1 bg-gray-300 rounded-full mx-3" />
-                    <Ionicons
-                      name="location-outline"
-                      size={16}
-                      color="#6B7280"
-                    />
-                    <Text
-                      className="text-sm text-gray-500 ml-1 flex-1"
-                      numberOfLines={1}
-                    >
-                      {order.shippingAddress.street}
-                    </Text>
-                  </>
-                )}
               </View>
             </View>
-          </View>
 
-          {/* Order/Product Images Section */}
-          {(hasOrderImages || displayItems.length > 0) && (
-            <View className="mb-5">
-              <View className="flex-row items-center justify-between mb-3">
-                <Text className="text-base font-semibold text-gray-900">
-                  {hasOrderImages ? "Hình ảnh đơn hàng" : "Sản phẩm"}
-                </Text>
-                <View className="flex-row items-center">
-                  <Ionicons name="cube-outline" size={16} color="#6B7280" />
-                  <Text className="text-sm text-gray-500 ml-1">
-                    {order.itemCount} mặt hàng
-                  </Text>
-                </View>
-              </View>
-
-              <View className="flex-row items-center">
-                {hasOrderImages ? (
-                  // Hiển thị order images từ backend
-                  <>
-                    {orderImages.slice(0, 3).map((imageUri, index) => (
-                      <View key={`order-img-${index}`} className="mr-4">
-                        <Image
-                          source={{
-                            uri: imageUri || "https://via.placeholder.com/80x80/f9fafb/9ca3af?text=IMG",
-                          }}
-                          style={{ width: 80, height: 80 }}
-                          className="rounded-2xl bg-gray-50"
-                          contentFit="cover"
-                        />
-                      </View>
-                    ))}
-                    {orderImages.length > 3 && (
-                      <View className="items-center">
-                        <View className="w-20 h-20 bg-gray-50 rounded-2xl items-center justify-center border-2 border-dashed border-gray-200">
-                          <Text className="text-lg font-bold text-gray-400">
-                            +{orderImages.length - 3}
-                          </Text>
-                        </View>
-                        <Text className="text-sm text-gray-500 mt-2">Khác</Text>
-                      </View>
-                    )}
-                  </>
-                ) : (
-                  // Fallback: hiển thị product images như cũ
-                  <>
-                    {displayItems.map((item, index) => {
-                      const imageUri = item.product?.images?.[0];
+            {(hasOrderImages || fallbackItems.length > 0) && (
+              <View className="flex-row items-center mt-3">
+                {(hasOrderImages ? orderImages.slice(0, 3) : fallbackItems).map(
+                  (entry, index) => {
+                    if (hasOrderImages) {
+                      const imageUri =
+                        (entry as string) ||
+                        "https://via.placeholder.com/64x64/f9fafb/9ca3af?text=IMG";
                       return (
-                        <View key={`${item.id}-${index}`} className="mr-4">
-                          <View className="relative">
-                            <Image
-                              source={{
-                                uri:
-                                  imageUri ||
-                                  "https://via.placeholder.com/80x80/f9fafb/9ca3af?text=SP",
-                              }}
-                              style={{ width: 80, height: 80 }}
-                              className="rounded-2xl bg-gray-50"
-                              contentFit="cover"
-                            />
-                            {item.quantity > 1 && (
-                              <View className="absolute -top-2 -right-2 bg-green-500 rounded-full w-7 h-7 items-center justify-center shadow-lg">
-                                <Text className="text-white text-xs font-bold">
-                                  {item.quantity}
-                                </Text>
-                              </View>
-                            )}
-                          </View>
-                          <Text
-                            className="text-sm font-medium text-gray-700 mt-2 w-20 text-center"
-                            numberOfLines={2}
-                          >
-                            {item.product?.name || "Sản phẩm"}
-                          </Text>
+                        <View key={`preview-${index}`} className="mr-3">
+                          <Image
+                            source={{ uri: imageUri }}
+                            style={{ width: 56, height: 56 }}
+                            className="rounded-xl bg-gray-50"
+                            contentFit="cover"
+                          />
                         </View>
                       );
-                    })}
+                    }
 
-                    {order.items.length > 2 && (
-                      <View className="items-center">
-                        <View className="w-20 h-20 bg-gray-50 rounded-2xl items-center justify-center border-2 border-dashed border-gray-200">
-                          <Text className="text-lg font-bold text-gray-400">
-                            +{order.items.length - 2}
-                          </Text>
+                    const item = entry as Order["items"][number];
+                    const imageUri =
+                      item.product?.images?.[0] ||
+                      "https://via.placeholder.com/64x64/f9fafb/9ca3af?text=SP";
+                    return (
+                      <View key={`preview-${index}`} className="mr-3">
+                        <View className="relative">
+                          <Image
+                            source={{ uri: imageUri }}
+                            style={{ width: 56, height: 56 }}
+                            className="rounded-xl bg-gray-50"
+                            contentFit="cover"
+                          />
+                          {item.quantity > 1 && (
+                            <View className="absolute -top-1.5 -right-1.5 bg-green-500 rounded-full w-6 h-6 items-center justify-center">
+                              <Text className="text-white text-[10px] font-bold">
+                                {item.quantity}
+                              </Text>
+                            </View>
+                          )}
                         </View>
-                        <Text className="text-sm text-gray-500 mt-2">Khác</Text>
                       </View>
-                    )}
-                  </>
+                    );
+                  }
+                )}
+                {remainingCount > 0 && (
+                  <View className="w-14 h-14 rounded-xl border border-dashed border-gray-200 items-center justify-center">
+                    <Text className="text-xs font-semibold text-gray-500">
+                      +{remainingCount}
+                    </Text>
+                  </View>
                 )}
               </View>
-            </View>
-          )}
+            )}
 
-          {/* Payment Info */}
-          <View className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 mb-5">
-            <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center justify-between mt-4">
               <View className="flex-row items-center">
-                <View className="w-10 h-10 bg-green-100 rounded-full items-center justify-center mr-3">
-                  <Ionicons name="card-outline" size={20} color="#059669" />
-                </View>
-                <Text className="text-base font-semibold text-gray-700">
-                  Tổng thanh toán
+                <Ionicons name="cube-outline" size={16} color="#6B7280" />
+                <Text className="text-xs text-gray-500 ml-1">
+                  {order.itemCount} mặt hàng
                 </Text>
               </View>
-              <Text className="text-2xl font-bold text-green-600">
+              <Text className="text-xl font-bold text-gray-900">
                 {formatCurrency(order.total)}
               </Text>
             </View>
-          </View>
 
-          {/* Delivery Status */}
-          {(order.status === "PENDING" || order.status === "SHIPPED") && order.estimatedDelivery && (
-            <View className="bg-green-50 rounded-2xl p-4 mb-5 border border-green-100">
-              <View className="flex-row items-center">
-                <View className="w-12 h-12 bg-green-100 rounded-full items-center justify-center mr-4">
-                  <Ionicons name="rocket-outline" size={24} color="#047857" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-base font-semibold text-green-900 mb-1">
-                    Đang trên đường giao hàng
-                  </Text>
-                  <Text className="text-sm text-green-700">
+            {(order.status === "PENDING" || order.status === "SHIPPED") &&
+              order.estimatedDelivery && (
+                <View className="flex-row items-center mt-3 bg-green-50 rounded-xl px-3 py-2 border border-green-100">
+                  <Ionicons name="rocket-outline" size={16} color="#047857" />
+                  <Text className="text-xs text-green-800 ml-2">
                     Dự kiến giao: {formatDate(order.estimatedDelivery)}
                   </Text>
                 </View>
-              </View>
-            </View>
-          )}
+              )}
 
-          {/* Action Buttons */}
-          <View className="flex-row space-x-3">
-            {order.status === "PLACED" && (
-              <TouchableOpacity
-                onPress={(e) => {
-                  e.stopPropagation();
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  handleCancelOrder(order.id);
-                }}
-                disabled={cancelOrderMutation.isPending}
-                className="flex-1 bg-red-600 rounded-2xl py-4 items-center shadow-lg shadow-red-600/25"
-                activeOpacity={0.85}
-                style={{
-                  opacity: cancelOrderMutation.isPending ? 0.6 : 1,
-                }}
-              >
-                <View className="flex-row items-center">
-                  {cancelOrderMutation.isPending ? (
-                    <ActivityIndicator size="small" color="white" />
-                  ) : (
-                    <Ionicons name="close-circle-outline" size={20} color="white" />
-                  )}
-                  <Text className="text-white font-bold text-base ml-2">
-                    {cancelOrderMutation.isPending ? "Đang hủy..." : "Hủy đơn"}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
-            {order.status === "FAILED" && (
-              <TouchableOpacity
-                onPress={async (e) => {
-                  e.stopPropagation();
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  try {
-                    await ordersApi.createOrderPayment(Number(order.id));
-                    Alert.alert("Đã tạo yêu cầu", "Đã tạo yêu cầu thanh toán lại");
-                    queryClient.invalidateQueries({ queryKey: ["orders"] });
-                  } catch (err: any) {
-                    Alert.alert("Lỗi", err?.message || "Không thể tạo thanh toán");
+            <View className="flex-row mt-4">
+              {order.status === "PLACED" && (
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    handleCancelOrder(order.id);
+                  }}
+                  disabled={cancelOrderMutation.isPending}
+                  className="flex-1 bg-red-600 rounded-2xl py-3 items-center mr-3 shadow-lg shadow-red-600/20"
+                  activeOpacity={0.85}
+                  style={{
+                    opacity: cancelOrderMutation.isPending ? 0.6 : 1,
+                  }}
+                >
+                  <View className="flex-row items-center">
+                    {cancelOrderMutation.isPending ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Ionicons name="close-circle-outline" size={18} color="white" />
+                    )}
+                    <Text className="text-white font-semibold text-sm ml-2">
+                      {cancelOrderMutation.isPending ? "Đang hủy..." : "Hủy đơn"}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+              {canRepurchase && (
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleRepurchase(order);
+                  }}
+                  className="flex-1 bg-green-700 rounded-2xl py-3 items-center shadow-lg shadow-green-700/20"
+                  activeOpacity={0.85}
+                  style={{
+                    opacity: repurchaseOrderId && repurchaseOrderId !== order.id ? 0.6 : 1,
+                  }}
+                  disabled={
+                    Boolean(repurchaseOrderId) && repurchaseOrderId !== order.id
                   }
-                }}
-                className="flex-1 bg-green-700 rounded-2xl py-4 items-center shadow-lg shadow-green-700/25"
-                activeOpacity={0.85}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons name="repeat-outline" size={20} color="white" />
-                  <Text className="text-white font-bold text-base ml-2">
-                    Mua lại
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
-            {order.status === "COMPLETED" && (
-              <TouchableOpacity
-                onPress={(e) => {
-                  e.stopPropagation();
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push("/(app)/(tabs)/catalog");
-                }}
-                className="flex-1 bg-green-700 rounded-2xl py-4 items-center shadow-lg shadow-green-700/25"
-                activeOpacity={0.85}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons name="repeat-outline" size={20} color="white" />
-                  <Text className="text-white font-bold text-base ml-2">
-                    Mua lại
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
+                >
+                  <View className="flex-row items-center">
+                    {repurchaseOrderId === order.id ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Ionicons name="repeat-outline" size={18} color="white" />
+                    )}
+                    <Text className="text-white font-semibold text-sm ml-2">
+                      Mua lại
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
-    );
-  }, [handleCancelOrder, cancelOrderMutation]);
+        </TouchableOpacity>
+      );
+    },
+    [
+      cancelOrderMutation.isPending,
+      handleCancelOrder,
+      handleRepurchase,
+      repurchaseOrderId,
+    ]
+  );
 
   // Enhanced Apple-style skeleton loader
   const renderLoadingSkeleton = () => (
