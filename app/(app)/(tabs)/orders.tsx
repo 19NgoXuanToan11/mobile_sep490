@@ -557,8 +557,9 @@ export default function OrdersScreen() {
       const remainingCount = hasOrderImages
         ? Math.max(orderImages.length - 3, 0)
         : Math.max(order.items.length - 3, 0);
-      // Re-purchase is available only when an order reached a final state
-      const canRepurchase = ["COMPLETED", "DELIVERED"].includes(order.status);
+      // Re-purchase is available only when an order is completed or cancelled/failed
+      // Hide for: DELIVERED, SHIPPED, PENDING, CONFIRMED, PACKED, PLACED
+      const canRepurchase = ["COMPLETED", "CANCELLED", "FAILED"].includes(order.status);
 
       return (
         <TouchableOpacity
