@@ -1114,6 +1114,89 @@ export const ordersApi = {
       };
     }
   },
+
+  async buyAgain(orderId: number): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          data: { message: "" },
+          message: "Chưa đăng nhập - Vui lòng đăng nhập lại",
+        };
+      }
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      const result = await __request(OpenAPI, {
+        method: "POST",
+        url: `/api/v1/account/buy-again/${orderId}`,
+      });
+
+      // Backend returns ResponseDTO with Status (capital S), Message, and Data
+      // SUCCESS_CREATE_CODE = 1, FAIL_READ_CODE = -1, WARNING_NO_DATA_CODE = 4, FAIL_CREATE_CODE = -1
+      const payload = (result as any)?.data ?? result;
+
+      // Check the Status field from ResponseDTO (backend uses capital S)
+      const responseStatus =
+        payload?.Status ?? payload?.status ?? payload?.code;
+      const message = payload?.Message ?? payload?.message ?? "";
+
+      // SUCCESS_CREATE_CODE = 1 means success
+      if (responseStatus === 1) {
+        return {
+          success: true,
+          data: {
+            message:
+              message || "Đã thêm tất cả sản phẩm vào giỏ hàng thành công",
+          },
+        };
+      }
+
+      // FAIL_READ_CODE = -1 or WARNING_NO_DATA_CODE = 4 means bad request
+      if (responseStatus === -1 || responseStatus === 4) {
+        return {
+          success: false,
+          data: { message: "" },
+          message: message || "Không thể mua lại đơn hàng này",
+        };
+      }
+
+      // Any other status is an error
+      return {
+        success: false,
+        data: { message: "" },
+        message: message || "Lỗi khi thêm sản phẩm vào giỏ hàng",
+      };
+    } catch (error: any) {
+      // Handle HTTP errors (400, 500, etc.)
+      const errorPayload = error?.response?.data ?? error?.body ?? error;
+      const errorStatus = errorPayload?.Status ?? errorPayload?.status;
+      const errorMessage =
+        errorPayload?.Message ??
+        errorPayload?.message ??
+        error?.message ??
+        "Lỗi khi mua lại đơn hàng";
+
+      // If backend returned a structured error with Status = 1, it's actually success
+      // This handles cases where HTTP error but Status = 1 (shouldn't happen but just in case)
+      if (errorStatus === 1) {
+        return {
+          success: true,
+          data: {
+            message:
+              errorMessage || "Đã thêm tất cả sản phẩm vào giỏ hàng thành công",
+          },
+        };
+      }
+
+      return {
+        success: false,
+        data: { message: "" },
+        message: errorMessage,
+      };
+    }
+  },
 };
 
 export const addressesApi = {

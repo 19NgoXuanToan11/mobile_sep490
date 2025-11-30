@@ -61,7 +61,7 @@ const useDebounce = (value: string, delay: number) => {
 export default function OrdersScreen() {
   const { t } = useLocalization();
   const { isAuthenticated, isLoading, user } = useAuth();
-  const { addItem } = useCart();
+  const { addItem, loadItems } = useCart();
   const queryClient = useQueryClient();
   useOrderStatusUpdates({ enableToast: false });
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -304,6 +304,8 @@ export default function OrdersScreen() {
       setRepurchaseOrderId(order.id);
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+        // Optional pre-check for better UX (shows warnings about stock/price changes)
         const { blockingIssues, warnings, sanitizedItems } = await precheckOrderItems(order);
 
         if (blockingIssues.length) {
@@ -322,32 +324,86 @@ export default function OrdersScreen() {
           return;
         }
 
+        // Show price change warnings if any
         if (warnings.length) {
-          await waitForAcknowledgement(
-            "Giá đã thay đổi",
-            `Một số sản phẩm đã cập nhật giá và sẽ áp dụng giá mới trong giỏ hàng:\n• ${warnings.join(
-              "\n• "
-            )}`
-          );
+          const shouldContinue = await new Promise<boolean>((resolve) => {
+            Alert.alert(
+              "Giá đã thay đổi",
+              `Một số sản phẩm đã cập nhật giá và sẽ áp dụng giá mới trong giỏ hàng:\n• ${warnings.join(
+                "\n• "
+              )}`,
+              [
+                {
+                  text: "Hủy",
+                  style: "cancel",
+                  onPress: () => resolve(false),
+                },
+                {
+                  text: "Tiếp tục",
+                  onPress: () => resolve(true),
+                },
+              ]
+            );
+          });
+
+          if (!shouldContinue) {
+            return;
+          }
         }
 
-        for (const item of sanitizedItems) {
-          await addItem(item.productId, item.quantity);
+        // Call the buy-again API endpoint
+        const response = await ordersApi.buyAgain(Number(order.id));
+
+        if (!response.success) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          Alert.alert(
+            "Không thể mua lại",
+            response.message || "Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng. Vui lòng thử lại sau."
+          );
+          return;
         }
+
+        // Refresh cart to get updated items
+        await loadItems();
+
+        // Invalidate orders query to refresh the list
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        router.push("/(app)/(tabs)/cart");
-      } catch (error) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+        // Show success message and redirect to cart
+        // Use Vietnamese message regardless of backend message language
         Alert.alert(
-          "Không thể mua lại",
-          "Đã xảy ra lỗi khi xử lý yêu cầu. Vui lòng thử lại sau."
+          "Thành công",
+          "Đã thêm tất cả sản phẩm vào giỏ hàng thành công",
+          [
+            {
+              text: "Xem giỏ hàng",
+              onPress: () => {
+                router.push("/(app)/(tabs)/cart");
+              },
+            },
+            {
+              text: "Ở lại",
+              style: "cancel",
+            },
+          ]
         );
+      } catch (error: any) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+        const errorMessage =
+          error?.response?.data?.message ??
+          error?.body?.message ??
+          error?.message ??
+          "Đã xảy ra lỗi khi xử lý yêu cầu. Vui lòng thử lại sau.";
+
+        Alert.alert("Không thể mua lại", errorMessage);
       } finally {
         setRepurchaseOrderId(null);
       }
     },
-    [addItem, precheckOrderItems, waitForAcknowledgement]
+    [loadItems, precheckOrderItems, queryClient]
   );
 
   // Enhanced status info with better colors and animations
