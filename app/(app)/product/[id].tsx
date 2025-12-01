@@ -28,9 +28,7 @@ import {
 import FeedbackList, {
     FeedbackListItem,
 } from "../../../src/shared/ui/feedback-list";
-import FeedbackFormModal from "../../../src/shared/ui/feedback-form-modal";
 import { ProductService } from "../../../src/api/services/ProductService";
-import { FeedbackService } from "../../../src/api/services/FeedbackService";
 import { feedbackApi } from "../../../src/shared/data/api";
 import { useAuth, useCart } from "../../../src/shared/hooks";
 import { useToast } from "../../../src/shared/ui/toast";
@@ -54,7 +52,6 @@ export default function ProductDetailScreen() {
     const [refreshing, setRefreshing] = React.useState(false);
     const [quantity, setQuantity] = React.useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
-    const [feedbackModalVisible, setFeedbackModalVisible] = React.useState(false);
     const [addedToCart, setAddedToCart] = React.useState(false);
 
     // Animation values
@@ -116,31 +113,6 @@ export default function ProductDetailScreen() {
         enabled: !!productId,
     });
 
-    // 创建评价
-    const createFeedbackMutation = useMutation({
-        mutationFn: async (data: { comment: string; rating: number | null }) => {
-            if (!user?.id) {
-                throw new Error("User not logged in");
-            }
-            return await FeedbackService.postApiV1FeedbackCreateFeedback({
-                requestBody: {
-                    comment: data.comment,
-                    rating: data.rating,
-                    orderDetailId: 1, // TODO: Get from actual order detail if available
-                },
-            });
-        },
-        onSuccess: () => {
-            toast.success("Đánh giá thành công", "Cảm ơn bạn đã đánh giá sản phẩm!");
-            setFeedbackModalVisible(false);
-            // Invalidate and refetch feedback immediately
-            queryClient.invalidateQueries({ queryKey: ["feedback", productId] });
-            refetchFeedback();
-        },
-        onError: (error) => {
-            toast.error("Lỗi", "Không thể gửi đánh giá. Vui lòng thử lại.");
-        },
-    });
 
     const onRefresh = React.useCallback(async () => {
         setRefreshing(true);
@@ -200,21 +172,7 @@ export default function ProductDetailScreen() {
         }
     };
 
-    const handleWriteFeedback = () => {
-        if (!user) {
-            toast.error("Đăng nhập", "Vui lòng đăng nhập để viết đánh giá");
-            router.push("/(public)/auth/login");
-            return;
-        }
-        setFeedbackModalVisible(true);
-    };
 
-    const handleSubmitFeedback = async (data: {
-        comment: string;
-        rating: number | null;
-    }) => {
-        await createFeedbackMutation.mutateAsync(data);
-    };
 
     // Parallax effect for image
     const imageTranslateY = scrollY.interpolate({
@@ -805,25 +763,6 @@ export default function ProductDetailScreen() {
                                     Đánh giá sản phẩm
                                 </Text>
                             </View>
-
-                            <Pressable
-                                onPress={handleWriteFeedback}
-                                className="px-4 py-2 rounded-full"
-                                style={{
-                                    borderWidth: 1.5,
-                                    borderColor: '#00A86B',
-                                }}
-                            >
-                                <Text
-                                    className="font-semibold"
-                                    style={{
-                                        fontSize: 13,
-                                        color: '#00A86B',
-                                    }}
-                                >
-                                    Viết đánh giá
-                                </Text>
-                            </Pressable>
                         </View>
 
                         {isFeedbackLoading ? (
@@ -878,13 +817,6 @@ export default function ProductDetailScreen() {
                 </View>
             </Animated.ScrollView>
 
-            {/* Feedback Modal */}
-            <FeedbackFormModal
-                visible={feedbackModalVisible}
-                onClose={() => setFeedbackModalVisible(false)}
-                onSubmit={handleSubmitFeedback}
-                submitting={createFeedbackMutation.isPending}
-            />
 
             {/* Premium Floating Bottom Bar */}
             <View

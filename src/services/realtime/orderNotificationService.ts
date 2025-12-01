@@ -210,9 +210,6 @@ class OrderNotificationService {
       isDev &&
       (update.status === "COMPLETED" || update.status === "CANCELLED")
     ) {
-      console.log(
-        `[OrderNotificationService] Critical status update: Order #${update.orderId} -> ${update.status}`
-      );
     }
 
     this.listeners.forEach((listener) => {

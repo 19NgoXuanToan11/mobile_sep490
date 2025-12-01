@@ -29,7 +29,10 @@ import {
   Button,
   Skeleton,
 } from "../../../src/shared/ui";
+import FeedbackFormModal from "../../../src/shared/ui/feedback-form-modal";
 import { ordersApi, productsApi } from "../../../src/shared/data/api";
+import { FeedbackService } from "../../../src/api/services/FeedbackService";
+import { useToast } from "../../../src/shared/ui/toast";
 import { useLocalization, useAuth, useCart } from "../../../src/shared/hooks";
 import {
   formatCurrency,
@@ -73,6 +76,11 @@ export default function OrdersScreen() {
   const [tempDate, setTempDate] = useState<string>("");
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [repurchaseOrderId, setRepurchaseOrderId] = useState<string | null>(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [selectedOrderForFeedback, setSelectedOrderForFeedback] = useState<Order | null>(null);
+  const [selectedOrderDetailId, setSelectedOrderDetailId] = useState<number | null>(null);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const toast = useToast();
 
   // Animation values
   const searchAnimation = new Animated.Value(0);
@@ -206,6 +214,89 @@ export default function OrdersScreen() {
       );
     },
   });
+
+  // Create feedback mutation
+  const createFeedbackMutation = useMutation({
+    mutationFn: async (data: { comment: string; rating: number | null; orderDetailId: number }) => {
+      if (!user?.id) {
+        throw new Error("User not logged in");
+      }
+      return await FeedbackService.postApiV1FeedbackCreateFeedback({
+        requestBody: {
+          comment: data.comment,
+          rating: data.rating,
+          orderDetailId: data.orderDetailId,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Đánh giá thành công", "Cảm ơn bạn đã đánh giá sản phẩm!");
+      setShowFeedbackForm(false);
+      setSelectedOrderDetailId(null);
+      // Invalidate orders to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+    onError: (error: any) => {
+      const errorMessage =
+        error?.message ||
+        error?.response?.data?.message ||
+        "Không thể gửi đánh giá. Vui lòng thử lại.";
+      toast.error("Lỗi", errorMessage);
+    },
+  });
+
+  // Handle open feedback modal for order
+  const handleOpenFeedback = useCallback(async (order: Order) => {
+    // Only allow feedback for COMPLETED orders
+    if (order.status !== "COMPLETED") {
+      toast.error("Không thể đánh giá", "Chỉ có thể đánh giá đơn hàng đã hoàn thành");
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Fetch full order details to get orderDetailId
+    try {
+      const orderDetailResult = await ordersApi.getById(order.id);
+      if (orderDetailResult.success && orderDetailResult.data) {
+        // Use the order with full details (including orderDetailId)
+        setSelectedOrderForFeedback(orderDetailResult.data);
+        setShowFeedbackModal(true);
+      } else {
+        toast.error("Lỗi", "Không thể tải thông tin đơn hàng. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      toast.error("Lỗi", "Không thể tải thông tin đơn hàng. Vui lòng thử lại.");
+    }
+  }, [toast]);
+
+  // Handle select product to review
+  const handleSelectProductToReview = useCallback((orderDetailId: number) => {
+    if (!orderDetailId || orderDetailId === 0) {
+      toast.error("Lỗi", "Không tìm thấy thông tin đơn hàng chi tiết");
+      return;
+    }
+    setSelectedOrderDetailId(orderDetailId);
+    setShowFeedbackModal(false);
+    setShowFeedbackForm(true);
+  }, [toast]);
+
+  // Handle submit feedback
+  const handleSubmitFeedback = async (data: { comment: string; rating: number | null }) => {
+    if (!selectedOrderDetailId || selectedOrderDetailId === 0) {
+      toast.error("Lỗi", "Không tìm thấy thông tin đơn hàng");
+      return;
+    }
+    try {
+      await createFeedbackMutation.mutateAsync({
+        ...data,
+        orderDetailId: selectedOrderDetailId,
+      });
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+    }
+  };
 
   // Handle cancel order
   const handleCancelOrder = (orderId: string) => {
@@ -529,11 +620,11 @@ export default function OrdersScreen() {
   const formatDateForDisplay = (dateStr: string | null) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    // Format as dd/mm/yyyy
+    const d = date.getDate().toString().padStart(2, "0");
+    const m = (date.getMonth() + 1).toString().padStart(2, "0");
+    const y = date.getFullYear();
+    return `${d}/${m}/${y}`;
   };
 
   // Enhanced load more with haptic feedback
@@ -616,6 +707,8 @@ export default function OrdersScreen() {
       // Re-purchase is available only when an order is completed or cancelled/failed
       // Hide for: DELIVERED, SHIPPED, PENDING, CONFIRMED, PACKED, PLACED
       const canRepurchase = ["COMPLETED", "CANCELLED", "FAILED"].includes(order.status);
+      // Feedback is available only for COMPLETED orders
+      const canFeedback = order.status === "COMPLETED";
 
       return (
         <TouchableOpacity
@@ -759,6 +852,23 @@ export default function OrdersScreen() {
                   </View>
                 </TouchableOpacity>
               )}
+              {canFeedback && (
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleOpenFeedback(order);
+                  }}
+                  className="flex-1 bg-blue-600 rounded-2xl py-3 items-center mr-3 shadow-lg shadow-blue-600/20"
+                  activeOpacity={0.85}
+                >
+                  <View className="flex-row items-center">
+                    <Ionicons name="star-outline" size={18} color="white" />
+                    <Text className="text-white font-semibold text-sm ml-2">
+                      Đánh giá
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
               {canRepurchase && (
                 <TouchableOpacity
                   onPress={(e) => {
@@ -796,6 +906,7 @@ export default function OrdersScreen() {
       handleCancelOrder,
       handleRepurchase,
       repurchaseOrderId,
+      handleOpenFeedback,
     ]
   );
 
@@ -1303,6 +1414,88 @@ export default function OrdersScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Feedback Products Selection Modal */}
+      <Modal
+        visible={showFeedbackModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setShowFeedbackModal(false);
+          setSelectedOrderForFeedback(null);
+        }}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl p-6 pb-8 max-h-[80%]">
+            <View className="flex-row items-center justify-between mb-6">
+              <Text className="text-xl font-bold text-gray-900">
+                Đánh giá sản phẩm
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowFeedbackModal(false);
+                  setSelectedOrderForFeedback(null);
+                }}
+                className="p-2"
+              >
+                <Ionicons name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+
+            <Text className="text-sm text-gray-600 mb-4">
+              Chọn sản phẩm bạn muốn đánh giá:
+            </Text>
+
+            <FlatList
+              data={selectedOrderForFeedback?.items || []}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const orderDetailId = parseInt(item.id, 10);
+                return (
+                  <TouchableOpacity
+                    onPress={() => handleSelectProductToReview(orderDetailId)}
+                    className="bg-gray-50 rounded-2xl p-4 mb-3 flex-row items-center"
+                    activeOpacity={0.7}
+                  >
+                    <Image
+                      source={{
+                        uri: item.product?.images?.[0] || "https://via.placeholder.com/64x64",
+                      }}
+                      style={{ width: 64, height: 64 }}
+                      className="rounded-xl bg-gray-200"
+                      contentFit="cover"
+                    />
+                    <View className="flex-1 ml-4">
+                      <Text className="text-base font-semibold text-gray-900" numberOfLines={2}>
+                        {item.product?.name || "Sản phẩm"}
+                      </Text>
+                      <Text className="text-sm text-gray-500 mt-1">
+                        Số lượng: {item.quantity}
+                      </Text>
+                      <Text className="text-sm font-semibold text-green-600 mt-1">
+                        {formatCurrency(item.price * item.quantity)}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                  </TouchableOpacity>
+                );
+              }}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Feedback Form Modal */}
+      <FeedbackFormModal
+        visible={showFeedbackForm}
+        onClose={() => {
+          setShowFeedbackForm(false);
+          setSelectedOrderDetailId(null);
+        }}
+        onSubmit={handleSubmitFeedback}
+        submitting={createFeedbackMutation.isPending}
+      />
     </View>
   );
 }

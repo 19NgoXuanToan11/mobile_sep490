@@ -22,13 +22,22 @@ export function formatDate(
   date: string | Date,
   options: Intl.DateTimeFormatOptions = {
     year: "numeric",
-    month: "short",
-    day: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   },
   locale = "vi-VN"
 ) {
   const dateObj = typeof date === "string" ? new Date(date) : date;
-  return new Intl.DateTimeFormat(locale, options).format(dateObj);
+  const formatted = new Intl.DateTimeFormat(locale, options).format(dateObj);
+  // Ensure dd/mm/yyyy format for vi-VN locale
+  if (locale === "vi-VN") {
+    // Intl.DateTimeFormat with vi-VN might return different format, so we manually format
+    const d = dateObj.getDate().toString().padStart(2, "0");
+    const m = (dateObj.getMonth() + 1).toString().padStart(2, "0");
+    const y = dateObj.getFullYear();
+    return `${d}/${m}/${y}`;
+  }
+  return formatted;
 }
 export function formatRelativeTime(date: string | Date, locale = "vi-VN") {
   const dateObj = typeof date === "string" ? new Date(date) : date;

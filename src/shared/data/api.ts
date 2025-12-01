@@ -447,7 +447,7 @@ export const ordersApi = {
           orderNumber: o.orderNumber ?? String(o.orderId ?? idx),
           userId: String(o.userId ?? o.customerId ?? ""),
           items: (o.orderItems ?? o.orderDetails ?? []).map((item: any) => ({
-            id: String(item.id ?? item.orderDetailId ?? idx),
+            id: String(item.orderDetailId ?? item.id ?? idx),
             productId: String(item.productId ?? ""),
             quantity: Number(item.quantity ?? item.stockQuantity ?? 1),
             price: Number(item.price ?? item.unitPrice ?? 0),
@@ -958,7 +958,7 @@ export const ordersApi = {
           orderNumber: o.orderNumber ?? String(o.orderId ?? idx),
           userId: String(o.userId ?? o.customerId ?? ""),
           items: (o.orderItems ?? o.orderDetails ?? []).map((item: any) => ({
-            id: String(item.id ?? item.orderDetailId ?? idx),
+            id: String(item.orderDetailId ?? item.id ?? idx),
             productId: String(item.productId ?? ""),
             quantity: Number(item.quantity ?? item.stockQuantity ?? 1),
             price: Number(item.price ?? item.unitPrice ?? 0),
