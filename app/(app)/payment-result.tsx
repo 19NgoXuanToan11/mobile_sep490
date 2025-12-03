@@ -105,14 +105,11 @@ export default function PaymentResultScreen() {
         // This will quickly change status from "loading" to "success"
         handlePaymentSuccess();
       } else if (success === "false") {
-        // Payment failed - already set in initial state, just show error toast
+        // Payment failed - already set in initial state
         setPaymentStatus("failed");
         if (!hasProcessedPaymentRef.current) {
-          toast.error(
-            "Thanh toán thất bại",
-            message || "Vui lòng thử lại"
-          );
-          hasProcessedPaymentRef.current = true; // Prevent duplicate toast
+          // Không hiển thị toast để tránh trùng với UI màn kết quả
+          hasProcessedPaymentRef.current = true; // Prevent duplicate processing
         }
       }
     }
@@ -154,11 +151,7 @@ export default function PaymentResultScreen() {
         handlePaymentSuccess();
       } else if (isSuccess === false) {
         setPaymentStatus("failed");
-        const errorMessage =
-          vnpayResponseCode !== "00"
-            ? `Mã lỗi VNPay: ${vnpayResponseCode}`
-            : "Giao dịch không thành công";
-        toast.error("Thanh toán thất bại", errorMessage);
+        // Không hiển thị toast để tránh trùng với UI màn kết quả
       } else {
         // Keep loading state để tiếp tục polling
       }
@@ -294,24 +287,8 @@ export default function PaymentResultScreen() {
                   <Text className="text-red-800 text-sm text-center font-medium">
                     Mã đơn hàng: #{orderId}
                   </Text>
-                  {code && (
-                    <Text className="text-red-700 text-sm text-center">
-                      Mã lỗi: {code}
-                    </Text>
-                  )}
-                  {message && (
-                    <Text className="text-red-700 text-sm text-center">
-                      {message}
-                    </Text>
-                  )}
                 </View>
-                <View className="w-full space-y-3">
-                  <Button
-                    title="Thử lại"
-                    onPress={handleRetry}
-                    size="lg"
-                    variant="primary"
-                  />
+                <View className="w-full space-y-3 mt-5">
                   <Button
                     title="Trang chủ"
                     onPress={handleGoHome}

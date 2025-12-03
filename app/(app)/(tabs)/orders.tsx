@@ -512,11 +512,11 @@ export default function OrdersScreen() {
       case "FAILED":
         return {
           text: "Thất bại",
-          color: "#ef4444",
-          bgColor: "#fef2f2",
-          borderColor: "#f87171",
+          color: "#dc2626", // Đỏ đậm (red-600)
+          bgColor: "#fee2e2", // Nền đỏ nhạt (red-100)
+          borderColor: "#ef4444", // Viền đỏ (red-500)
           icon: "close-circle-outline",
-          gradient: ["#f87171", "#ef4444"],
+          gradient: ["#ef4444", "#dc2626"], // Gradient từ đỏ vừa đến đỏ đậm
         };
       case "CONFIRMED":
         return {
@@ -529,7 +529,7 @@ export default function OrdersScreen() {
         };
       case "PACKED":
         return {
-          text: "Đang chuẩn bị",
+          text: "Thất bại",
           color: "#8b5cf6",
           bgColor: "#f5f3ff",
           borderColor: "#a78bfa",

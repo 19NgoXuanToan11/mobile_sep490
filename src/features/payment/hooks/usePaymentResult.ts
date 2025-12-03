@@ -89,7 +89,7 @@ export function usePaymentResult({
       } else if (success === "false") {
         setPaymentStatus("failed");
         if (!hasProcessedPaymentRef.current) {
-          toast.error("Thanh toán thất bại", "Vui lòng thử lại");
+          // Không hiển thị toast để tránh trùng với UI màn kết quả
           hasProcessedPaymentRef.current = true;
         }
       }
@@ -132,18 +132,11 @@ export function usePaymentResult({
         handlePaymentSuccess();
       } else if (isSuccess === false) {
         setPaymentStatus("failed");
-        const errorMessage =
-          vnpayResponseCode !== "00"
-            ? `Mã lỗi VNPay: ${vnpayResponseCode}`
-            : "Giao dịch không thành công";
-        toast.error("Thanh toán thất bại", errorMessage);
+        // Không hiển thị toast để tránh trùng với UI màn kết quả
       }
     } else if (success === undefined && paymentData?.success === false) {
       setPaymentStatus("failed");
-      toast.error(
-        "Lỗi kiểm tra thanh toán",
-        paymentData.message || "Vui lòng thử lại"
-      );
+      // Không hiển thị toast để tránh trùng với UI màn kết quả
     }
   }, [paymentData, success, handlePaymentSuccess, toast]);
 

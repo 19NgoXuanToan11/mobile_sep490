@@ -479,22 +479,29 @@ export const ordersApi = {
               updatedAt: new Date().toISOString(),
             },
           })),
-          status:
-            String(o.status ?? "0") === "0"
+          status: (() => {
+            const statusValue = String(o.status ?? "0");
+            // Nếu status = 2 (UNDISCHARGED), hiển thị "FAILED" (Thất bại)
+            // Vì khi payment failed, backend set status = 2
+            // Khi payment thành công, backend set status = PAID (1), không phải 2
+            if (statusValue === "2") {
+              return "FAILED"; // Thanh toán thất bại
+            }
+            // Các status khác giữ nguyên logic cũ
+            return statusValue === "0"
               ? "PLACED" // UNPAID - Chờ thanh toán
-              : String(o.status ?? "1") === "1"
+              : statusValue === "1"
               ? "CONFIRMED" // PAID - Đã thanh toán/xác nhận
-              : String(o.status ?? "2") === "2"
-              ? "PACKED" // UNDISCHARGED - Đang chuẩn bị
-              : String(o.status ?? "3") === "3"
+              : statusValue === "3"
               ? "PENDING" // PENDING - Chờ xác nhận
-              : String(o.status ?? "4") === "4"
+              : statusValue === "4"
               ? "CANCELLED" // CANCELLED - Đã hủy
-              : String(o.status ?? "5") === "5"
+              : statusValue === "5"
               ? "COMPLETED" // COMPLETED - Hoàn thành
-              : String(o.status ?? "6") === "6"
+              : statusValue === "6"
               ? "DELIVERED" // DELIVERED - Đã giao
-              : "PLACED",
+              : "PLACED";
+          })(),
           statusHistory: [],
           shippingAddress: {
             id: "",
@@ -836,22 +843,31 @@ export const ordersApi = {
       const fullAddress = addressParts.slice(1).join(", ");
 
       // Map status - Mapping theo backend enum PaymentStatus
-      const statusMap: Record<string, Order["status"]> = {
-        "0": "PLACED", // UNPAID - Chờ thanh toán
-        "1": "CONFIRMED", // PAID - Đã thanh toán/xác nhận
-        "2": "PACKED", // UNDISCHARGED - Đang chuẩn bị
-        "3": "PENDING", // PENDING - Chờ xác nhận
-        "4": "CANCELLED", // CANCELLED - Đã hủy
-        "5": "COMPLETED", // COMPLETED - Hoàn thành
-        "6": "DELIVERED", // DELIVERED - Đã giao
-      };
+      // Nếu status = 2 (UNDISCHARGED), hiển thị "FAILED" (Thất bại)
+      // Vì khi payment failed, backend set status = 2
+      // Khi payment thành công, backend set status = PAID (1), không phải 2
+      const statusValue = String(o.status ?? "0");
+      let mappedStatus: Order["status"];
+      if (statusValue === "2") {
+        mappedStatus = "FAILED"; // Thanh toán thất bại
+      } else {
+        const statusMap: Record<string, Order["status"]> = {
+          "0": "PLACED", // UNPAID - Chờ thanh toán
+          "1": "CONFIRMED", // PAID - Đã thanh toán/xác nhận
+          "3": "PENDING", // PENDING - Chờ xác nhận
+          "4": "CANCELLED", // CANCELLED - Đã hủy
+          "5": "COMPLETED", // COMPLETED - Hoàn thành
+          "6": "DELIVERED", // DELIVERED - Đã giao
+        };
+        mappedStatus = statusMap[statusValue] || "PLACED";
+      }
 
       const order: Order = {
         id: String(o.orderId ?? o.id),
         orderNumber: o.orderNumber ?? String(o.orderId ?? id),
         userId: String(o.customerId ?? o.userId ?? ""),
         items: items,
-        status: statusMap[String(o.status ?? "1")] ?? "PLACED",
+        status: mappedStatus,
         statusHistory: [],
         shippingAddress: {
           id: "",
@@ -990,22 +1006,29 @@ export const ordersApi = {
               updatedAt: new Date().toISOString(),
             },
           })),
-          status:
-            String(o.status ?? "0") === "0"
+          status: (() => {
+            const statusValue = String(o.status ?? "0");
+            // Nếu status = 2 (UNDISCHARGED), hiển thị "FAILED" (Thất bại)
+            // Vì khi payment failed, backend set status = 2
+            // Khi payment thành công, backend set status = PAID (1), không phải 2
+            if (statusValue === "2") {
+              return "FAILED"; // Thanh toán thất bại
+            }
+            // Các status khác giữ nguyên logic cũ
+            return statusValue === "0"
               ? "PLACED" // UNPAID - Chờ thanh toán
-              : String(o.status ?? "1") === "1"
+              : statusValue === "1"
               ? "CONFIRMED" // PAID - Đã thanh toán/xác nhận
-              : String(o.status ?? "2") === "2"
-              ? "PACKED" // UNDISCHARGED - Đang chuẩn bị
-              : String(o.status ?? "3") === "3"
+              : statusValue === "3"
               ? "PENDING" // PENDING - Chờ xác nhận
-              : String(o.status ?? "4") === "4"
+              : statusValue === "4"
               ? "CANCELLED" // CANCELLED - Đã hủy
-              : String(o.status ?? "5") === "5"
+              : statusValue === "5"
               ? "COMPLETED" // COMPLETED - Hoàn thành
-              : String(o.status ?? "6") === "6"
+              : statusValue === "6"
               ? "DELIVERED" // DELIVERED - Đã giao
-              : "PLACED",
+              : "PLACED";
+          })(),
           statusHistory: [],
           shippingAddress: {
             id: "",
