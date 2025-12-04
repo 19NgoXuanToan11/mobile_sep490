@@ -1,18 +1,10 @@
 import React, { useCallback } from "react";
 import { View, Text, Pressable, Animated, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { Notification } from "../../../shared/hooks";
 interface NotificationCardProps {
     notification: Notification;
     onPress: (notification: Notification) => void;
 }
-const ICON_CONFIG = {
-    order: { icon: "bag-outline" as const, color: "#00A86B", bg: "#E6F7F0", label: "Đơn hàng" },
-    promotion: { icon: "pricetag-outline" as const, color: "#F97316", bg: "#FFF7ED", label: "Khuyến mãi" },
-    payment: { icon: "card-outline" as const, color: "#6366F1", bg: "#EEF2FF", label: "Thanh toán" },
-    delivery: { icon: "car-outline" as const, color: "#3B82F6", bg: "#EFF6FF", label: "Giao hàng" },
-    system: { icon: "settings-outline" as const, color: "#6B7280", bg: "#F3F4F6", label: "Hệ thống" },
-};
 const formatRelativeTime = (timestamp: string): string => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -29,7 +21,6 @@ const formatRelativeTime = (timestamp: string): string => {
 export const NotificationCard = React.memo<NotificationCardProps>(
     ({ notification, onPress }) => {
         const scaleAnim = React.useRef(new Animated.Value(1)).current;
-        const config = ICON_CONFIG[notification.type] || ICON_CONFIG.system;
         const handlePressIn = useCallback(() => {
             Animated.timing(scaleAnim, {
                 toValue: 0.97,
@@ -63,41 +54,35 @@ export const NotificationCard = React.memo<NotificationCardProps>(
                     hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                 >
                     <View style={styles.content}>
-                        {}
-                        <View style={[styles.iconContainer, { backgroundColor: config.bg }]}>
-                            <Ionicons name={config.icon} size={20} color={config.color} />
-                        </View>
-                        {}
                         <View style={styles.mainContent}>
-                            {}
+                            {/* Top: title + time */}
                             <View style={styles.topRow}>
-                                <View style={[styles.badge, { backgroundColor: config.bg }]}>
-                                    <Text style={[styles.badgeText, { color: config.color }]}>
-                                        {config.label}
+                                <View style={styles.titleRow}>
+                                    {!notification.isRead && <View style={styles.unreadDot} />}
+                                    <Text
+                                        style={[
+                                            styles.title,
+                                            notification.isRead
+                                                ? styles.titleRead
+                                                : styles.titleUnread,
+                                        ]}
+                                        numberOfLines={2}
+                                    >
+                                        {notification.title}
                                     </Text>
                                 </View>
                                 <Text style={styles.timeText}>
                                     {formatRelativeTime(notification.timestamp)}
                                 </Text>
                             </View>
-                            {}
-                            <View style={styles.titleRow}>
-                                {!notification.isRead && <View style={styles.unreadDot} />}
-                                <Text
-                                    style={[
-                                        styles.title,
-                                        notification.isRead ? styles.titleRead : styles.titleUnread,
-                                    ]}
-                                    numberOfLines={2}
-                                >
-                                    {notification.title}
-                                </Text>
-                            </View>
-                            {}
+
+                            {/* Message */}
                             <Text
                                 style={[
                                     styles.message,
-                                    notification.isRead ? styles.messageRead : styles.messageUnread,
+                                    notification.isRead
+                                        ? styles.messageRead
+                                        : styles.messageUnread,
                                 ]}
                                 numberOfLines={3}
                             >
@@ -121,37 +106,31 @@ const styles = StyleSheet.create({
     container: {
         marginHorizontal: 16,
         marginBottom: 12,
-        borderRadius: 16,
+        borderRadius: 18,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: "#E5E5EA",
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 4,
+        elevation: 1,
     },
     containerRead: {
         backgroundColor: "#FFFFFF",
     },
     containerUnread: {
-        backgroundColor: "#F0FDF4",
+        backgroundColor: "#F5F5F7",
+        borderColor: "#D1D1D6",
     },
     pressable: {
         padding: 16,
     },
     content: {
         flexDirection: "row",
-        gap: 12,
-    },
-    iconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
     },
     mainContent: {
         flex: 1,
-        gap: 8,
+        gap: 6,
     },
     topRow: {
         flexDirection: "row",
@@ -178,13 +157,14 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "flex-start",
         gap: 6,
+        flex: 1,
     },
     unreadDot: {
         width: 6,
         height: 6,
         borderRadius: 3,
-        backgroundColor: "#00A86B",
-        marginTop: 6,
+        backgroundColor: "#0A84FF",
+        marginTop: 7,
         flexShrink: 0,
     },
     title: {
@@ -197,16 +177,16 @@ const styles = StyleSheet.create({
         color: "#111827",
     },
     titleRead: {
-        color: "#4B5563",
+        color: "#3C3C43",
     },
     message: {
         fontSize: 14,
         lineHeight: 20,
     },
     messageUnread: {
-        color: "#6B7280",
+        color: "#3C3C43",
     },
     messageRead: {
-        color: "#9CA3AF",
+        color: "#8E8E93",
     },
 });

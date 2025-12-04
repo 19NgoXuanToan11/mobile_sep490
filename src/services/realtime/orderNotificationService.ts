@@ -192,16 +192,19 @@ class OrderNotificationService {
     );
 
     const { addNotification } = useNotificationStore.getState();
+
+    // Luôn hiển thị nội dung tiếng Việt phía client, độc lập với chuỗi message
+    // backend gửi lên (backend hiện đang dùng tiếng Anh).
     addNotification({
       title,
-      message:
-        update.message || this.getDefaultMessage(update.status, update.orderId),
+      message: this.getDefaultMessage(update.status, update.orderId),
       type: notificationType,
       isRead: false,
       timestamp,
       metadata: {
         orderId: update.orderId,
         status: update.status,
+        rawMessage: update.message,
       },
     });
 

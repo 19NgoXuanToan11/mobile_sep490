@@ -86,13 +86,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
 
       useCartStore.getState().clearCart();
+      // Xóa toàn bộ thông báo khi người dùng đăng xuất
+      useNotificationStore.getState().clearNotifications();
     } catch (error) {}
   },
   checkAuth: async () => {
     try {
       const token = await authStorage.getAccessToken();
       if (!token) {
-        set({ isLoading: false });
+        // Không có token -> trạng thái guest, không nên hiển thị thông báo của user cũ
+        useNotificationStore.getState().clearNotifications();
+        set({ isLoading: false, user: null, isAuthenticated: false });
         return;
       }
       const response = await authApi.getCurrentUser();
@@ -313,6 +317,7 @@ interface NotificationStore {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   addNotification: (notification: Omit<Notification, "id">) => void;
+  clearNotifications: () => void;
 }
 export const useNotificationStore = create<NotificationStore>()(
   persist(
@@ -320,12 +325,29 @@ export const useNotificationStore = create<NotificationStore>()(
       notifications: [],
       unreadCount: 0,
       isLoading: false,
+      /**
+       *
+       * Load notifications from backend API.
+       *
+       * IMPORTANT:
+       * - The Zustand `persist` middleware already hydrates notifications from
+       *   AsyncStorage on app start.
+       * - While the backend notification API is not ready, this method should
+       *   be a NO-OP to avoid clearing locally persisted SignalR messages.
+       */
       loadNotifications: async () => {
         try {
           set({ isLoading: true });
-          // TODO: Integrate with real notifications API.
-          // For now, ensure no mock/placeholder notifications are loaded.
-          set({ notifications: [], unreadCount: 0 });
+          /**
+           * TODO: When backend REST API for notifications is available:
+           * - Fetch latest notifications for the current user.
+           * - Merge them with existing local notifications if needed.
+           * - Update `notifications` and `unreadCount` accordingly.
+           *
+           * For now, we intentionally do nothing here so that:
+           * - Notifications pushed via SignalR and stored in AsyncStorage
+           *   remain available across app restarts.
+           */
         } catch (error) {
         } finally {
           set({ isLoading: false });
@@ -365,6 +387,9 @@ export const useNotificationStore = create<NotificationStore>()(
           notifications: [newNotification, ...notifications],
           unreadCount: notification.isRead ? unreadCount : unreadCount + 1,
         });
+      },
+      clearNotifications: () => {
+        set({ notifications: [], unreadCount: 0 });
       },
     }),
     {

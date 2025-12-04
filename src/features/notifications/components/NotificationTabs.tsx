@@ -146,22 +146,20 @@ const TabButton = React.memo<TabButtonProps>(({ tab, isActive, onPress }) => {
 TabButton.displayName = "TabButton";
 const styles = StyleSheet.create({
     container: {
-        paddingVertical: 12,
+        paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: "#F3F4F6",
+        borderBottomColor: "#E5E5EA",
+        backgroundColor: "#FFFFFF",
     },
     scrollContent: {
         paddingHorizontal: 16,
         gap: 8,
     },
     tabButton: {
-        borderRadius: 20,
+        borderRadius: 18,
         borderWidth: 1,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-        elevation: 1,
+        borderColor: "#F2F2F7",
+        backgroundColor: "#F2F2F7",
     },
     tabPressable: {
         flexDirection: "row",
@@ -173,10 +171,10 @@ const styles = StyleSheet.create({
     tabText: {
         fontSize: 14,
         fontWeight: "500",
-        color: "#6B7280",
+        color: "#636366",
     },
     tabTextActive: {
-        color: "#00A86B",
+        color: "#0A84FF",
         fontWeight: "600",
     },
 });
