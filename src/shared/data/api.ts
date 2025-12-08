@@ -438,10 +438,82 @@ export const ordersApi = {
           payload?.hasNextPage ??
           (params?.pageIndex ?? 1) * (params?.pageSize ?? 10) < totalCount
       );
+
+      // Chuẩn hóa trạng thái đơn hàng từ backend (số hoặc chuỗi)
+      const normalizeOrderStatus = (status: any): number => {
+        if (typeof status === "number" && !Number.isNaN(status)) return status;
+        const raw = String(status ?? "")
+          .trim()
+          .toUpperCase();
+        switch (raw) {
+          case "ACTIVE":
+          case "PAID":
+          case "CONFIRMED":
+          case "CONFIRM":
+          case "PAYMENT_SUCCESS":
+            return 1;
+          case "PROCESSING":
+          case "PROCESS":
+          case "PREPARING":
+          case "PACKING":
+            return 2;
+          case "PENDING":
+          case "WAITING":
+          case "UNPAID":
+            return 0;
+          case "SHIPPING":
+          case "DELIVERING":
+          case "DELIVERED":
+          case "IN_DELIVERY":
+            return 6;
+          case "COMPLETED":
+          case "DONE":
+            return 5;
+          case "CANCELLED":
+          case "CANCELED":
+          case "CANCEL":
+            return 4;
+          case "FAILED":
+          case "FAIL":
+          case "PAYMENT_FAILED":
+            return 2;
+          case "REFUNDED":
+            return 4;
+          default:
+            return 0;
+        }
+      };
+
+      // Map trạng thái chuẩn hóa sang enum hiển thị trong app mobile
+      const mapMobileStatus = (normalized: number): Order["status"] => {
+        switch (normalized) {
+          case 0:
+            return "PLACED"; // Chờ thanh toán/xử lý
+          case 1:
+            return "CONFIRMED"; // Đã thanh toán/xác nhận
+          case 2:
+            return "FAILED"; // Thanh toán thất bại
+          case 3:
+            return "PENDING"; // Đang xử lý
+          case 4:
+            return "CANCELLED"; // Đã hủy
+          case 5:
+            return "COMPLETED"; // Hoàn thành
+          case 6:
+            return "DELIVERED"; // Đang giao/đã giao
+          default:
+            return "PLACED";
+        }
+      };
+
       const mapped: Order[] = list.map((o: any, idx: number) => {
         const orderItemsImages = (o.orderItems ?? o.orderDetails ?? [])
           .map((item: any) => item.images)
           .filter((img: any) => img && img.trim() !== "");
+
+        const normalizedStatus = normalizeOrderStatus(o.status);
+        const mobileStatus = mapMobileStatus(normalizedStatus);
+
         return {
           id: String(o.orderId ?? o.id ?? idx),
           orderNumber: o.orderNumber ?? String(o.orderId ?? idx),
@@ -479,29 +551,7 @@ export const ordersApi = {
               updatedAt: new Date().toISOString(),
             },
           })),
-          status: (() => {
-            const statusValue = String(o.status ?? "0");
-            // Nếu status = 2 (UNDISCHARGED), hiển thị "FAILED" (Thất bại)
-            // Vì khi payment failed, backend set status = 2
-            // Khi payment thành công, backend set status = PAID (1), không phải 2
-            if (statusValue === "2") {
-              return "FAILED"; // Thanh toán thất bại
-            }
-            // Các status khác giữ nguyên logic cũ
-            return statusValue === "0"
-              ? "PLACED" // UNPAID - Chờ thanh toán
-              : statusValue === "1"
-              ? "CONFIRMED" // PAID - Đã thanh toán/xác nhận
-              : statusValue === "3"
-              ? "PENDING" // PENDING - Chờ xác nhận
-              : statusValue === "4"
-              ? "CANCELLED" // CANCELLED - Đã hủy
-              : statusValue === "5"
-              ? "COMPLETED" // COMPLETED - Hoàn thành
-              : statusValue === "6"
-              ? "DELIVERED" // DELIVERED - Đã giao
-              : "PLACED";
-          })(),
+          status: mobileStatus,
           statusHistory: [],
           shippingAddress: {
             id: "",
