@@ -1,10 +1,9 @@
-
 import { OpenAPI } from "../../api/core/OpenAPI";
 import { request as __request } from "../../api/core/request";
 import { ProductService } from "../../api";
 import env from "../../config/env";
 import { CartItem, Product, ApiResponse } from "../../types";
-import { generateId } from "../lib/utils";
+import { generateId, normalizeUnit } from "../lib/utils";
 
 interface BackendCartResponse {
   paymentStatus?: number;
@@ -51,7 +50,6 @@ function parseApiResponse<T>(response: any): {
   data: T | null;
   message?: string;
 } {
-
   const payload = response?.data ?? response;
 
   if (typeof payload === "object" && "success" in payload) {
@@ -110,14 +108,13 @@ async function transformCartItem(
       isInStock: (p.stockQuantity ?? 0) > 0,
       isFeatured: Boolean(p.isFeatured ?? false),
       tags: Array.isArray(p.tags) ? p.tags : [],
-      unit: p.unit ?? "kg",
+      unit: normalizeUnit(p.unit ?? "kg"),
       origin: p.origin ?? undefined,
       harvestDate: p.harvestDate ?? undefined,
       createdAt: p.createdAt ?? new Date().toISOString(),
       updatedAt: p.updatedAt ?? new Date().toISOString(),
     };
   } else {
-
     try {
       OpenAPI.BASE = env.API_URL;
       const res = await ProductService.getApiV1ProductsGetProduct({
@@ -147,7 +144,7 @@ async function transformCartItem(
         isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
         isFeatured: Boolean(p.isFeatured ?? false),
         tags: Array.isArray(p.tags) ? p.tags : [],
-        unit: p.unit ?? "kg",
+        unit: normalizeUnit(p.unit ?? "kg"),
         origin: p.origin ?? undefined,
         harvestDate: p.harvestDate ?? undefined,
         createdAt: p.createdAt ?? new Date().toISOString(),
@@ -172,7 +169,6 @@ async function transformCartItem(
 }
 
 export const realCartApi = {
-
   async getItems(): Promise<{
     success: boolean;
     data: CartItem[];
@@ -196,10 +192,8 @@ export const realCartApi = {
       let backendItems: BackendCartItem[] = [];
       if (parsed.data) {
         if (Array.isArray(parsed.data)) {
-
           backendItems = parsed.data;
         } else if (parsed.data.cartItems) {
-
           backendItems = parsed.data.cartItems;
         }
       }

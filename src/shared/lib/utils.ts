@@ -164,3 +164,16 @@ export function sleep(ms: number): Promise<void> {
 export function getRandomDelay(): number {
   return Math.floor(Math.random() * 300) + 200;
 }
+/**
+ * Normalizes product unit from backend to display format
+ * Temporarily converts "Bó" or "bó" to "Kg" until backend is updated
+ */
+export function normalizeUnit(unit: string | undefined | null): string {
+  if (!unit) return "Kg";
+  const normalized = unit.trim();
+  // Convert "Bó" or "bó" to "Kg" (temporary hardcode until backend is fixed)
+  if (normalized.toLowerCase() === "bó" || normalized === "Bó") {
+    return "Kg";
+  }
+  return normalized;
+}

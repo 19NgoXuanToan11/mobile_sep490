@@ -1,14 +1,15 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import {
     View,
     Text,
     TouchableOpacity,
     Animated,
     Pressable,
+    TextInput,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { formatCurrency } from "../../../shared/lib/utils";
+import { formatCurrency, normalizeUnit } from "../../../shared/lib/utils";
 import { CartItem } from "../../../types";
 interface CartItemCardProps {
     item: CartItem;
@@ -18,6 +19,13 @@ interface CartItemCardProps {
 export const CartItemCard = React.memo<CartItemCardProps>(
     ({ item, onUpdateQuantity, onRemove }) => {
         const scaleAnim = useRef(new Animated.Value(1)).current;
+        const [inputValue, setInputValue] = useState(item.quantity.toString());
+
+        // Sync input value when item quantity changes externally
+        useEffect(() => {
+            setInputValue(item.quantity.toString());
+        }, [item.quantity]);
+
         const handlePressIn = useCallback(() => {
             Animated.timing(scaleAnim, {
                 toValue: 0.98,
@@ -45,12 +53,37 @@ export const CartItemCard = React.memo<CartItemCardProps>(
         const handleRemove = useCallback(() => {
             onRemove(item.id, item.product.name);
         }, [item.id, item.product.name, onRemove]);
+
+        const handleQuantityInputChange = useCallback((text: string) => {
+            // Only allow numeric input - remove any non-numeric characters
+            const numericValue = text.replace(/[^0-9]/g, '');
+            setInputValue(numericValue);
+        }, []);
+
+        const handleQuantityBlur = useCallback(() => {
+            // When user finishes editing, validate and update quantity
+            const numValue = parseInt(inputValue, 10);
+            if (isNaN(numValue) || numValue < 1) {
+                // If invalid, reset to 1
+                setInputValue('1');
+                onUpdateQuantity(item.id, 1);
+            } else if (numValue > item.product.stock) {
+                // If exceeds stock, set to max stock
+                setInputValue(item.product.stock.toString());
+                onUpdateQuantity(item.id, item.product.stock);
+            } else {
+                // Valid value, update quantity
+                onUpdateQuantity(item.id, numValue);
+            }
+        }, [inputValue, item.id, item.product.stock, onUpdateQuantity]);
+
         const canIncrement = item.quantity < item.product.stock;
         const canDecrement = item.quantity > 1;
 
         const priceText = formatCurrency(item.price);
-        const unitText = item.product.unit && !item.product.unit.startsWith("/")
-            ? ` / ${item.product.unit}`
+        const normalizedUnit = normalizeUnit(item.product.unit);
+        const unitText = normalizedUnit && !normalizedUnit.startsWith("/")
+            ? ` / ${normalizedUnit}`
             : "";
         return (
             <Animated.View
@@ -140,7 +173,7 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                     marginTop: 4,
                                 }}
                             >
-                                Còn {item.product.stock} Bó
+                                Còn {item.product.stock} {normalizeUnit(item.product.unit)}
                             </Text>
                         </View>
                     </View>
@@ -201,15 +234,21 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                                 justifyContent: "center",
                             }}
                         >
-                            <Text
+                            <TextInput
+                                value={inputValue}
+                                onChangeText={handleQuantityInputChange}
+                                onBlur={handleQuantityBlur}
+                                keyboardType="number-pad"
                                 style={{
                                     fontSize: 15,
                                     fontWeight: "600",
                                     color: "#111827",
+                                    textAlign: "center",
+                                    padding: 0,
+                                    minWidth: 32,
                                 }}
-                            >
-                                {item.quantity}
-                            </Text>
+                                selectTextOnFocus
+                            />
                         </View>
                         { }
                         <Pressable

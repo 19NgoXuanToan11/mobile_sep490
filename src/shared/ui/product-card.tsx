@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../lib/utils";
+import { cn, normalizeUnit } from "../lib/utils";
 import { appleDesign } from "../lib/theme";
 import { Card } from "./card";
 import { Badge } from "./badge";
@@ -254,9 +254,12 @@ export const ProductCard = React.memo<ProductCardProps>(({
             <Text className="text-base font-bold text-primary-600">
               {formatCurrency(product.price)}
             </Text>
-            {product.unit && !product.unit.startsWith("/") && (
-              <Text className="text-xs text-neutral-500">/{product.unit}</Text>
-            )}
+            {(() => {
+              const normalizedUnit = normalizeUnit(product.unit);
+              return normalizedUnit && !normalizedUnit.startsWith("/") && (
+                <Text className="text-xs text-neutral-500">/{normalizedUnit}</Text>
+              );
+            })()}
           </View>
           { }
           {hasDiscount && (

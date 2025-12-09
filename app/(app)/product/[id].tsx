@@ -32,6 +32,7 @@ import { ProductService } from "../../../src/api/services/ProductService";
 import { feedbackApi } from "../../../src/shared/data/api";
 import { useAuth, useCart } from "../../../src/shared/hooks";
 import { useToast } from "../../../src/shared/ui/toast";
+import { normalizeUnit } from "../../../src/shared/lib/utils";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -462,18 +463,21 @@ export default function ProductDetailScreen() {
                             >
                                 ₫
                             </Text>
-                            {productData?.unit && (
-                                <Text
-                                    className="ml-2"
-                                    style={{
-                                        fontSize: 16,
-                                        color: '#6B7280',
-                                        fontWeight: '400',
-                                    }}
-                                >
-                                    /{productData?.unit}
-                                </Text>
-                            )}
+                            {(() => {
+                                const normalizedUnit = normalizeUnit(productData?.unit);
+                                return normalizedUnit && (
+                                    <Text
+                                        className="ml-2"
+                                        style={{
+                                            fontSize: 16,
+                                            color: '#6B7280',
+                                            fontWeight: '400',
+                                        }}
+                                    >
+                                        /{normalizedUnit}
+                                    </Text>
+                                );
+                            })()}
                         </View>
 
                         {hasDiscount && (

@@ -8,6 +8,7 @@ import {
 import { OpenAPI, ProductService, CategoryService } from "../../api";
 import env from "../../config/env";
 import { normalizeImageUrl } from "./utils/imageUtils";
+import { normalizeUnit } from "../lib/utils";
 
 export class ProductServiceClass {
   async getAll(
@@ -146,7 +147,7 @@ export class ProductServiceClass {
       isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
       isFeatured: Boolean(p.isFeatured ?? false),
       tags: Array.isArray(p.tags) ? p.tags : [],
-      unit: p.unit ?? "kg",
+      unit: normalizeUnit(p.unit ?? "kg"),
       origin: p.origin ?? undefined,
       harvestDate: p.harvestDate ?? undefined,
       createdAt: p.createdAt ?? new Date().toISOString(),

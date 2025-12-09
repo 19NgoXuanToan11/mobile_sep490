@@ -86,7 +86,6 @@ export const categories: Category[] = [
 ];
 
 export const products: Product[] = [
-
   {
     id: "prod_001",
     name: "Cà Chua Bi Hữu Cơ",
@@ -136,7 +135,7 @@ export const products: Product[] = [
     isInStock: true,
     isFeatured: false,
     tags: ["organic", "nutritious", "green"],
-    unit: "bó",
+    unit: "Kg",
     origin: "Hồ Chí Minh",
     harvestDate: "2024-01-14",
     createdAt: "2024-01-10T00:00:00Z",
@@ -365,22 +364,22 @@ export const sampleUser: User = {
 export const addresses: Address[] = [
   {
     id: "addr_001",
-    name: "Nguyễn Văn An",
-    phone: "0909123456",
+    customerName: "Nguyễn Văn An",
+    phoneNumber: "0909123456",
     street: "123 Nguyễn Huệ",
     ward: "Bến Nghé",
-    city: "Hồ Chí Minh",
-    postalCode: "70000",
+    district: "Quận 1",
+    province: "Hồ Chí Minh",
     isDefault: true,
   },
   {
     id: "addr_002",
-    name: "Nguyễn Văn An",
-    phone: "0909123456",
+    customerName: "Nguyễn Văn An",
+    phoneNumber: "0909123456",
     street: "456 Lê Lợi",
     ward: "Bến Thành",
-    city: "Hồ Chí Minh",
-    postalCode: "70000",
+    district: "Quận 1",
+    province: "Hồ Chí Minh",
     isDefault: false,
   },
 ];

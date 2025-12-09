@@ -14,7 +14,7 @@ import {
   FilterState,
   CartItem,
 } from "../../types";
-import { sleep, getRandomDelay, generateId } from "../lib/utils";
+import { sleep, getRandomDelay, generateId, normalizeUnit } from "../lib/utils";
 import { storage, authStorage, STORAGE_KEYS } from "../lib/storage";
 import {
   OpenAPI,
@@ -291,7 +291,7 @@ export const cartApi = {
         isInStock: (p.stockQuantity ?? p.stock ?? 0) > 0,
         isFeatured: Boolean(p.isFeatured ?? false),
         tags: Array.isArray(p.tags) ? p.tags : [],
-        unit: p.unit ?? "kg",
+        unit: normalizeUnit(p.unit ?? "kg"),
         origin: p.origin ?? undefined,
         harvestDate: p.harvestDate ?? undefined,
         createdAt: p.createdAt ?? new Date().toISOString(),
