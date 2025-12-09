@@ -41,6 +41,7 @@ import {
 } from "../../../src/shared/lib/utils";
 import { Order } from "../../../src/types";
 import { useOrderStatusUpdates } from "../../../src/features/order/hooks/useOrderStatusUpdates";
+import { openPayment } from "../../../src/services/payment/vnpay";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -76,6 +77,7 @@ export default function OrdersScreen() {
   const [tempDate, setTempDate] = useState<string>("");
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [repurchaseOrderId, setRepurchaseOrderId] = useState<string | null>(null);
+  const [repayOrderId, setRepayOrderId] = useState<string | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedOrderForFeedback, setSelectedOrderForFeedback] = useState<Order | null>(null);
   const [selectedOrderDetailId, setSelectedOrderDetailId] = useState<number | null>(null);
@@ -497,6 +499,58 @@ export default function OrdersScreen() {
     [loadItems, precheckOrderItems, queryClient]
   );
 
+  // Handle repay for failed orders
+  const handleRepay = useCallback(
+    async (order: Order) => {
+      setRepayOrderId(order.id);
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+        // Call createOrderPayment API
+        const response = await ordersApi.createOrderPayment(Number(order.id));
+
+        if (!response.success) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          Alert.alert(
+            "Lỗi thanh toán",
+            response.message || "Không thể tạo phiên thanh toán. Vui lòng thử lại sau."
+          );
+          return;
+        }
+
+        const paymentUrl = response.data?.paymentUrl;
+
+        if (!paymentUrl) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          Alert.alert(
+            "Lỗi thanh toán",
+            "Không nhận được URL thanh toán. Vui lòng thử lại sau."
+          );
+          return;
+        }
+
+        // Open payment webview
+        await openPayment(paymentUrl, Number(order.id));
+
+        // Invalidate orders query to refresh the list after payment
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
+      } catch (error: any) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+        const errorMessage =
+          error?.response?.data?.message ??
+          error?.body?.message ??
+          error?.message ??
+          "Đã xảy ra lỗi khi xử lý thanh toán. Vui lòng thử lại sau.";
+
+        Alert.alert("Lỗi thanh toán", errorMessage);
+      } finally {
+        setRepayOrderId(null);
+      }
+    },
+    [queryClient]
+  );
+
   // Enhanced status info with better colors and animations
   const getStatusInfo = (status: Order["status"]) => {
     switch (status) {
@@ -704,9 +758,11 @@ export default function OrdersScreen() {
       const remainingCount = hasOrderImages
         ? Math.max(orderImages.length - 3, 0)
         : Math.max(order.items.length - 3, 0);
-      // Re-purchase is available only when an order is completed or cancelled/failed
-      // Hide for: DELIVERED, SHIPPED, PENDING, CONFIRMED, PACKED, PLACED
-      const canRepurchase = ["COMPLETED", "CANCELLED", "FAILED"].includes(order.status);
+      // Re-purchase is available only when an order is completed or cancelled
+      // Hide for: DELIVERED, SHIPPED, PENDING, CONFIRMED, PACKED, PLACED, FAILED
+      const canRepurchase = ["COMPLETED", "CANCELLED"].includes(order.status);
+      // Repay is available only for FAILED orders
+      const canRepay = order.status === "FAILED";
       // Feedback is available only for COMPLETED orders
       const canFeedback = order.status === "COMPLETED";
 
@@ -896,6 +952,33 @@ export default function OrdersScreen() {
                   </View>
                 </TouchableOpacity>
               )}
+              {canRepay && (
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleRepay(order);
+                  }}
+                  className="flex-1 bg-green-700 rounded-2xl py-3 items-center shadow-lg shadow-green-700/20"
+                  activeOpacity={0.85}
+                  style={{
+                    opacity: repayOrderId && repayOrderId !== order.id ? 0.6 : 1,
+                  }}
+                  disabled={
+                    Boolean(repayOrderId) && repayOrderId !== order.id
+                  }
+                >
+                  <View className="flex-row items-center">
+                    {repayOrderId === order.id ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Ionicons name="card-outline" size={18} color="white" />
+                    )}
+                    <Text className="text-white font-semibold text-sm ml-2">
+                      Thanh toán lại
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </TouchableOpacity>
@@ -906,6 +989,8 @@ export default function OrdersScreen() {
       handleCancelOrder,
       handleRepurchase,
       repurchaseOrderId,
+      handleRepay,
+      repayOrderId,
       handleOpenFeedback,
     ]
   );

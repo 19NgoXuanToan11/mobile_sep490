@@ -812,7 +812,7 @@ export const ordersApi = {
 
   async createOrderPayment(
     orderId: number
-  ): Promise<ApiResponse<{ message: string }>> {
+  ): Promise<ApiResponse<{ message: string; paymentUrl?: string }>> {
     try {
       const token = await authStorage.getAccessToken();
       if (!token) {
@@ -828,9 +828,13 @@ export const ordersApi = {
         orderId,
       });
       const data = (result as any)?.data ?? result;
+      const paymentUrl = data?.PaymentUrl || data?.paymentUrl;
       return {
         success: true,
-        data: { message: data.message || "Tạo bản ghi thanh toán thành công" },
+        data: {
+          message: data.message || "Tạo bản ghi thanh toán thành công",
+          paymentUrl: paymentUrl,
+        },
       };
     } catch (error: any) {
       return {
