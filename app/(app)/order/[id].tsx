@@ -22,9 +22,12 @@ import {
 } from "../../../src/features/order/components";
 
 export default function OrderDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, status: statusParam } = useLocalSearchParams<{ id: string; status?: Order["status"] }>();
   const { order, isLoading, error, refreshing, onRefresh } = useOrderDetail(id);
   useOrderStatusUpdates({ orderId: id });
+  // Ưu tiên status truyền từ màn danh sách để đảm bảo nhất quán badge
+  const displayStatus = (statusParam as Order["status"]) || order?.status;
+  const orderForDisplay = order ? { ...order, status: displayStatus || order.status } : order;
 
   if (isLoading) {
     return (
@@ -88,7 +91,7 @@ export default function OrderDetailScreen() {
         }
       >
         {/* Order Header Card */}
-        <OrderHeaderCard order={order} />
+        <OrderHeaderCard order={orderForDisplay!} />
 
         {/* Order Items */}
         <View className="mx-4 mt-4">

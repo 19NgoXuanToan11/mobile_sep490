@@ -770,7 +770,10 @@ export default function OrdersScreen() {
         <TouchableOpacity
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push(`/(app)/track/${order.id}` as any);
+            router.push({
+              pathname: "/(app)/track/[id]",
+              params: { id: order.id, status: order.status },
+            } as any);
           }}
           activeOpacity={0.95}
           className="mx-4 mb-3"

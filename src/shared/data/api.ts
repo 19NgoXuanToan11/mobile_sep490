@@ -38,6 +38,101 @@ const withDelay = async <T>(data: T, delay?: number): Promise<T> => {
   return data;
 };
 
+// Chuẩn hóa trạng thái đơn hàng từ backend (số hoặc chuỗi) sang enum dùng trong app
+const normalizeOrderStatus = (status: any): number => {
+  if (typeof status === "number" && !Number.isNaN(status)) return status;
+  const raw = String(status ?? "")
+    .trim()
+    .toUpperCase();
+  switch (raw) {
+    case "ACTIVE":
+    case "PAID":
+    case "CONFIRMED":
+    case "CONFIRM":
+    case "PAYMENT_SUCCESS":
+      return 1;
+    case "PROCESSING":
+    case "PROCESS":
+    case "PREPARING":
+    case "PACKING":
+      return 2;
+    case "PENDING":
+    case "WAITING":
+    case "UNPAID":
+      return 0;
+    case "SHIPPING":
+    case "DELIVERING":
+    case "DELIVERED":
+    case "IN_DELIVERY":
+      return 6;
+    case "COMPLETED":
+    case "DONE":
+      return 5;
+    case "CANCELLED":
+    case "CANCELED":
+    case "CANCEL":
+      return 4;
+    case "FAILED":
+    case "FAIL":
+    case "PAYMENT_FAILED":
+      return 2;
+    case "REFUNDED":
+      return 4;
+    default:
+      return 0;
+  }
+};
+
+const mapMobileStatus = (normalized: number): Order["status"] => {
+  switch (normalized) {
+    case 0:
+      return "PLACED"; // Chờ thanh toán/xử lý
+    case 1:
+      return "CONFIRMED"; // Đã thanh toán/xác nhận
+    case 2:
+      return "FAILED"; // Thanh toán thất bại
+    case 3:
+      return "PENDING"; // Đang xử lý
+    case 4:
+      return "CANCELLED"; // Đã hủy
+    case 5:
+      return "COMPLETED"; // Hoàn thành
+    case 6:
+      return "DELIVERED"; // Đang giao/đã giao
+    default:
+      return "PLACED";
+  }
+};
+
+const mapBackendStatusToMobile = (status: any): Order["status"] =>
+  mapMobileStatus(normalizeOrderStatus(status));
+
+// Lấy giá trị trạng thái gốc từ nhiều field tiềm năng của backend
+const extractOrderStatus = (o: any): any => {
+  const candidates = [
+    o?.paymentStatus,
+    o?.paymentStatusId,
+    o?.status,
+    o?.statusId,
+    o?.orderStatus,
+    o?.orderStatusId,
+    o?.payment?.status,
+    o?.payment?.paymentStatus,
+    o?.payment?.paymentStatusId,
+    o?.paymentResult?.status,
+    o?.paymentResult?.paymentStatus,
+    o?.paymentTransaction?.status,
+    o?.paymentTransaction?.paymentStatus,
+  ];
+
+  for (const c of candidates) {
+    if (c !== undefined && c !== null && c !== "") {
+      return c;
+    }
+  }
+  return o?.status; // cuối cùng fallback
+};
+
 // Auth API - Uses service layer
 export const authApi = {
   login: (credentials: LoginFormData) => authService.login(credentials),
@@ -439,80 +534,12 @@ export const ordersApi = {
           (params?.pageIndex ?? 1) * (params?.pageSize ?? 10) < totalCount
       );
 
-      // Chuẩn hóa trạng thái đơn hàng từ backend (số hoặc chuỗi)
-      const normalizeOrderStatus = (status: any): number => {
-        if (typeof status === "number" && !Number.isNaN(status)) return status;
-        const raw = String(status ?? "")
-          .trim()
-          .toUpperCase();
-        switch (raw) {
-          case "ACTIVE":
-          case "PAID":
-          case "CONFIRMED":
-          case "CONFIRM":
-          case "PAYMENT_SUCCESS":
-            return 1;
-          case "PROCESSING":
-          case "PROCESS":
-          case "PREPARING":
-          case "PACKING":
-            return 2;
-          case "PENDING":
-          case "WAITING":
-          case "UNPAID":
-            return 0;
-          case "SHIPPING":
-          case "DELIVERING":
-          case "DELIVERED":
-          case "IN_DELIVERY":
-            return 6;
-          case "COMPLETED":
-          case "DONE":
-            return 5;
-          case "CANCELLED":
-          case "CANCELED":
-          case "CANCEL":
-            return 4;
-          case "FAILED":
-          case "FAIL":
-          case "PAYMENT_FAILED":
-            return 2;
-          case "REFUNDED":
-            return 4;
-          default:
-            return 0;
-        }
-      };
-
-      // Map trạng thái chuẩn hóa sang enum hiển thị trong app mobile
-      const mapMobileStatus = (normalized: number): Order["status"] => {
-        switch (normalized) {
-          case 0:
-            return "PLACED"; // Chờ thanh toán/xử lý
-          case 1:
-            return "CONFIRMED"; // Đã thanh toán/xác nhận
-          case 2:
-            return "FAILED"; // Thanh toán thất bại
-          case 3:
-            return "PENDING"; // Đang xử lý
-          case 4:
-            return "CANCELLED"; // Đã hủy
-          case 5:
-            return "COMPLETED"; // Hoàn thành
-          case 6:
-            return "DELIVERED"; // Đang giao/đã giao
-          default:
-            return "PLACED";
-        }
-      };
-
       const mapped: Order[] = list.map((o: any, idx: number) => {
         const orderItemsImages = (o.orderItems ?? o.orderDetails ?? [])
           .map((item: any) => item.images)
           .filter((img: any) => img && img.trim() !== "");
 
-        const normalizedStatus = normalizeOrderStatus(o.status);
-        const mobileStatus = mapMobileStatus(normalizedStatus);
+        const mobileStatus = mapBackendStatusToMobile(extractOrderStatus(o));
 
         return {
           id: String(o.orderId ?? o.id ?? idx),
@@ -896,25 +923,8 @@ export const ordersApi = {
       const phoneNumber = namePhone[1]?.trim() ?? "";
       const fullAddress = addressParts.slice(1).join(", ");
 
-      // Map status - Mapping theo backend enum PaymentStatus
-      // Nếu status = 2 (UNDISCHARGED), hiển thị "FAILED" (Thất bại)
-      // Vì khi payment failed, backend set status = 2
-      // Khi payment thành công, backend set status = PAID (1), không phải 2
-      const statusValue = String(o.status ?? "0");
-      let mappedStatus: Order["status"];
-      if (statusValue === "2") {
-        mappedStatus = "FAILED"; // Thanh toán thất bại
-      } else {
-        const statusMap: Record<string, Order["status"]> = {
-          "0": "PLACED", // UNPAID - Chờ thanh toán
-          "1": "CONFIRMED", // PAID - Đã thanh toán/xác nhận
-          "3": "PENDING", // PENDING - Chờ xác nhận
-          "4": "CANCELLED", // CANCELLED - Đã hủy
-          "5": "COMPLETED", // COMPLETED - Hoàn thành
-          "6": "DELIVERED", // DELIVERED - Đã giao
-        };
-        mappedStatus = statusMap[statusValue] || "PLACED";
-      }
+      // Đồng bộ logic map trạng thái với màn hình danh sách (ưu tiên paymentStatus nếu có)
+      const mappedStatus = mapBackendStatusToMobile(extractOrderStatus(o));
 
       const order: Order = {
         id: String(o.orderId ?? o.id),
