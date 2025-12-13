@@ -49,11 +49,6 @@ export const AccountListItem = React.memo<AccountListItemProps>(
                         activeOpacity={1}
                     >
                         <View style={styles.content}>
-                            {}
-                            <View style={styles.iconContainer}>
-                                <Ionicons name={icon} size={20} color="#6B7280" />
-                            </View>
-                            {}
                             <View style={styles.textContainer}>
                                 <Text style={styles.title} numberOfLines={1}>
                                     {title}
@@ -64,18 +59,10 @@ export const AccountListItem = React.memo<AccountListItemProps>(
                                     </Text>
                                 ) : null}
                             </View>
-                            {}
-                            {showChevron && (
-                                <Ionicons
-                                    name="chevron-forward"
-                                    size={20}
-                                    color="#9CA3AF"
-                                />
-                            )}
                         </View>
                     </TouchableOpacity>
                 </Animated.View>
-                {}
+                { }
                 {!isLast && <View style={styles.divider} />}
             </>
         );
@@ -94,15 +81,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingVertical: 14,
         paddingHorizontal: 4,
-    },
-    iconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: "#F3F4F6",
-        alignItems: "center",
-        justifyContent: "center",
-        marginRight: 12,
     },
     textContainer: {
         flex: 1,
@@ -123,6 +101,6 @@ const styles = StyleSheet.create({
     divider: {
         height: 1,
         backgroundColor: "#F1F5F9",
-        marginLeft: 56,
+        marginLeft: 0,
     },
 });

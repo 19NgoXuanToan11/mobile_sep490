@@ -337,7 +337,7 @@ export default function HomeScreen() {
                 fontSize: appleDesign.typography.headline.fontSize,
               }}
             >
-              Sản Phẩm Nổi Bật 🔥
+              Sản Phẩm Nổi Bật
             </Text>
             <TouchableOpacity
               onPress={() => router.push("/(app)/(tabs)/catalog")}
@@ -352,11 +352,6 @@ export default function HomeScreen() {
               >
                 Xem tất cả
               </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={appleDesign.colors.green.primary}
-              />
             </TouchableOpacity>
           </View>
 
@@ -403,7 +398,7 @@ export default function HomeScreen() {
                   fontSize: appleDesign.typography.headline.fontSize,
                 }}
               >
-                Xu Hướng Mua Sắm 📈
+                Xu Hướng Mua Sắm
               </Text>
               <TouchableOpacity
                 onPress={() => router.push("/(app)/(tabs)/catalog")}
@@ -418,11 +413,6 @@ export default function HomeScreen() {
                 >
                   Xem tất cả
                 </Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color={appleDesign.colors.green.primary}
-                />
               </TouchableOpacity>
             </View>
 

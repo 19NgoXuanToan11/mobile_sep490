@@ -21,7 +21,6 @@ export const StickyCTA = memo<StickyCTAProps>(
                     ]}
                 >
                     <View style={styles.disabledBar}>
-                        <Ionicons name="information-circle-outline" size={20} color="#8E8E93" />
                         <Text style={styles.disabledText}>
                             {disabledMessage || "Chọn phương thức thanh toán để tiếp tục"}
                         </Text>
@@ -51,10 +50,7 @@ export const StickyCTA = memo<StickyCTAProps>(
                         {isLoading ? (
                             <ActivityIndicator size="small" color="#FFFFFF" />
                         ) : (
-                            <>
-                                <Text style={styles.buttonText}>Đặt hàng</Text>
-                                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-                            </>
+                            <Text style={styles.buttonText}>Đặt hàng</Text>
                         )}
                     </LinearGradient>
                 </TouchableOpacity>
@@ -85,15 +81,14 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         paddingVertical: 16,
         paddingHorizontal: 20,
-        flexDirection: "row",
         alignItems: "center",
-        gap: 12,
+        justifyContent: "center",
     },
     disabledText: {
-        flex: 1,
         fontSize: 15,
         color: "#8E8E93",
         fontWeight: "500",
+        textAlign: "center",
     },
     button: {
         borderRadius: 16,

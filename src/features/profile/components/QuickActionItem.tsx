@@ -53,14 +53,6 @@ export const QuickActionItem = React.memo<QuickActionItemProps>(
                     style={styles.touchable}
                 >
                     <View style={styles.content}>
-                        <View
-                            style={[
-                                styles.iconContainer,
-                                { backgroundColor: iconBackground },
-                            ]}
-                        >
-                            <Ionicons name={icon} size={20} color={iconColor} />
-                        </View>
                         <View style={styles.textContainer}>
                             <Text style={styles.title}>{title}</Text>
                             <Text style={styles.subtitle}>{subtitle}</Text>
@@ -116,6 +108,6 @@ const styles = StyleSheet.create({
     divider: {
         height: 1,
         backgroundColor: "#F1F5F9",
-        marginLeft: 52,
+        marginLeft: 0,
     },
 });

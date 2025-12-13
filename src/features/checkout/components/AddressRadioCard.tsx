@@ -26,11 +26,9 @@ export const AddressRadioCard = memo<AddressRadioCardProps>(
                         )}
                     </View>
                     <View style={styles.row}>
-                        <Ionicons name="call-outline" size={14} color="#8E8E93" />
                         <Text style={styles.phone}>{address.phoneNumber}</Text>
                     </View>
                     <View style={styles.row}>
-                        <Ionicons name="location-outline" size={14} color="#8E8E93" />
                         <Text style={styles.address} numberOfLines={2}>
                             {fullAddress}
                         </Text>

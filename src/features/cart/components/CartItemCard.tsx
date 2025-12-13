@@ -275,10 +275,9 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                     <Pressable
                         onPress={handleRemove}
                         style={({ pressed }) => ({
-                            flexDirection: "row",
                             alignItems: "center",
-                            gap: 6,
-                            paddingHorizontal: 14,
+                            justifyContent: "center",
+                            paddingHorizontal: 12,
                             paddingVertical: 8,
                             borderRadius: 18,
                             backgroundColor: pressed ? "#FEE2E2" : "#FEF2F2",
@@ -286,15 +285,6 @@ export const CartItemCard = React.memo<CartItemCardProps>(
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                         <Ionicons name="trash-outline" size={16} color="#EF4444" />
-                        <Text
-                            style={{
-                                fontSize: 14,
-                                fontWeight: "500",
-                                color: "#EF4444",
-                            }}
-                        >
-                            Xóa
-                        </Text>
                     </Pressable>
                 </View>
             </Animated.View>

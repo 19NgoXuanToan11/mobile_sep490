@@ -74,7 +74,7 @@ export const LogoutButton = React.memo<LogoutButtonProps>(({ onLogout }) => {
     }, [closeModal, onLogout]);
     return (
         <>
-            {}
+            { }
             <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
                 <TouchableOpacity
                     style={styles.button}
@@ -83,16 +83,10 @@ export const LogoutButton = React.memo<LogoutButtonProps>(({ onLogout }) => {
                     onPressOut={handlePressOut}
                     activeOpacity={0.85}
                 >
-                    <Ionicons
-                        name="log-out-outline"
-                        size={20}
-                        color="#00A86B"
-                        style={styles.buttonIcon}
-                    />
                     <Text style={styles.buttonText}>Đăng xuất</Text>
                 </TouchableOpacity>
             </Animated.View>
-            {}
+            { }
             <Modal
                 visible={modalVisible}
                 transparent
@@ -101,7 +95,7 @@ export const LogoutButton = React.memo<LogoutButtonProps>(({ onLogout }) => {
                 onRequestClose={closeModal}
             >
                 <View style={styles.modalContainer}>
-                    {}
+                    { }
                     <TouchableWithoutFeedback onPress={closeModal}>
                         <Animated.View
                             style={[
@@ -115,7 +109,7 @@ export const LogoutButton = React.memo<LogoutButtonProps>(({ onLogout }) => {
                             ]}
                         />
                     </TouchableWithoutFeedback>
-                    {}
+                    { }
                     <Animated.View
                         style={[
                             styles.bottomSheet,
@@ -124,9 +118,9 @@ export const LogoutButton = React.memo<LogoutButtonProps>(({ onLogout }) => {
                             },
                         ]}
                     >
-                        {}
+                        { }
                         <View style={styles.handle} />
-                        {}
+                        { }
                         <View style={styles.iconContainer}>
                             <Ionicons
                                 name="log-out-outline"
@@ -134,12 +128,12 @@ export const LogoutButton = React.memo<LogoutButtonProps>(({ onLogout }) => {
                                 color="#EF4444"
                             />
                         </View>
-                        {}
+                        { }
                         <Text style={styles.title}>Xác nhận đăng xuất</Text>
                         <Text style={styles.message}>
                             Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?
                         </Text>
-                        {}
+                        { }
                         <View style={styles.actions}>
                             <TouchableOpacity
                                 style={[styles.actionButton, styles.logoutButton]}

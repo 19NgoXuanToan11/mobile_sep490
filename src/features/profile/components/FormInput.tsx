@@ -55,14 +55,14 @@ export const FormInput = React.memo(
             });
             return (
                 <View style={styles.container}>
-                    {}
+                    { }
                     <View style={styles.labelContainer}>
                         <Text style={styles.label}>
                             {label}
                             {required && <Text style={styles.required}>*</Text>}
                         </Text>
                     </View>
-                    {}
+                    { }
                     <Animated.View
                         style={[
                             styles.inputContainer,
@@ -72,17 +72,6 @@ export const FormInput = React.memo(
                             error && styles.errorContainer,
                         ]}
                     >
-                        {}
-                        {icon && (
-                            <View style={styles.iconContainer}>
-                                <Ionicons
-                                    name={icon}
-                                    size={20}
-                                    color={error ? "#EF4444" : isFocused ? "#00A86B" : "#9CA3AF"}
-                                />
-                            </View>
-                        )}
-                        {}
                         <TextInput
                             ref={ref}
                             style={[
@@ -100,15 +89,9 @@ export const FormInput = React.memo(
                             {...textInputProps}
                         />
                     </Animated.View>
-                    {}
+                    { }
                     {error && (
                         <View style={styles.errorMessageContainer}>
-                            <Ionicons
-                                name="alert-circle"
-                                size={14}
-                                color="#EF4444"
-                                style={styles.errorIcon}
-                            />
                             <Text style={styles.errorText}>{error}</Text>
                         </View>
                     )}
@@ -169,11 +152,6 @@ const styles = StyleSheet.create({
         borderColor: "#FCA5A5",
         backgroundColor: "#FEF2F2",
     },
-    iconContainer: {
-        marginRight: 10,
-        justifyContent: "center",
-        alignItems: "center",
-    },
     input: {
         flex: 1,
         fontSize: 16,
@@ -191,13 +169,8 @@ const styles = StyleSheet.create({
         color: "#6B7280",
     },
     errorMessageContainer: {
-        flexDirection: "row",
-        alignItems: "center",
         marginTop: 6,
         paddingLeft: 2,
-    },
-    errorIcon: {
-        marginRight: 4,
     },
     errorText: {
         fontSize: 13,

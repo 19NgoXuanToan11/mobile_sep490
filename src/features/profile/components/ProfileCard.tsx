@@ -124,12 +124,6 @@ export const ProfileCard = React.memo<ProfileCardProps>(
                         onPressOut={handlePressOut}
                         activeOpacity={0.85}
                     >
-                        <Ionicons
-                            name="create-outline"
-                            size={16}
-                            color="#00A86B"
-                            style={styles.editIcon}
-                        />
                         <Text style={styles.editText}>Chỉnh sửa thông tin</Text>
                     </TouchableOpacity>
                 </Animated.View>

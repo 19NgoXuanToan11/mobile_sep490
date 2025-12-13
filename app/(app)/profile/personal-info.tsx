@@ -37,7 +37,6 @@ const InfoSection = React.memo<InfoSectionProps>(
             style={styles.editIconButton}
             activeOpacity={0.6}
           >
-            <Ionicons name="pencil" size={18} color="#00A86B" />
           </TouchableOpacity>
         )}
       </View>
@@ -109,7 +108,6 @@ export default function PersonalInfoScreen() {
             style={styles.backButton}
             activeOpacity={0.6}
           >
-            <Ionicons name="arrow-back" size={24} color="#111827" />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Thông tin cá nhân</Text>
@@ -181,11 +179,6 @@ export default function PersonalInfoScreen() {
                   profileData?.phone ||
                   user?.phone ||
                   "Chưa cập nhật"
-                }
-                subtitle={
-                  profileData?.phone || user?.phone
-                    ? "Đã xác thực"
-                    : "Chưa thêm số điện thoại"
                 }
               />
 

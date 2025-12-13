@@ -785,8 +785,7 @@ export default function OrdersScreen() {
                   {order.orderNumber}
                 </Text>
                 <View className="flex-row items-center mt-1">
-                  <Ionicons name="calendar-outline" size={14} color="#6B7280" />
-                  <Text className="text-xs text-gray-500 ml-1">
+                  <Text className="text-xs text-gray-500">
                     {formatDate(order.createdAt)}
                   </Text>
                 </View>
@@ -864,8 +863,7 @@ export default function OrdersScreen() {
 
             <View className="flex-row items-center justify-between mt-4">
               <View className="flex-row items-center">
-                <Ionicons name="cube-outline" size={16} color="#6B7280" />
-                <Text className="text-xs text-gray-500 ml-1">
+                <Text className="text-xs text-gray-500">
                   {order.itemCount} mặt hàng
                 </Text>
               </View>
@@ -877,8 +875,7 @@ export default function OrdersScreen() {
             {(order.status === "PENDING" || order.status === "SHIPPED") &&
               order.estimatedDelivery && (
                 <View className="flex-row items-center mt-3 bg-green-50 rounded-xl px-3 py-2 border border-green-100">
-                  <Ionicons name="rocket-outline" size={16} color="#047857" />
-                  <Text className="text-xs text-green-800 ml-2">
+                  <Text className="text-xs text-green-800">
                     Dự kiến giao: {formatDate(order.estimatedDelivery)}
                   </Text>
                 </View>
@@ -902,10 +899,8 @@ export default function OrdersScreen() {
                   <View className="flex-row items-center">
                     {cancelOrderMutation.isPending ? (
                       <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Ionicons name="close-circle-outline" size={18} color="white" />
-                    )}
-                    <Text className="text-white font-semibold text-sm ml-2">
+                    ) : null}
+                    <Text className="text-white font-semibold text-sm">
                       {cancelOrderMutation.isPending ? "Đang hủy..." : "Hủy đơn"}
                     </Text>
                   </View>
@@ -921,8 +916,7 @@ export default function OrdersScreen() {
                   activeOpacity={0.85}
                 >
                   <View className="flex-row items-center">
-                    <Ionicons name="star-outline" size={18} color="white" />
-                    <Text className="text-white font-semibold text-sm ml-2">
+                    <Text className="text-white font-semibold text-sm">
                       Đánh giá
                     </Text>
                   </View>
@@ -946,10 +940,8 @@ export default function OrdersScreen() {
                   <View className="flex-row items-center">
                     {repurchaseOrderId === order.id ? (
                       <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Ionicons name="repeat-outline" size={18} color="white" />
-                    )}
-                    <Text className="text-white font-semibold text-sm ml-2">
+                    ) : null}
+                    <Text className="text-white font-semibold text-sm">
                       Mua lại
                     </Text>
                   </View>
@@ -973,10 +965,8 @@ export default function OrdersScreen() {
                   <View className="flex-row items-center">
                     {repayOrderId === order.id ? (
                       <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Ionicons name="card-outline" size={18} color="white" />
-                    )}
-                    <Text className="text-white font-semibold text-sm ml-2">
+                    ) : null}
+                    <Text className="text-white font-semibold text-sm">
                       Thanh toán lại
                     </Text>
                   </View>
@@ -1071,24 +1061,12 @@ export default function OrdersScreen() {
           activeOpacity={0.8}
         >
           <View className="flex-row items-center">
-            <View
-              className={`w-8 h-8 rounded-full items-center justify-center mr-2 ${isActive ? "bg-green-100" : "bg-gray-100"
+            <Text
+              className={`font-semibold ${isActive ? "text-green-600" : "text-gray-600"
                 }`}
             >
-              <Ionicons
-                name={chip.icon as any}
-                size={16}
-                color={isActive ? "#047857" : "#6b7280"}
-              />
-            </View>
-            <View>
-              <Text
-                className={`font-semibold ${isActive ? "text-green-600" : "text-gray-600"
-                  }`}
-              >
-                {chip.label}
-              </Text>
-            </View>
+              {chip.label}
+            </Text>
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -1113,12 +1091,11 @@ export default function OrdersScreen() {
         className="mx-4 mb-4 overflow-hidden"
       >
         <View className="bg-white rounded-2xl border border-gray-200 shadow-sm flex-row items-center px-4">
-          <Ionicons name="search-outline" size={20} color="#6b7280" />
           <TextInput
             placeholder="Tìm kiếm theo mã đơn hàng (VD: ORD-30)"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            className="flex-1 ml-3 text-base text-gray-900"
+            className="flex-1 text-base text-gray-900"
             placeholderTextColor="#9ca3af"
             autoCapitalize="none"
           />
@@ -1130,7 +1107,6 @@ export default function OrdersScreen() {
               }}
               className="ml-2 w-6 h-6 bg-gray-100 rounded-full items-center justify-center"
             >
-              <Ionicons name="close" size={14} color="#6b7280" />
             </TouchableOpacity>
           )}
         </View>
@@ -1205,8 +1181,7 @@ export default function OrdersScreen() {
               activeOpacity={0.7}
             >
               <View className="flex-row items-center">
-                <Ionicons name="search-outline" size={20} color="#6b7280" />
-                <Text className="text-gray-600 ml-3 font-medium">
+                <Text className="text-gray-600 font-medium">
                   Tìm kiếm đơn hàng
                 </Text>
               </View>
@@ -1294,8 +1269,7 @@ export default function OrdersScreen() {
             activeOpacity={0.7}
           >
             <View className="flex-row items-center">
-              <Ionicons name="search-outline" size={20} color="#6b7280" />
-              <Text className="text-gray-600 ml-3 font-medium">
+              <Text className="text-gray-600 font-medium">
                 Tìm kiếm đơn hàng
               </Text>
             </View>
@@ -1335,12 +1309,6 @@ export default function OrdersScreen() {
               <Text className="text-green-700 text-sm font-medium">
                 Ngày: {formatDateForDisplay(selectedDate)}
               </Text>
-              <Ionicons
-                name="close-circle"
-                size={16}
-                color="#047857"
-                style={{ marginLeft: 8 }}
-              />
             </TouchableOpacity>
           </View>
         )}
@@ -1432,7 +1400,6 @@ export default function OrdersScreen() {
                 onPress={() => setShowDatePicker(false)}
                 className="p-2"
               >
-                <Ionicons name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
             </View>
 
@@ -1526,7 +1493,6 @@ export default function OrdersScreen() {
                 }}
                 className="p-2"
               >
-                <Ionicons name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
             </View>
 
@@ -1564,7 +1530,6 @@ export default function OrdersScreen() {
                         {formatCurrency(item.price * item.quantity)}
                       </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
                   </TouchableOpacity>
                 );
               }}

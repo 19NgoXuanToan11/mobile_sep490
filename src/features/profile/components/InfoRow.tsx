@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 export interface InfoRowProps {
     icon: keyof typeof Ionicons.glyphMap;
     label: string;
@@ -12,9 +11,6 @@ export const InfoRow = React.memo<InfoRowProps>(
     ({ icon, label, value, subtitle, isLast = false }) => (
         <View style={styles.container}>
             <View style={styles.content}>
-                <View style={styles.iconContainer}>
-                    <Ionicons name={icon} size={20} color="#6B7280" />
-                </View>
                 <View style={styles.textContainer}>
                     <Text style={styles.label}>{label}</Text>
                     <Text style={styles.value} numberOfLines={2}>
@@ -77,6 +73,6 @@ const styles = StyleSheet.create({
     divider: {
         height: 1,
         backgroundColor: "#F1F5F9",
-        marginLeft: 52,
+        marginLeft: 0,
     },
 });

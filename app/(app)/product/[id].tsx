@@ -537,7 +537,6 @@ export default function ProductDetailScreen() {
                             >
                                 Thông tin sản phẩm
                             </Text>
-                            <Text style={{ fontSize: 20 }}>🍃</Text>
                         </View>
 
                         {productData?.description && (
@@ -706,13 +705,8 @@ export default function ProductDetailScreen() {
                                     end={{ x: 1, y: 0 }}
                                     className="flex-1 flex-row items-center justify-center"
                                 >
-                                    <Ionicons
-                                        name={addedToCart ? "checkmark-circle" : "cart"}
-                                        size={20}
-                                        color="#FFFFFF"
-                                    />
                                     <Text
-                                        className="ml-2 font-semibold"
+                                        className="font-semibold"
                                         style={{
                                             fontSize: 16,
                                             color: '#FFFFFF',

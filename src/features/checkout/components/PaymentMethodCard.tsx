@@ -44,13 +44,6 @@ export const PaymentMethodCard = memo<PaymentMethodCardProps>(
                 onPress={onSelect}
                 activeOpacity={0.7}
             >
-                <View style={[styles.iconContainer, { backgroundColor: `${iconColor}15` }]}>
-                    <Ionicons
-                        name={getPaymentIcon(method.type) as any}
-                        size={24}
-                        color={iconColor}
-                    />
-                </View>
                 <View style={styles.content}>
                     <Text style={styles.name}>{method.name}</Text>
                     <Text style={styles.description} numberOfLines={1}>
@@ -79,14 +72,6 @@ const styles = StyleSheet.create({
     selectedContainer: {
         borderColor: "#00A86B",
         backgroundColor: "#F0FDF7",
-    },
-    iconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 12,
-        alignItems: "center",
-        justifyContent: "center",
-        marginRight: 12,
     },
     content: {
         flex: 1,

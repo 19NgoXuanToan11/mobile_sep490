@@ -109,7 +109,7 @@ export default function CheckoutScreen() {
           style={styles.backButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+          <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Thanh toán</Text>
         <View style={styles.headerRight} />
@@ -131,7 +131,6 @@ export default function CheckoutScreen() {
         {/* Delivery Address Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="location-outline" size={20} color="#00A86B" />
             <Text style={styles.sectionTitle}>Địa Chỉ Giao Hàng</Text>
             <TouchableOpacity
               onPress={() => router.push("/(app)/address/add")}
@@ -143,7 +142,6 @@ export default function CheckoutScreen() {
 
           {addresses.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="location-outline" size={48} color="#C7C7CC" />
               <Text style={styles.emptyStateText}>
                 Chưa có địa chỉ giao hàng
               </Text>
@@ -171,7 +169,6 @@ export default function CheckoutScreen() {
         {/* Payment Method Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="wallet-outline" size={20} color="#00A86B" />
             <Text style={styles.sectionTitle}>Phương Thức Thanh Toán</Text>
           </View>
 

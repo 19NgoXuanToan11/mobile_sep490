@@ -93,7 +93,6 @@ export default function ChangePasswordScreen() {
                             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                             style={{ marginLeft: Platform.OS === "ios" ? 0 : 8 }}
                         >
-                            <Ionicons name="arrow-back" size={24} color="#111827" />
                         </TouchableOpacity>
                     ),
                     headerShadowVisible: false,

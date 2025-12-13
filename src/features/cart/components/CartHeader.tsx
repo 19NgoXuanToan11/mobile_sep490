@@ -44,10 +44,9 @@ export const CartHeader = React.memo<CartHeaderProps>(
                         <Pressable
                             onPress={onClearCart}
                             style={({ pressed }) => ({
-                                flexDirection: "row",
                                 alignItems: "center",
-                                gap: 6,
-                                paddingHorizontal: 12,
+                                justifyContent: "center",
+                                paddingHorizontal: 8,
                                 paddingVertical: 8,
                                 borderRadius: 20,
                                 borderWidth: 1,
@@ -57,24 +56,14 @@ export const CartHeader = React.memo<CartHeaderProps>(
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         >
                             <Ionicons name="trash-outline" size={16} color="#EF4444" />
-                            <Text
-                                style={{
-                                    fontSize: 14,
-                                    fontWeight: "500",
-                                    color: "#EF4444",
-                                }}
-                            >
-                                Xóa tất cả
-                            </Text>
                         </Pressable>
                         { }
                         <Pressable
                             onPress={onAddMore}
                             style={({ pressed }) => ({
-                                flexDirection: "row",
                                 alignItems: "center",
-                                gap: 6,
-                                paddingHorizontal: 12,
+                                justifyContent: "center",
+                                paddingHorizontal: 8,
                                 paddingVertical: 8,
                                 borderRadius: 20,
                                 borderWidth: 1,
@@ -84,15 +73,6 @@ export const CartHeader = React.memo<CartHeaderProps>(
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         >
                             <Ionicons name="add-circle-outline" size={18} color="#00A86B" />
-                            <Text
-                                style={{
-                                    fontSize: 14,
-                                    fontWeight: "500",
-                                    color: "#00A86B",
-                                }}
-                            >
-                                Thêm món
-                            </Text>
                         </Pressable>
                     </View>
                 </View>

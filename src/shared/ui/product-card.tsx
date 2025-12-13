@@ -132,20 +132,6 @@ export const ProductCard = React.memo<ProductCardProps>(({
           </View>
         )}
         { }
-        {showQuickView && (
-          <View
-            className="absolute top-1.5 right-1.5"
-            style={{ marginTop: product.tags?.includes("organic") ? 28 : 0 }}
-          >
-            <TouchableOpacity
-              className="w-7 h-7 bg-white/90 rounded-full items-center justify-center shadow-sm"
-              onPress={onPress}
-            >
-              <Ionicons name="eye-outline" size={14} color="#00623A" />
-            </TouchableOpacity>
-          </View>
-        )}
-        { }
         {product.isInStock === false && (
           <View
             className="absolute inset-0 items-center justify-center"
@@ -296,7 +282,6 @@ export const ProductCard = React.memo<ProductCardProps>(({
                 }}
               >
                 <View className="flex-row items-center justify-center gap-1.5">
-                  <Ionicons name="basket-outline" size={14} color="white" />
                   <Text className="text-white text-sm font-semibold">
                     Thêm vào giỏ
                   </Text>

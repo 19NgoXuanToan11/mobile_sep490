@@ -35,7 +35,6 @@ export const OrderSummaryCard = memo<OrderSummaryCardProps>(
         return (
             <View style={styles.container}>
                 <View style={styles.header}>
-                    <Ionicons name="receipt-outline" size={20} color="#00A86B" />
                     <Text style={styles.title}>Đơn Hàng</Text>
                 </View>
                 <FlatList

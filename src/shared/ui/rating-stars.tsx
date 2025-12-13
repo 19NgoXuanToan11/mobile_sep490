@@ -96,7 +96,7 @@ export const RatingDisplay: React.FC<RatingDisplayProps> = ({
       </Text>
       {reviewCount !== undefined && (
         <Text className={cn("text-neutral-500", config.textSize)}>
-          ({reviewCount.toLocaleString()})
+          ({reviewCount.toLocaleString()} đánh giá)
         </Text>
       )}
     </View>
