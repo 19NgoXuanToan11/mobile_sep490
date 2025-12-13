@@ -912,7 +912,8 @@ export default function OrdersScreen() {
                     e.stopPropagation();
                     handleOpenFeedback(order);
                   }}
-                  className="flex-1 bg-blue-600 rounded-2xl py-3 items-center mr-3 shadow-lg shadow-blue-600/20"
+                  className="flex-1 rounded-2xl py-3 items-center mr-3 shadow-lg"
+                  style={{ backgroundColor: '#607D8B', shadowColor: '#607D8B' }}
                   activeOpacity={0.85}
                 >
                   <View className="flex-row items-center">
