@@ -24,7 +24,7 @@
 @rem ##########################################################################
 
 @rem Set local scope for the variables with windows NT shell
-if "%OS%"=="Windows_NT" setlocal
+if "%OS%"=="Windows_NT" setlocal enabledelayedexpansion
 
 set DIRNAME=%~dp0
 if "%DIRNAME%"=="" set DIRNAME=.
@@ -79,8 +79,32 @@ if defined GRADLE_OPTS (
     for /f "delims=" %%i in ('powershell -NoProfile -Command "$opts = '%GRADLE_OPTS%'; $result = ''; $parts = $opts -split ' '; for ($i = 0; $i -lt $parts.Length; $i++) { if ($parts[$i] -eq '--init-script' -and $i+1 -lt $parts.Length) { $scriptPath = $parts[$i+1]; if (Test-Path $scriptPath) { $result += ' --init-script ' + $scriptPath; } $i++; } else { if ($result -ne '' -or $parts[$i] -ne '') { $result += ' ' + $parts[$i]; } } }; $result.Trim()"') do set "GRADLE_OPTS=%%i"
 )
 
-@rem Execute Gradle
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %*
+@rem Filter out --init-script arguments from command line that point to non-existent files
+@rem This handles cases where IDE passes init script directly as command line argument
+set FILTERED_ARGS=
+:filterArgs
+if "%~1"=="" goto executeFiltered
+if "%~1"=="--init-script" (
+    set "INIT_SCRIPT_PATH=%~2"
+    if not exist "!INIT_SCRIPT_PATH!" (
+        @rem Skip this --init-script and its path argument since file doesn't exist
+        shift
+        shift
+        goto filterArgs
+    )
+    set "FILTERED_ARGS=!FILTERED_ARGS! %~1 %~2"
+    shift
+    shift
+    goto filterArgs
+)
+set "FILTERED_ARGS=!FILTERED_ARGS! %~1"
+shift
+goto filterArgs
+
+:executeFiltered
+@rem Execute Gradle with filtered arguments (excluding non-existent init scripts)
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %FILTERED_ARGS%
+goto end
 
 :end
 @rem End local scope for the variables with windows NT shell
