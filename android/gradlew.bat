@@ -72,6 +72,12 @@ goto fail
 
 set CLASSPATH=
 
+@rem Remove problematic init script from GRADLE_OPTS if it references a non-existent file
+@rem This fixes the issue where Red Hat Java extension references a missing init script
+if defined GRADLE_OPTS (
+    @rem Use PowerShell to filter out --init-script arguments pointing to non-existent files
+    for /f "delims=" %%i in ('powershell -NoProfile -Command "$opts = '%GRADLE_OPTS%'; $result = ''; $parts = $opts -split ' '; for ($i = 0; $i -lt $parts.Length; $i++) { if ($parts[$i] -eq '--init-script' -and $i+1 -lt $parts.Length) { $scriptPath = $parts[$i+1]; if (Test-Path $scriptPath) { $result += ' --init-script ' + $scriptPath; } $i++; } else { if ($result -ne '' -or $parts[$i] -ne '') { $result += ' ' + $parts[$i]; } } }; $result.Trim()"') do set "GRADLE_OPTS=%%i"
+)
 
 @rem Execute Gradle
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %*
