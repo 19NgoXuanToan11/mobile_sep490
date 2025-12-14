@@ -26,6 +26,7 @@ import {
   validateAddressForm,
   cleanPhoneNumber,
   formatPhoneNumber,
+  AddressValidationErrors,
 } from "../../../src/shared/utils/addressValidation";
 
 interface AddressFormData {
@@ -62,7 +63,7 @@ export default function AddAddressScreen() {
     isDefault: false,
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<AddressValidationErrors>({});
   const [pickerState, setPickerState] = useState<{
     visible: boolean;
     type: "province" | "district" | "ward" | null;
@@ -111,11 +112,11 @@ export default function AddAddressScreen() {
   const handleUpdateField = useCallback(
     (field: keyof AddressFormData, value: string | boolean) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
-      // Clear error for this field
-      if (errors[field]) {
+      // Clear error for this field (only if it's a field that can have errors)
+      if (field in errors && errors[field as keyof AddressValidationErrors]) {
         setErrors((prev) => {
           const newErrors = { ...prev };
-          delete newErrors[field];
+          delete newErrors[field as keyof AddressValidationErrors];
           return newErrors;
         });
       }
