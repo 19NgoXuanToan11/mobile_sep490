@@ -11,11 +11,8 @@ interface TerminateSessionOptions {
 
 let terminationInProgress = false;
 
-// Lazy import to avoid circular dependency
 const getAuthStore = () => {
-  // Use dynamic import to break the cycle
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { useAuthStore } = require("../hooks");
     return useAuthStore;
   } catch {
@@ -25,7 +22,6 @@ const getAuthStore = () => {
 
 const getToastStore = () => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { useToastStore } = require("../ui/toast");
     return useToastStore;
   } catch {

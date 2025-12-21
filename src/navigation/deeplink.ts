@@ -25,24 +25,16 @@ const handleDeepLink = async (url: string): Promise<void> => {
     const parsedUrl = Linking.parse(url);
     const { hostname, path, queryParams } = parsedUrl;
 
-    // Skip payment-callback handling here - let Expo Router handle it via payment-callback.tsx route
-    // This prevents duplicate processing (deep link listener + Expo Router)
     if (
       hostname === DEEP_LINK_PATHS.PAYMENT_CALLBACK ||
       path === DEEP_LINK_PATHS.PAYMENT_CALLBACK
     ) {
-      // Expo Router will route to payment-callback.tsx, which will redirect to payment-result
-      // No need to process here to avoid duplicate handling
       return;
     } else if (hostname === DEEP_LINK_PATHS.ORDER_DETAIL) {
-      // Handle order detail deep link
     } else if (hostname === DEEP_LINK_PATHS.PRODUCT_DETAIL) {
-      // Handle product detail deep link
     } else {
-      // Handle other deep links
     }
   } catch (error) {
-    // Error handling deep link - silent fail
   }
 };
 export const generatePaymentCallbackUrl = (orderId: number): string => {

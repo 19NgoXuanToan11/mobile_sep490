@@ -76,14 +76,10 @@ export class AuthService {
         } as any,
       });
 
-      // Backend returns { Status: 201, Message: "..." } on success (HTTP 200)
-      // or { Status: 400, Message: "..." } on error (HTTP 400)
       const responseStatus = result?.Status ?? result?.status;
       const responseMessage = result?.Message ?? result?.message;
 
-      // Check if registration was successful
       if (responseStatus !== 201) {
-        // Registration failed - return error message from backend
         return {
           success: false,
           data: null as any,
@@ -94,8 +90,6 @@ export class AuthService {
         };
       }
 
-      // Registration successful, but backend doesn't return a token
-      // We need to auto-login to get the token
       const loginResult = await AccountService.postApiV1AccountLogin({
         requestBody: {
           email: userData.email,
@@ -119,7 +113,6 @@ export class AuthService {
       await authStorage.setTokens(token);
       OpenAPI.TOKEN = token;
 
-      // Now fetch profile with the token
       const profileResp =
         await AccountProfileService.getApiV1AccountProfileProfile();
       const user: User = {
@@ -143,12 +136,10 @@ export class AuthService {
       };
       return { success: true, data: { user, token } };
     } catch (error: any) {
-      // Extract error message from API error response if available
       let errorMessage = "Registration failed";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      // Check if error has response body with message
       if (error?.body?.Message || error?.body?.message) {
         errorMessage = error.body.Message || error.body.message;
       } else if (

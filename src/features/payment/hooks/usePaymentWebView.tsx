@@ -118,10 +118,8 @@ export const usePaymentWebView = ({
             timeout: 10000,
           });
         } catch (error) {
-          // Silent fail - không cần log error
         }
       } catch (error) {
-        // Silent fail
       }
     },
     []
@@ -217,7 +215,6 @@ export const usePaymentWebView = ({
               true;
             `);
           } catch (error) {
-            // Error stopping WebView - silent fail
           }
         }
 
@@ -345,7 +342,6 @@ export const usePaymentWebView = ({
           }
         }
       } catch (error) {
-        // Không phải JSON message, bỏ qua
       }
     },
     [handleVNPayResponse]
@@ -373,7 +369,6 @@ export const usePaymentWebView = ({
                     true;
                   `);
                 } catch (error) {
-                  // Error stopping WebView on go back - silent fail
                 }
               }
               setTimeout(() => {
@@ -394,8 +389,7 @@ export const usePaymentWebView = ({
             }
             true;
           `);
-        } catch (error) {
-          // Error stopping WebView on go back - silent fail
+        } catch (error) { 
         }
       }
       setTimeout(() => {

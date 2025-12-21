@@ -21,7 +21,6 @@ export const CartItemCard = React.memo<CartItemCardProps>(
         const scaleAnim = useRef(new Animated.Value(1)).current;
         const [inputValue, setInputValue] = useState(item.quantity.toString());
 
-        // Sync input value when item quantity changes externally
         useEffect(() => {
             setInputValue(item.quantity.toString());
         }, [item.quantity]);
@@ -55,24 +54,19 @@ export const CartItemCard = React.memo<CartItemCardProps>(
         }, [item.id, item.product.name, onRemove]);
 
         const handleQuantityInputChange = useCallback((text: string) => {
-            // Only allow numeric input - remove any non-numeric characters
             const numericValue = text.replace(/[^0-9]/g, '');
             setInputValue(numericValue);
         }, []);
 
         const handleQuantityBlur = useCallback(() => {
-            // When user finishes editing, validate and update quantity
             const numValue = parseInt(inputValue, 10);
             if (isNaN(numValue) || numValue < 1) {
-                // If invalid, reset to 1
                 setInputValue('1');
                 onUpdateQuantity(item.id, 1);
             } else if (numValue > item.product.stock) {
-                // If exceeds stock, set to max stock
                 setInputValue(item.product.stock.toString());
                 onUpdateQuantity(item.id, item.product.stock);
             } else {
-                // Valid value, update quantity
                 onUpdateQuantity(item.id, numValue);
             }
         }, [inputValue, item.id, item.product.stock, onUpdateQuantity]);

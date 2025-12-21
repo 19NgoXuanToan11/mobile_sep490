@@ -56,7 +56,6 @@ export default function EditAddressScreen() {
     findByNames,
   } = useProvinceData();
 
-  // Form state
   const [formData, setFormData] = useState<AddressFormData>({
     customerName: "",
     phoneNumber: "",
@@ -76,7 +75,6 @@ export default function EditAddressScreen() {
     type: null,
   });
 
-  // Fetch address detail
   const { data: addressDetail, isLoading: isLoadingDetail } = useQuery({
     queryKey: ["address", addressId],
     enabled: !!addressId,
@@ -86,10 +84,8 @@ export default function EditAddressScreen() {
     },
   });
 
-  // Prefill form data when address is loaded
   useEffect(() => {
     if (addressDetail) {
-      // Try to find matching codes from names (backward compatibility)
       const { province, district, ward } = findByNames(
         addressDetail.province || addressDetail.city,
         addressDetail.district,
@@ -108,10 +104,8 @@ export default function EditAddressScreen() {
         isDefault: addressDetail.isDefault || false,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addressDetail]);
 
-  // Cascading data
   const availableDistricts = useMemo(
     () => getDistrictsByProvince(formData.provinceCode),
     [formData.provinceCode, getDistrictsByProvince]
@@ -122,7 +116,6 @@ export default function EditAddressScreen() {
     [formData.provinceCode, formData.districtCode, getWardsByDistrict]
   );
 
-  // Display names
   const selectedProvinceName = findProvince(formData.provinceCode)?.name || "";
   const selectedDistrictName =
     findDistrict(formData.provinceCode, formData.districtCode)?.name || "";
@@ -130,7 +123,6 @@ export default function EditAddressScreen() {
     findWard(formData.provinceCode, formData.districtCode, formData.wardCode)
       ?.name || "";
 
-  // Update address mutation
   const updateAddressMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Address> }) =>
       addressesApi.update(id, data),
@@ -145,7 +137,6 @@ export default function EditAddressScreen() {
     },
   });
 
-  // Handlers
   const handleBack = useCallback(() => {
     router.back();
   }, []);
@@ -153,7 +144,6 @@ export default function EditAddressScreen() {
   const handleUpdateField = useCallback(
     (field: keyof AddressFormData, value: string | boolean) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
-      // Clear error for this field
       if (errors[field]) {
         setErrors((prev) => {
           const newErrors = { ...prev };
@@ -178,8 +168,8 @@ export default function EditAddressScreen() {
       setFormData((prev) => ({
         ...prev,
         provinceCode: item.code,
-        districtCode: "", // Reset district
-        wardCode: "", // Reset ward
+        districtCode: "",
+        wardCode: "",
       }));
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -197,7 +187,7 @@ export default function EditAddressScreen() {
       setFormData((prev) => ({
         ...prev,
         districtCode: item.code,
-        wardCode: "", // Reset ward
+        wardCode: "",
       }));
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -228,7 +218,6 @@ export default function EditAddressScreen() {
   }, []);
 
   const handleSubmit = useCallback(() => {
-    // Validate
     const validationErrors = validateAddressForm({
       customerName: formData.customerName,
       phoneNumber: formData.phoneNumber,
@@ -241,12 +230,10 @@ export default function EditAddressScreen() {
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors as Record<string, string>);
       toast.error("Thông tin chưa đầy đủ", "Vui lòng kiểm tra lại các trường");
-      // Scroll to first error
       scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       return;
     }
 
-    // Submit
     const province = findProvince(formData.provinceCode);
     const district = findDistrict(formData.provinceCode, formData.districtCode);
     const ward = findWard(
@@ -276,7 +263,6 @@ export default function EditAddressScreen() {
     updateAddressMutation,
   ]);
 
-  // Loading state
   if (isLoadingDetail) {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
@@ -293,7 +279,6 @@ export default function EditAddressScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={handleBack}
@@ -317,7 +302,6 @@ export default function EditAddressScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Contact Information Card */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Ionicons name="person-outline" size={22} color="#00A86B" />
@@ -346,7 +330,6 @@ export default function EditAddressScreen() {
             />
           </View>
 
-          {/* Address Details Card */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Ionicons name="location-outline" size={22} color="#00A86B" />
@@ -398,7 +381,6 @@ export default function EditAddressScreen() {
             />
           </View>
 
-          {/* Default Address Card */}
           <TouchableOpacity
             style={styles.card}
             onPress={() =>
@@ -439,7 +421,6 @@ export default function EditAddressScreen() {
           <View style={styles.bottomSpacer} />
         </ScrollView>
 
-        {/* Bottom Save Button */}
         <View style={styles.footer}>
           <LinearGradient
             colors={["rgba(249,250,251,0.98)", "rgba(249,250,251,1)"]}
@@ -476,8 +457,7 @@ export default function EditAddressScreen() {
           </LinearGradient>
         </View>
       </KeyboardAvoidingView>
-
-      {/* Location Pickers */}
+                
       <LocationPicker
         visible={pickerState.visible && pickerState.type === "province"}
         title="Chọn Tỉnh/Thành phố"

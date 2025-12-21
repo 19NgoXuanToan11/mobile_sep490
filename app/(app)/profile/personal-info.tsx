@@ -319,7 +319,6 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   sectionContent: {
-    // Content container
   },
   quickActionsSection: {
     backgroundColor: "#FFFFFF",
@@ -347,7 +346,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   quickActionsContent: {
-    // Content container
   },
   bottomButtonContainer: {
     marginTop: 32,

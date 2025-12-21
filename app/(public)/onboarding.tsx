@@ -12,7 +12,9 @@ import {
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
+import { Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
@@ -20,45 +22,55 @@ import { useAuth } from "../../src/shared/hooks";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-// Premium onboarding slides for farming e-commerce
 const ONBOARDING_SLIDES = [
   {
     id: 1,
     title: "Nông Sản Tươi Ngon",
     subtitle:
-      "Khám phá những sản phẩm nông nghiệp tươi ngon, sạch và chất lượng từ trang trại đến bàn ăn",
-    image:
-      "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=600&fit=crop&crop=center",
+      "Khám phá những sản phẩm nông nghiệp tươi ngon, sạch và chất lượng",
+    image: require("../../assets/onboarding-1.jpg"),
     gradient: ["#f0f9f5", "#ffffff"],
   },
   {
     id: 2,
     title: "Dễ Dàng Đặt Hàng",
     subtitle:
-      "Chọn lựa và đặt hàng những sản phẩm yêu thích chỉ với vài thao tác đơn giản",
-    image:
-      "https://i.pinimg.com/1200x/d1/c9/16/d1c916e908888e5c89777c4ac3bc3ae6.jpg",
+      "Chọn lựa và đặt hàng những sản phẩm chỉ với vài thao tác đơn giản",
+    image: require("../../assets/onboarding-2.jpg"),
     gradient: ["#f0f9f5", "#ffffff"],
   },
   {
     id: 3,
-    title: "Giao Hàng Nhanh Chóng",
-    subtitle:
-      "Nhận sản phẩm tươi ngon được giao đến tận nhà với dịch vụ theo dõi realtime",
-    image:
-      "https://i.pinimg.com/736x/86/1a/1b/861a1b634f7afb186906200a989394d3.jpg",
+    title: "Sản Phẩm Đa Dạng",
+    subtitle: "Kho sản phẩm phong phú, luôn cập nhật nguồn hàng tươi ngon",
+    image: require("../../assets/onboarding-3.jpg"),
     gradient: ["#f0f9f5", "#ffffff"],
   },
 ];
 
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS !== "android") return;
+      try {
+        const nav = require("expo-navigation-bar");
+        if (nav && nav.setBackgroundColorAsync) {
+          await nav.setBackgroundColorAsync("transparent");
+        }
+        if (nav && nav.setBehaviorAsync) {
+          await nav.setBehaviorAsync("overlay-swipe");
+        }
+      } catch (e) {
+      }
+    })();
+  }, []);
   const { isAuthenticated } = useAuth();
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const slides = ONBOARDING_SLIDES;
 
-  // Premium entrance animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const titleAnim = useRef(new Animated.Value(0)).current;
@@ -66,7 +78,6 @@ export default function OnboardingScreen() {
   const imageAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Staggered entrance animations for premium feel
     const createStaggeredAnimation = () => {
       return Animated.sequence([
         Animated.timing(fadeAnim, {
@@ -124,7 +135,6 @@ export default function OnboardingScreen() {
           newIndex < slides.length
         ) {
           setCurrentIndex(newIndex);
-          // Subtle haptic feedback on slide change
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
       },
@@ -132,37 +142,30 @@ export default function OnboardingScreen() {
   );
 
   const handleNext = () => {
-    // Haptic feedback for premium feel
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     if (currentIndex < slides.length - 1) {
       const nextIndex = currentIndex + 1;
 
-      // Update state immediately for smooth UX
       setCurrentIndex(nextIndex);
 
-      // Use ScrollView's native smooth scrolling
       scrollViewRef.current?.scrollTo({
         x: nextIndex * screenWidth,
         animated: true,
       });
     } else {
-      // Navigate directly after slides
       handleGetStarted();
     }
   };
 
   const handleSkip = () => {
-    // Haptic feedback
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     handleGetStarted();
   };
 
   const handleGetStarted = () => {
-    // Success haptic feedback
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-    // Smooth exit animation before navigation
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -177,70 +180,66 @@ export default function OnboardingScreen() {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      // Navigate directly to home - allow guest access
-      // Chuyển thẳng đến trang chủ - cho phép truy cập khách
       router.replace("/(app)/(tabs)/home");
     });
   };
 
   const renderDots = () => {
     return (
-      <View className="flex-row items-center justify-center">
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
         {slides.map((_, index) => {
-          const scaleX = scrollX.interpolate({
-            inputRange: [
-              (index - 1) * screenWidth,
-              index * screenWidth,
-              (index + 1) * screenWidth,
-            ],
-            outputRange: [1, 4, 1], // Scale from 8px to 32px (32/8 = 4)
-            extrapolate: "clamp",
-          });
+          const inputRange = [
+            (index - 1) * screenWidth,
+            index * screenWidth,
+            (index + 1) * screenWidth,
+          ];
 
-          const opacity = scrollX.interpolate({
-            inputRange: [
-              (index - 1) * screenWidth,
-              index * screenWidth,
-              (index + 1) * screenWidth,
-            ],
+          const pillScale = scrollX.interpolate({
+            inputRange,
             outputRange: [0.3, 1, 0.3],
             extrapolate: "clamp",
           });
 
-          const scale = scrollX.interpolate({
-            inputRange: [
-              (index - 1) * screenWidth,
-              index * screenWidth,
-              (index + 1) * screenWidth,
-            ],
-            outputRange: [0.8, 1.2, 0.8],
+          const pillOpacity = scrollX.interpolate({
+            inputRange,
+            outputRange: [0, 1, 0],
             extrapolate: "clamp",
           });
 
           return (
             <View
               key={index}
-              className="items-center justify-center"
               style={{
-                width: 40, // Fixed container width to prevent overlap
-                height: 8,
-                marginHorizontal: 2, // Extra spacing between containers
+                width: 28,
+                height: 12,
+                marginHorizontal: 4,
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              <Animated.View
-                className="h-1 rounded-full bg-primary-500"
+              <View
                 style={{
-                  width: 8, // Base dot width
-                  opacity,
-                  transform: [{ scaleX }, { scale }],
-                  shadowColor: "#22C55E",
-                  shadowOffset: {
-                    width: 0,
-                    height: 1,
-                  },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 2,
-                  elevation: 2,
+                  width: 6,
+                  height: 6,
+                  borderRadius: 6,
+                  backgroundColor: "rgba(255,255,255,0.6)",
+                }}
+              />
+
+              <Animated.View
+                style={{
+                  position: "absolute",
+                  width: 28,
+                  height: 6,
+                  borderRadius: 6,
+                  backgroundColor: "#00D662",
+                  opacity: pillOpacity,
+                  transform: [{ scaleX: pillScale }],
+                  shadowColor: "#00D662",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 3,
+                  elevation: 3,
                 }}
               />
             </View>
@@ -251,7 +250,6 @@ export default function OnboardingScreen() {
   };
 
   const renderSlide = (slide: (typeof slides)[0], index: number) => {
-    // Parallax effect for image
     const imageTranslateX = scrollX.interpolate({
       inputRange: [
         (index - 1) * screenWidth,
@@ -262,7 +260,6 @@ export default function OnboardingScreen() {
       extrapolate: "clamp",
     });
 
-    // Fade and scale effects for content
     const contentOpacity = scrollX.interpolate({
       inputRange: [
         (index - 1) * screenWidth,
@@ -296,17 +293,50 @@ export default function OnboardingScreen() {
     return (
       <View
         key={slide.id}
-        className="flex-1 items-center justify-center px-8"
-        style={{ width: screenWidth }}
+        style={{ width: screenWidth, height: screenHeight }}
       >
-        <LinearGradient
-          colors={slide.gradient as [string, string]}
-          className="absolute inset-0"
-        />
+        <Animated.View
+          style={{
+            position: "absolute",
+            inset: 0,
+            transform: [{ translateX: imageTranslateX }, { scale: imageScale }],
+            opacity: index === currentIndex ? imageAnim : contentOpacity,
+          }}
+        >
+          <Image
+            source={typeof slide.image === "string" ? { uri: slide.image } : slide.image}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={200}
+            placeholder={{
+              blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
+              width: 400,
+              height: 600,
+            }}
+          />
+          <LinearGradient
+            colors={
+              index === 0
+                ? ["rgba(0,0,0,0.15)", "rgba(0,0,0,0.7)"]
+                : ["rgba(0,0,0,0.35)", "rgba(0,0,0,0.08)"]
+            }
+            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
+          />
+        </Animated.View>
 
         <Animated.View
-          className="flex-1 items-center justify-center space-y-12"
           style={{
+            position: "absolute",
+            left: 24,
+            right: 24,
+            bottom: index === 0 ? 160 : 140,
+            alignItems:
+              index === slides.length - 1
+                ? "flex-start"
+                : index === 1
+                  ? "flex-start"
+                  : "center",
             opacity: contentOpacity,
             transform: [
               { scale: contentScale },
@@ -319,111 +349,208 @@ export default function OnboardingScreen() {
             ],
           }}
         >
-          {/* Image Container with Premium Parallax */}
-          <Animated.View
-            className="w-72 h-72 rounded-3xl overflow-hidden bg-white shadow-2xl"
+          {index === slides.length - 1 ? (
+            (() => {
+              const parts = slide.title.split(" ");
+              const firstPart = parts.slice(0, 2).join(" ");
+              const secondPart = parts.slice(2).join(" ");
+
+              return (
+                <>
+                  <Animated.View
+                    style={{
+                      marginBottom: 12,
+                      alignItems: "flex-start",
+                      opacity: index === currentIndex ? titleAnim : contentOpacity,
+                      transform: [
+                        {
+                          scale: index === currentIndex
+                            ? titleAnim.interpolate({ inputRange: [0, 1], outputRange: [0.98, 1.02] })
+                            : 1,
+                        },
+                      ],
+                    }}
+                  >
+                    <Animated.View
+                      style={{
+                        backgroundColor: "transparent",
+                        borderRadius: 0,
+                        paddingHorizontal: 0,
+                        paddingVertical: 0,
+                      }}
+                    >
+                      <Animated.Text
+                        style={{
+                          color: "white",
+                          fontSize: 34,
+                          fontWeight: "800",
+                          textAlign: "left",
+                          opacity: index === currentIndex ? titleAnim : contentOpacity,
+                        }}
+                      >
+                        {firstPart}
+                      </Animated.Text>
+                      <Animated.Text
+                        style={{
+                          color: "#00D662",
+                          fontSize: 40,
+                          fontWeight: "900",
+                          textAlign: "left",
+                          opacity: index === currentIndex ? titleAnim : contentOpacity,
+                          marginTop: 4,
+                        }}
+                      >
+                        {secondPart}
+                      </Animated.Text>
+                    </Animated.View>
+                  </Animated.View>
+
+                  {/* Slightly larger subtitle for emphasis */}
+                  {index !== slides.length - 1 && (
+                    <Animated.Text
+                      style={{
+                        color: "rgba(255,255,255,0.95)",
+                        fontSize: 16,
+                        textAlign: "right",
+                        lineHeight: 24,
+                        opacity: index === currentIndex ? subtitleAnim : contentOpacity,
+                        transform: [
+                          {
+                            translateY:
+                              index === currentIndex
+                                ? subtitleAnim.interpolate({ inputRange: [0, 1], outputRange: [15, 0] })
+                                : 0,
+                          },
+                        ],
+                        maxWidth: "80%",
+                      }}
+                    >
+                      {slide.subtitle}
+                    </Animated.Text>
+                  )}
+                </>
+              );
+            })()
+          ) : index === 1 ? (
+            (() => {
+              const parts = slide.title.split(" ");
+              const firstPart = parts.slice(0, 2).join(" ");
+              const secondPart = parts.slice(2).join(" ");
+
+              return (
+                <>
+                  <Animated.Text
+                    style={{
+                      color: "#00D662",
+                      fontSize: 34,
+                      fontWeight: "800",
+                      textAlign: "left",
+                      marginBottom: 4,
+                      opacity: index === currentIndex ? titleAnim : contentOpacity,
+                      transform: [
+                        {
+                          translateY:
+                            index === currentIndex
+                              ? titleAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] })
+                              : 0,
+                        },
+                      ],
+                    }}
+                  >
+                    {firstPart}
+                  </Animated.Text>
+                  <Animated.Text
+                    style={{
+                      color: "white",
+                      fontSize: 40,
+                      fontWeight: "900",
+                      textAlign: "left",
+                      marginBottom: 8,
+                      opacity: index === currentIndex ? titleAnim : contentOpacity,
+                      transform: [
+                        {
+                          translateY:
+                            index === currentIndex
+                              ? titleAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] })
+                              : 0,
+                        },
+                      ],
+                    }}
+                  >
+                    {secondPart}
+                  </Animated.Text>
+                </>
+              );
+            })()
+          ) : (
+            <>
+              <Animated.Text
+                style={{
+                  color: "white",
+                  fontSize: index === 0 ? 40 : 34,
+                  fontWeight: index === 0 ? "900" : "800",
+                  textAlign: "center",
+                  marginBottom: index === 0 ? 8 : 12,
+                  textShadowColor: index === 0 ? "rgba(0,0,0,0.6)" : undefined,
+                  textShadowOffset: index === 0 ? { width: 0, height: 2 } : undefined,
+                  textShadowRadius: index === 0 ? 6 : undefined,
+                  opacity: index === currentIndex ? titleAnim : contentOpacity,
+                  transform: [
+                    {
+                      translateY:
+                        index === currentIndex
+                          ? titleAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] })
+                          : 0,
+                    },
+                  ],
+                }}
+              >
+                {slide.title}
+              </Animated.Text>
+            </>
+          )}
+
+          <Animated.Text
             style={{
-              opacity: index === currentIndex ? imageAnim : contentOpacity,
+              color: "rgba(255,255,255,0.95)",
+              fontSize: index === 0 ? 18 : 16,
+              textAlign: index === 1 || index === slides.length - 1 ? "left" : "center",
+              lineHeight: index === 0 ? 26 : 24,
+              marginTop: index === 0 ? 6 : 0,
+              opacity: index === currentIndex ? subtitleAnim : contentOpacity,
               transform: [
                 {
-                  scale:
+                  translateY:
                     index === currentIndex
-                      ? Animated.multiply(imageAnim, 0.1).interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.9, 1],
-                        })
-                      : contentScale,
+                      ? subtitleAnim.interpolate({ inputRange: [0, 1], outputRange: [15, 0] })
+                      : 0,
                 },
               ],
+              maxWidth: index === 1 || index === slides.length - 1 ? "80%" : undefined,
+              alignSelf: index === 1 || index === slides.length - 1 ? "flex-start" : undefined,
             }}
           >
-            <Animated.View
-              style={{
-                transform: [
-                  { translateX: imageTranslateX },
-                  { scale: imageScale },
-                ],
-              }}
-              className="w-full h-full"
-            >
-              <Image
-                source={{ uri: slide.image }}
-                style={{ width: "100%", height: "100%" }}
-                contentFit="cover"
-                cachePolicy="memory-disk"
-                transition={200}
-                placeholder={{
-                  blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
-                  width: 288,
-                  height: 288,
-                }}
-              />
-            </Animated.View>
-
-            {/* Subtle overlay gradient */}
-            <LinearGradient
-              colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.1)"]}
-              className="absolute inset-0"
-            />
-          </Animated.View>
-
-          {/* Content with Staggered Animations */}
-          <View className="space-y-6 items-center max-w-sm">
-            <Animated.Text
-              className="text-3xl font-light text-neutral-900 text-center tracking-tight"
-              style={{
-                opacity: index === currentIndex ? titleAnim : contentOpacity,
-                transform: [
-                  {
-                    translateY:
-                      index === currentIndex
-                        ? titleAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [20, 0],
-                          })
-                        : 0,
-                  },
-                ],
-              }}
-            >
-              {slide.title}
-            </Animated.Text>
-            <Animated.Text
-              className="text-lg text-neutral-600 text-center leading-8 font-light"
-              style={{
-                opacity: index === currentIndex ? subtitleAnim : contentOpacity,
-                transform: [
-                  {
-                    translateY:
-                      index === currentIndex
-                        ? subtitleAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [15, 0],
-                          })
-                        : 0,
-                  },
-                ],
-              }}
-            >
-              {slide.subtitle}
-            </Animated.Text>
-          </View>
+            {slide.subtitle}
+          </Animated.Text>
         </Animated.View>
       </View>
     );
   };
 
-  // Premium button component with premium micro-animations
   const ActionButton = ({
     title,
     onPress,
     variant = "primary",
     icon,
+    style,
+    textStyle,
   }: {
     title: string;
     onPress: () => void;
     variant?: "primary" | "secondary";
     icon?: keyof typeof Ionicons.glyphMap;
+    style?: any;
+    textStyle?: any;
   }) => {
     const [isPressed, setIsPressed] = useState(false);
     const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -432,7 +559,6 @@ export default function OnboardingScreen() {
 
     const handlePressIn = () => {
       setIsPressed(true);
-      // Gentle haptic feedback
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
       Animated.parallel([
@@ -481,7 +607,6 @@ export default function OnboardingScreen() {
     };
 
     const handlePress = () => {
-      // Success haptic for primary, light for secondary
       if (variant === "primary") {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
@@ -519,25 +644,27 @@ export default function OnboardingScreen() {
             onPress={handlePress}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
-            className={`flex-row items-center justify-center rounded-2xl py-4 px-8 ${
-              isPrimary ? "bg-primary-500" : "bg-neutral-100"
-            }`}
+            className={`flex-row items-center justify-center rounded-2xl py-4 px-8 ${isPrimary ? "bg-primary-500" : "bg-neutral-100"
+              }`}
+            style={style}
           >
             <Animated.Text
-              className={`text-lg font-medium tracking-wide ${
-                isPrimary ? "text-white" : "text-neutral-600"
-              }`}
-              style={{
-                transform: [
-                  {
-                    scale: scaleAnim.interpolate({
-                      inputRange: [0.95, 1],
-                      outputRange: [0.98, 1],
-                      extrapolate: "clamp",
-                    }),
-                  },
-                ],
-              }}
+              className={`text-lg font-medium tracking-wide ${isPrimary ? "text-white" : "text-neutral-600"
+                }`}
+              style={[
+                {
+                  transform: [
+                    {
+                      scale: scaleAnim.interpolate({
+                        inputRange: [0.95, 1],
+                        outputRange: [0.98, 1],
+                        extrapolate: "clamp",
+                      }),
+                    },
+                  ],
+                },
+                textStyle,
+              ]}
             >
               {title}
             </Animated.Text>
@@ -570,8 +697,8 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Floating decorative elements */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "transparent" }} edges={[]}>
+      <StatusBar style="light" translucent backgroundColor="transparent" />
       <View className="absolute top-20 left-8 opacity-5">
         <Ionicons name="bag-outline" size={20} color="#00623A" />
       </View>
@@ -582,7 +709,24 @@ export default function OnboardingScreen() {
         <Ionicons name="car-outline" size={14} color="#00623A" />
       </View>
 
-      {/* Slides */}
+      {currentIndex < slides.length - 1 && (
+        <Pressable
+          onPress={handleSkip}
+          style={{
+            position: "absolute",
+            top: 52,
+            right: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            backgroundColor: "rgba(0,0,0,0.35)",
+            borderRadius: 20,
+            zIndex: 20,
+          }}
+        >
+          <Text style={{ color: "white", fontSize: 14, fontWeight: "600" }}>Bỏ qua</Text>
+        </Pressable>
+      )}
+
       <Animated.View
         className="flex-1"
         style={{
@@ -608,34 +752,52 @@ export default function OnboardingScreen() {
         </ScrollView>
       </Animated.View>
 
-      {/* Bottom Controls */}
       <Animated.View
-        className="px-8 pb-8 space-y-8"
         style={{
+          position: "absolute",
+          left: 0,
+          right: 24,
+          bottom: 84,
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }],
+          zIndex: 30,
         }}
       >
-        {/* Dots Indicator */}
-        {renderDots()}
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <View style={{ flex: 1, paddingLeft: 12, alignItems: "flex-start" }}>{renderDots()}</View>
 
-        {/* Action Buttons */}
-        <View className="w-full" style={{ rowGap: 8 }}>
-          <ActionButton
-            title={currentIndex === slides.length - 1 ? "Bắt Đầu" : "Tiếp Tục"}
-            onPress={handleNext}
-            variant="primary"
-            icon={
-              currentIndex === slides.length - 1 ? undefined : "chevron-forward"
-            }
-          />
-
-          {currentIndex < slides.length - 1 && (
-            <ActionButton
-              title="Bỏ Qua"
-              onPress={handleSkip}
-              variant="secondary"
-            />
+          {currentIndex < slides.length - 1 ? (
+            <View style={{ marginLeft: 12, transform: [{ translateY: -6 }] }}>
+              <ActionButton
+                title="Tiếp"
+                onPress={handleNext}
+                variant="primary"
+                style={{
+                  width: 140,
+                  height: 56,
+                  borderRadius: 28,
+                  backgroundColor: "#00D662",
+                  justifyContent: "center",
+                }}
+                textStyle={{ fontSize: 18, fontWeight: "700", color: "white" }}
+              />
+            </View>
+          ) : (
+            <View style={{ marginLeft: 12, transform: [{ translateY: -6 }] }}>
+              <ActionButton
+                title="Bắt Đầu"
+                onPress={handleGetStarted}
+                variant="primary"
+                style={{
+                  width: 140,
+                  height: 56,
+                  borderRadius: 28,
+                  backgroundColor: "#00D662",
+                  justifyContent: "center",
+                }}
+                textStyle={{ fontSize: 18, fontWeight: "700", color: "white" }}
+              />
+            </View>
           )}
         </View>
       </Animated.View>

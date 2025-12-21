@@ -43,7 +43,6 @@ export const useCheckout = (options?: UseCheckoutOptions) => {
     [allPaymentMethods]
   );
 
-  // Auto-select default address
   React.useEffect(() => {
     if (addresses.length > 0 && !selectedAddressId) {
       const defaultAddress = addresses.find((a) => a.isDefault);
@@ -97,12 +96,8 @@ export const useCheckout = (options?: UseCheckoutOptions) => {
         if (selectedPaymentMethod?.type === "E_WALLET" && paymentUrl) {
           await clearCart();
 
-          // Mở WebView thanh toán trong app với paymentUrl và orderId
-          // WebView sẽ tự động detect deep link callback và navigate đến payment-result
           await openPayment(paymentUrl, orderId);
-          // KHÔNG gọi options?.onSuccess?.() ở đây để tránh navigate đi chỗ khác
-          // WebView sẽ tự xử lý navigation khi payment hoàn tất
-          return; // Exit early để không chạy code bên dưới
+          return;
         } else {
           await vnpayApi.createOrderPayment(orderId);
           await clearCart();

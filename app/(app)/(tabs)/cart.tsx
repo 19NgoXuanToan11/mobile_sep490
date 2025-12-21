@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import {
   View,
   FlatList,
@@ -22,7 +22,6 @@ export default function CartScreen() {
   const { cart, updateQuantity, removeItem, clearCart, isLoading } = useCart();
   const { isAuthenticated } = useAuth();
 
-  // Memoized handlers to prevent re-renders
   const handleRemoveItem = useCallback(
     (itemId: string, itemName: string) => {
       Alert.alert(
@@ -86,7 +85,6 @@ export default function CartScreen() {
     router.push("/(app)/(tabs)/catalog");
   }, []);
 
-  // Memoized render function with stable reference
   const renderCartItem = useCallback(
     ({ item }: ListRenderItemInfo<CartItem>) => (
       <CartItemCard
@@ -98,20 +96,17 @@ export default function CartScreen() {
     [updateQuantity, handleRemoveItem]
   );
 
-  // Stable keyExtractor
   const keyExtractor = useCallback((item: CartItem) => item.id, []);
 
-  // Memoized getItemLayout for better performance
   const getItemLayout = useCallback(
     (_: any, index: number) => ({
-      length: 180, // Approximate item height
+      length: 180,
       offset: 180 * index,
       index,
     }),
     []
   );
 
-  // Loading state
   if (isLoading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
@@ -125,7 +120,6 @@ export default function CartScreen() {
     );
   }
 
-  // Empty state
   if (cart.items.length === 0) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
@@ -155,14 +149,12 @@ export default function CartScreen() {
         translucent
       />
 
-      {/* Header */}
       <CartHeader
         itemCount={cart.items.length}
         onClearCart={handleClearCart}
         onAddMore={handleAddMore}
       />
 
-      {/* Cart Items List */}
       <FlatList
         data={cart.items}
         renderItem={renderCartItem}
@@ -173,7 +165,6 @@ export default function CartScreen() {
           paddingTop: 20,
           paddingBottom: 250,
         }}
-        // Performance optimizations
         initialNumToRender={8}
         maxToRenderPerBatch={8}
         windowSize={7}
@@ -181,7 +172,6 @@ export default function CartScreen() {
         updateCellsBatchingPeriod={50}
       />
 
-      {/* Bottom Action Sheet */}
       <BottomActionSheet
         itemCount={cart.itemCount}
         subtotal={cart.subtotal}

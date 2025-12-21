@@ -16,20 +16,17 @@ import { initializeDeepLinkListener } from "../src/navigation/deeplink";
 import { orderNotificationService } from "../src/services/realtime/orderNotificationService";
 import "../global.css";
 
-// Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
-// ✅ Khởi tạo OpenAPI config cho guest users
 OpenAPI.BASE = env.API_URL;
-OpenAPI.TOKEN = undefined; // Đảm bảo không có token stale
+OpenAPI.TOKEN = undefined;
 
-// Create a query client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     },
     mutations: {
       retry: 1,
@@ -39,18 +36,15 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    // Add any custom fonts here if needed
   });
 
   useEffect(() => {
     if (fontsLoaded) {
-      // Clear any legacy onboarding flags on app start
       userPreferences.clearLegacyOnboardingFlags();
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
 
-  // Initialize deep link listener for VNPay & other deep links
   useEffect(() => {
     const cleanup = initializeDeepLinkListener();
     return cleanup;

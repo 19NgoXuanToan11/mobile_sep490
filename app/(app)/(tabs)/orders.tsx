@@ -45,7 +45,6 @@ import { openPayment } from "../../../src/services/payment/vnpay";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// Simple debounce hook
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -84,7 +83,6 @@ export default function OrdersScreen() {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const toast = useToast();
 
-  // Animation values
   const searchAnimation = new Animated.Value(0);
   const chipAnimations = {
     all: new Animated.Value(1),
@@ -95,32 +93,28 @@ export default function OrdersScreen() {
     cancelled: new Animated.Value(0.8),
   };
 
-  // Redirect to login if not authenticated
   React.useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      // Don't redirect immediately, just show empty state with login prompt
     }
   }, [isAuthenticated, isLoading]);
 
-  // Enhanced status filter with more granular control - Mapping theo backend enum PaymentStatus
   const getStatusFilter = () => {
     switch (activeTab) {
       case "placed":
-        return "0"; // UNPAID - Chờ thanh toán
+        return "0";
       case "confirmed":
-        return "1"; // PAID - Đã thanh toán/xác nhận
+        return "1";
       case "shipped":
-        return "3"; // PENDING - Chờ xác nhận
+        return "3";
       case "delivered":
-        return "5"; // COMPLETED - Hoàn thành (hoặc có thể filter cả 5 và 6)
+        return "5";
       case "cancelled":
-        return "4"; // CANCELLED - Đã hủy
+        return "4";
       default:
-        return undefined; // all statuses
+        return undefined;
     }
   };
 
-  // Enhanced infinite query with search support and date filter
   const {
     data,
     fetchNextPage,
@@ -132,7 +126,6 @@ export default function OrdersScreen() {
   } = useInfiniteQuery({
     queryKey: ["orders", activeTab, debouncedSearch, selectedDate],
     queryFn: ({ pageParam = 1 }) => {
-      // If date is selected, use getByDate API
       if (selectedDate) {
         return ordersApi.getByDate({
           date: selectedDate,
@@ -140,7 +133,6 @@ export default function OrdersScreen() {
           pageSize: 15,
         });
       }
-      // Otherwise use getAll API
       return ordersApi.getAll({
         pageIndex: pageParam,
         pageSize: 15,
@@ -155,15 +147,13 @@ export default function OrdersScreen() {
       return undefined;
     },
     enabled: isAuthenticated,
-    staleTime: 3 * 60 * 1000, // 3 minutes
+    staleTime: 3 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  // Flatten all orders from all pages
   const orders =
     data?.pages.flatMap((page) => (page.success ? page.data.orders : [])) ?? [];
 
-  // Filter orders by search query
   const filteredOrders = useMemo(() => {
     if (!debouncedSearch) return orders;
     return orders.filter((order) =>
@@ -171,7 +161,6 @@ export default function OrdersScreen() {
     );
   }, [orders, debouncedSearch]);
 
-  // Animation helpers
   const animateChip = useCallback((chipId: string, scale: number) => {
     Animated.spring(chipAnimations[chipId as keyof typeof chipAnimations], {
       toValue: scale,
@@ -189,7 +178,7 @@ export default function OrdersScreen() {
       toValue,
       duration: 300,
       easing: Easing.bezier(0.25, 0.46, 0.45, 0.94),
-      useNativeDriver: false, // Changed to false because we're animating layout properties
+      useNativeDriver: false,
     }).start();
 
     if (!showSearch) {
@@ -199,11 +188,9 @@ export default function OrdersScreen() {
     }
   }, [showSearch, searchAnimation]);
 
-  // Cancel order mutation
   const cancelOrderMutation = useMutation({
     mutationFn: (orderId: number) => ordersApi.cancelOrder(orderId),
     onSuccess: () => {
-      // Invalidate and refetch orders
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert("Thành công", "Đơn hàng đã được hủy thành công");
@@ -217,7 +204,6 @@ export default function OrdersScreen() {
     },
   });
 
-  // Create feedback mutation
   const createFeedbackMutation = useMutation({
     mutationFn: async (data: { comment: string; rating: number | null; orderDetailId: number }) => {
       if (!user?.id) {
@@ -235,7 +221,6 @@ export default function OrdersScreen() {
       toast.success("Đánh giá thành công", "Cảm ơn bạn đã đánh giá sản phẩm!");
       setShowFeedbackForm(false);
       setSelectedOrderDetailId(null);
-      // Invalidate orders to refresh the list
       queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
     onError: (error: any) => {
@@ -247,9 +232,7 @@ export default function OrdersScreen() {
     },
   });
 
-  // Handle open feedback modal for order
   const handleOpenFeedback = useCallback(async (order: Order) => {
-    // Only allow feedback for COMPLETED orders
     if (order.status !== "COMPLETED") {
       toast.error("Không thể đánh giá", "Chỉ có thể đánh giá đơn hàng đã hoàn thành");
       return;
@@ -257,11 +240,9 @@ export default function OrdersScreen() {
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // Fetch full order details to get orderDetailId
     try {
       const orderDetailResult = await ordersApi.getById(order.id);
       if (orderDetailResult.success && orderDetailResult.data) {
-        // Use the order with full details (including orderDetailId)
         setSelectedOrderForFeedback(orderDetailResult.data);
         setShowFeedbackModal(true);
       } else {
@@ -273,7 +254,6 @@ export default function OrdersScreen() {
     }
   }, [toast]);
 
-  // Handle select product to review
   const handleSelectProductToReview = useCallback((orderDetailId: number) => {
     if (!orderDetailId || orderDetailId === 0) {
       toast.error("Lỗi", "Không tìm thấy thông tin đơn hàng chi tiết");
@@ -284,7 +264,6 @@ export default function OrdersScreen() {
     setShowFeedbackForm(true);
   }, [toast]);
 
-  // Handle submit feedback
   const handleSubmitFeedback = async (data: { comment: string; rating: number | null }) => {
     if (!selectedOrderDetailId || selectedOrderDetailId === 0) {
       toast.error("Lỗi", "Không tìm thấy thông tin đơn hàng");
@@ -300,7 +279,6 @@ export default function OrdersScreen() {
     }
   };
 
-  // Handle cancel order
   const handleCancelOrder = (orderId: string) => {
     Alert.alert(
       "Xác nhận hủy đơn",
@@ -398,7 +376,6 @@ export default function OrdersScreen() {
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-        // Optional pre-check for better UX (shows warnings about stock/price changes)
         const { blockingIssues, warnings, sanitizedItems } = await precheckOrderItems(order);
 
         if (blockingIssues.length) {
@@ -417,7 +394,6 @@ export default function OrdersScreen() {
           return;
         }
 
-        // Show price change warnings if any
         if (warnings.length) {
           const shouldContinue = await new Promise<boolean>((resolve) => {
             Alert.alert(
@@ -444,7 +420,6 @@ export default function OrdersScreen() {
           }
         }
 
-        // Call the buy-again API endpoint
         const response = await ordersApi.buyAgain(Number(order.id));
 
         if (!response.success) {
@@ -456,16 +431,12 @@ export default function OrdersScreen() {
           return;
         }
 
-        // Refresh cart to get updated items
         await loadItems();
 
-        // Invalidate orders query to refresh the list
         queryClient.invalidateQueries({ queryKey: ["orders"] });
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-        // Show success message and redirect to cart
-        // Use Vietnamese message regardless of backend message language
         Alert.alert(
           "Thành công",
           "Đã thêm tất cả sản phẩm vào giỏ hàng thành công",
@@ -499,14 +470,12 @@ export default function OrdersScreen() {
     [loadItems, precheckOrderItems, queryClient]
   );
 
-  // Handle repay for failed orders
   const handleRepay = useCallback(
     async (order: Order) => {
       setRepayOrderId(order.id);
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-        // Call createOrderPayment API
         const response = await ordersApi.createOrderPayment(Number(order.id));
 
         if (!response.success) {
@@ -529,10 +498,8 @@ export default function OrdersScreen() {
           return;
         }
 
-        // Open payment webview
         await openPayment(paymentUrl, Number(order.id));
 
-        // Invalidate orders query to refresh the list after payment
         queryClient.invalidateQueries({ queryKey: ["orders"] });
       } catch (error: any) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -551,7 +518,6 @@ export default function OrdersScreen() {
     [queryClient]
   );
 
-  // Enhanced status info with better colors and animations
   const getStatusInfo = (status: Order["status"]) => {
     switch (status) {
       case "PLACED":
@@ -566,11 +532,11 @@ export default function OrdersScreen() {
       case "FAILED":
         return {
           text: "Thất bại",
-          color: "#dc2626", // Đỏ đậm (red-600)
-          bgColor: "#fee2e2", // Nền đỏ nhạt (red-100)
-          borderColor: "#ef4444", // Viền đỏ (red-500)
+          color: "#dc2626",
+          bgColor: "#fee2e2",
+          borderColor: "#ef4444",
           icon: "close-circle-outline",
-          gradient: ["#ef4444", "#dc2626"], // Gradient từ đỏ vừa đến đỏ đậm
+          gradient: ["#ef4444", "#dc2626"],
         };
       case "CONFIRMED":
         return {
@@ -647,7 +613,6 @@ export default function OrdersScreen() {
     }
   };
 
-  // Enhanced refresh with haptic feedback
   const handleRefresh = async () => {
     setRefreshing(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -655,7 +620,6 @@ export default function OrdersScreen() {
     setRefreshing(false);
   };
 
-  // Date picker handlers
   const handleDateSelect = () => {
     if (tempDate) {
       setSelectedDate(tempDate);
@@ -674,14 +638,12 @@ export default function OrdersScreen() {
   const formatDateForDisplay = (dateStr: string | null) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
-    // Format as dd/mm/yyyy
     const d = date.getDate().toString().padStart(2, "0");
     const m = (date.getMonth() + 1).toString().padStart(2, "0");
     const y = date.getFullYear();
     return `${d}/${m}/${y}`;
   };
 
-  // Enhanced load more with haptic feedback
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNextPage) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -689,7 +651,6 @@ export default function OrdersScreen() {
     }
   };
 
-  // Enhanced tab selection with animation
   const handleTabPress = useCallback(
     (tabId: string) => {
       if (tabId === activeTab) return;
@@ -697,7 +658,6 @@ export default function OrdersScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setActiveTab(tabId);
 
-      // Animate chips
       Object.keys(chipAnimations).forEach((chipId) => {
         const scale = chipId === tabId ? 1 : 0.85;
         animateChip(chipId, scale);
@@ -706,7 +666,6 @@ export default function OrdersScreen() {
     [activeTab, animateChip]
   );
 
-  // Enhanced filter chips configuration
   const filterChips = [
     {
       id: "all",
@@ -747,7 +706,6 @@ export default function OrdersScreen() {
 
   ];
 
-  // Compact order card renderer with pre-checkout flow
   const renderOrder = useCallback(
     ({ item: order }: { item: Order }) => {
       const statusInfo = getStatusInfo(order.status);
@@ -758,12 +716,8 @@ export default function OrdersScreen() {
       const remainingCount = hasOrderImages
         ? Math.max(orderImages.length - 3, 0)
         : Math.max(order.items.length - 3, 0);
-      // Re-purchase is available only when an order is completed or cancelled
-      // Hide for: DELIVERED, SHIPPED, PENDING, CONFIRMED, PACKED, PLACED, FAILED
       const canRepurchase = ["COMPLETED", "CANCELLED"].includes(order.status);
-      // Repay is available only for FAILED orders
       const canRepay = order.status === "FAILED";
-      // Feedback is available only for COMPLETED orders
       const canFeedback = order.status === "COMPLETED";
 
       return (
@@ -989,11 +943,9 @@ export default function OrdersScreen() {
     ]
   );
 
-  // Enhanced Apple-style skeleton loader
   const renderLoadingSkeleton = () => (
     <View className="mx-4 mb-4">
       <View className="bg-white rounded-3xl p-6 shadow-lg shadow-black/5">
-        {/* Header skeleton */}
         <View className="mb-5">
           <View className="flex-row items-center mb-2">
             <Skeleton className="h-6 w-32 rounded-lg" />
@@ -1009,7 +961,6 @@ export default function OrdersScreen() {
           </View>
         </View>
 
-        {/* Products section skeleton */}
         <View className="mb-5">
           <View className="flex-row items-center justify-between mb-3">
             <Skeleton className="h-5 w-20 rounded" />
@@ -1022,7 +973,6 @@ export default function OrdersScreen() {
           </View>
         </View>
 
-        {/* Payment info skeleton */}
         <View className="bg-gray-50 rounded-2xl p-4 mb-5">
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
@@ -1033,7 +983,6 @@ export default function OrdersScreen() {
           </View>
         </View>
 
-        {/* Action buttons skeleton */}
         <View className="flex-row space-x-3">
           <Skeleton className="flex-1 h-14 rounded-2xl" />
           <Skeleton className="flex-1 h-14 rounded-2xl" />
@@ -1042,7 +991,6 @@ export default function OrdersScreen() {
     </View>
   );
 
-  // Enhanced filter chip component
   const renderFilterChip = ({ item: chip }: { item: any }) => {
     const isActive = activeTab === chip.id;
     const animatedStyle = {
@@ -1074,7 +1022,6 @@ export default function OrdersScreen() {
     );
   };
 
-  // Enhanced search bar component
   const renderSearchBar = () => {
     const searchHeight = searchAnimation.interpolate({
       inputRange: [0, 1],
@@ -1115,7 +1062,6 @@ export default function OrdersScreen() {
     );
   };
 
-  // Show login prompt if not authenticated
   if (!isLoading && !isAuthenticated) {
     return (
       <View className="flex-1 bg-gray-50">
@@ -1138,7 +1084,6 @@ export default function OrdersScreen() {
     );
   }
 
-  // Show loading skeleton during initial load
   if (ordersLoading && filteredOrders.length === 0) {
     return (
       <View className="flex-1 bg-gray-50">
@@ -1162,7 +1107,6 @@ export default function OrdersScreen() {
     );
   }
 
-  // Empty state for no orders
   if (filteredOrders.length === 0 && !ordersLoading) {
     return (
       <View className="flex-1 bg-gray-50">
@@ -1172,9 +1116,7 @@ export default function OrdersScreen() {
           translucent
         />
 
-        {/* Enhanced Apple-style header */}
         <View className="bg-white pt-12 pb-6">
-          {/* Search toggle button */}
           <View className="px-4 mb-4">
             <TouchableOpacity
               onPress={toggleSearch}
@@ -1189,10 +1131,8 @@ export default function OrdersScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Search bar */}
           {renderSearchBar()}
 
-          {/* Filter chips */}
           <View className="px-4">
             <FlatList
               data={filterChips}
@@ -1251,7 +1191,6 @@ export default function OrdersScreen() {
     );
   }
 
-  // Main orders list view
   return (
     <View className="flex-1 bg-gray-50">
       <StatusBar
@@ -1259,10 +1198,8 @@ export default function OrdersScreen() {
         backgroundColor="transparent"
         translucent
       />
-
-      {/* Enhanced Apple-style header */}
+  
       <View className="bg-white pt-12 pb-6">
-        {/* Search and Date filter buttons */}
         <View className="px-4 mb-4 flex-row gap-3">
           <TouchableOpacity
             onPress={toggleSearch}
@@ -1330,13 +1267,12 @@ export default function OrdersScreen() {
         </View>
       </View>
 
-      {/* Orders list */}
       <FlatList
         data={filteredOrders}
         renderItem={renderOrder}
         keyExtractor={(item) => item.id}
         getItemLayout={(_, index) => ({
-          length: 400, // Approximate order card height
+          length: 400,
           offset: 400 * index,
           index,
         })}
@@ -1384,7 +1320,6 @@ export default function OrdersScreen() {
         }}
       />
 
-      {/* Date Picker Modal */}
       <Modal
         visible={showDatePicker}
         transparent
@@ -1471,7 +1406,6 @@ export default function OrdersScreen() {
         </View>
       </Modal>
 
-      {/* Feedback Products Selection Modal */}
       <Modal
         visible={showFeedbackModal}
         transparent
@@ -1540,7 +1474,6 @@ export default function OrdersScreen() {
         </View>
       </Modal>
 
-      {/* Feedback Form Modal */}
       <FeedbackFormModal
         visible={showFeedbackForm}
         onClose={() => {

@@ -23,20 +23,14 @@ import { useChangePassword } from "../../../src/features/profile/hooks/useChange
 import { PasswordField } from "../../../src/features/auth/components/PasswordField";
 import { PasswordStrengthHint } from "../../../src/features/profile/components/PasswordStrengthHint";
 
-/**
- * ChangePasswordScreen - Apple Premium Style
- * Clean, performant, with smooth animations (120-160ms)
- */
 export default function ChangePasswordScreen() {
     const insets = useSafeAreaInsets();
     const changePassword = useChangePassword();
 
-    // Refs for focus management
     const oldPasswordRef = useRef<TextInput>(null);
     const newPasswordRef = useRef<TextInput>(null);
     const confirmPasswordRef = useRef<TextInput>(null);
 
-    // Local state for password strength display
     const [newPasswordValue, setNewPasswordValue] = useState("");
 
     const {
@@ -45,7 +39,7 @@ export default function ChangePasswordScreen() {
         formState: { errors, isValid },
     } = useForm<ChangePasswordFormData>({
         resolver: zodResolver(changePasswordSchema),
-        mode: "onChange", // Real-time validation
+        mode: "onChange",
         defaultValues: {
             oldPassword: "",
             newPassword: "",
@@ -62,7 +56,7 @@ export default function ChangePasswordScreen() {
 
     const onSubmit = useCallback(
         (data: ChangePasswordFormData) => {
-            if (changePassword.isPending) return; // Anti-double-submit
+            if (changePassword.isPending) return;
 
             changePassword.mutate({
                 oldPassword: data.oldPassword,
@@ -115,7 +109,6 @@ export default function ChangePasswordScreen() {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Form Card */}
                     <View
                         style={{
                             backgroundColor: "#FFFFFF",
@@ -129,7 +122,6 @@ export default function ChangePasswordScreen() {
                             gap: 20,
                         }}
                     >
-                        {/* Old Password */}
                         <View>
                             <Text
                                 style={{
@@ -162,7 +154,6 @@ export default function ChangePasswordScreen() {
                             />
                         </View>
 
-                        {/* New Password */}
                         <View>
                             <Text
                                 style={{
@@ -195,7 +186,6 @@ export default function ChangePasswordScreen() {
                                             autoCorrect={false}
                                             textContentType="newPassword"
                                         />
-                                        {/* Password Strength Hint */}
                                         <PasswordStrengthHint password={newPasswordValue} />
                                     </>
                                 )}

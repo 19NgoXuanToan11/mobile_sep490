@@ -88,8 +88,7 @@ export function usePaymentResult({
         handlePaymentSuccess();
       } else if (success === "false") {
         setPaymentStatus("failed");
-        if (!hasProcessedPaymentRef.current) {
-          // Không hiển thị toast để tránh trùng với UI màn kết quả
+        if (!hasProcessedPaymentRef.current) {  
           hasProcessedPaymentRef.current = true;
         }
       }
@@ -132,11 +131,9 @@ export function usePaymentResult({
         handlePaymentSuccess();
       } else if (isSuccess === false) {
         setPaymentStatus("failed");
-        // Không hiển thị toast để tránh trùng với UI màn kết quả
       }
     } else if (success === undefined && paymentData?.success === false) {
       setPaymentStatus("failed");
-      // Không hiển thị toast để tránh trùng với UI màn kết quả
     }
   }, [paymentData, success, handlePaymentSuccess, toast]);
 

@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCart, useNotifications } from "../../../src/shared/hooks";
 import { View, Text } from "react-native";
 
-// Cart badge component
 const CartBadge: React.FC<{ count: number }> = ({ count }) => {
   if (count === 0) return null;
 
@@ -17,7 +16,6 @@ const CartBadge: React.FC<{ count: number }> = ({ count }) => {
   );
 };
 
-// Tab bar icon component
 interface TabIconProps {
   name: keyof typeof Ionicons.glyphMap;
   focused: boolean;
@@ -48,7 +46,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false, // Xóa header để có cảm giác premium
+        headerShown: false,
         tabBarStyle: {
           backgroundColor: "#ffffff",
           borderTopColor: "transparent",
@@ -74,7 +72,7 @@ export default function TabLayout() {
         },
         tabBarActiveTintColor: "#00623A",
         tabBarInactiveTintColor: "#6b7280",
-        tabBarShowLabel: false, // Ẩn toàn bộ text labels
+        tabBarShowLabel: false,
         animation: "shift",
       }}
     >

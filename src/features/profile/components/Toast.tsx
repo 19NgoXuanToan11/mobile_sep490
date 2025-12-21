@@ -46,11 +46,9 @@ export const Toast = React.memo<ToastProps>(
         const opacity = useSharedValue(0);
         useEffect(() => {
             if (visible) {
-                // Reset và hiển thị toast
                 translateY.value = -100;
                 opacity.value = 0;
 
-                // Animate in
                 translateY.value = withSpring(0, {
                     damping: 20,
                     stiffness: 300,
@@ -60,7 +58,6 @@ export const Toast = React.memo<ToastProps>(
                     stiffness: 300,
                 });
 
-                // Animate out sau duration
                 const hideTimer = setTimeout(() => {
                     translateY.value = withSpring(-100, {
                         damping: 20,
@@ -80,7 +77,6 @@ export const Toast = React.memo<ToastProps>(
                     clearTimeout(hideTimer);
                 };
             } else {
-                // Reset khi không visible
                 translateY.value = -100;
                 opacity.value = 0;
             }

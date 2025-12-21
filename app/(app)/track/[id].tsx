@@ -3,7 +3,6 @@ import { useLocalSearchParams } from "expo-router";
 
 export default function TrackOrderScreen() {
   const { id, status } = useLocalSearchParams<{ id: string; status?: string }>();
-  // Redirect to order detail page
   return (
     <Redirect
       href={{

@@ -63,7 +63,10 @@ export interface Cart {
 export interface Address {
   id: string;
   customerName: string;
+  name?: string;
   phoneNumber: string;
+  phone?: string;
+  city?: string;
   province: string;
   district: string;
   ward: string;

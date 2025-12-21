@@ -10,10 +10,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Button, Card, Badge, EmptyState } from "../../../src/shared/ui";
+import { Badge, EmptyState } from "../../../src/shared/ui";
 import { useNotifications, Notification } from "../../../src/shared/hooks";
 
-// Notification badge component - matches bottom navigation style
 const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
   if (count === 0) return null;
 
@@ -198,14 +197,11 @@ export default function NotificationsScreen() {
   }, [loadNotifications]);
 
   const handleNotificationPress = (notification: Notification) => {
-    // Mark as read when pressed
     if (!notification.isRead) {
       markAsRead(notification.id);
     }
 
-    // Navigate to specific screen if needed
     if (notification.actionUrl) {
-      // router.push(notification.actionUrl);
     }
   };
 
@@ -217,7 +213,6 @@ export default function NotificationsScreen() {
         translucent
       />
 
-      {/* Header */}
       <SafeAreaView
         edges={["top"]}
         className="bg-white border-b border-neutral-200"
@@ -239,7 +234,6 @@ export default function NotificationsScreen() {
           </View>
         </View>
 
-        {/* Filter Tabs */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -277,7 +271,6 @@ export default function NotificationsScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Content */}
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}

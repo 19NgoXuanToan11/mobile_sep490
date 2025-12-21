@@ -33,13 +33,11 @@ export default function AccountScreen() {
         setAvatarUri(response.data.images);
       }
     } catch (error) {
-      // Silent fail
     }
   };
 
   const handleLogout = useCallback(async () => {
     await logout();
-    // Chuyển về trang chủ sau khi đăng xuất - cho phép tiếp tục mua sắm
     router.replace("/(app)/(tabs)/home");
   }, [logout]);
 
@@ -59,7 +57,6 @@ export default function AccountScreen() {
     router.push("/(app)/(tabs)/orders");
   }, []);
 
-  // Account menu items
   const accountItems: Omit<AccountListItemProps, "isLast">[] = [
     {
       icon: "person-outline",
@@ -77,9 +74,7 @@ export default function AccountScreen() {
       onPress: handleOrders,
     },
   ];
-
-  // Show login prompt if not authenticated
-  // Hiển thị yêu cầu đăng nhập nếu chưa xác thực
+  
   if (!isLoading && !isAuthenticated) {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
@@ -113,7 +108,6 @@ export default function AccountScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Profile Card */}
           <ProfileCard
             name={user?.name || "Người dùng"}
             email={user?.email || ""}
@@ -121,10 +115,8 @@ export default function AccountScreen() {
             onEditPress={handleEditProfile}
           />
 
-          {/* Account Section */}
           <AccountSection title="Tài khoản" items={accountItems} />
 
-          {/* Logout Button */}
           <View style={styles.logoutContainer}>
             <LogoutButton onLogout={handleLogout} />
           </View>
@@ -149,7 +141,6 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 120,
   },
-  // Welcome Profile Screen (Not Authenticated)
   welcomeContainer: {
     flex: 1,
     justifyContent: "center",
@@ -159,7 +150,6 @@ const styles = StyleSheet.create({
     marginTop: 24,
     paddingHorizontal: 20,
   },
-  // Logout
   logoutContainer: {
     marginTop: 32,
     marginBottom: 24,

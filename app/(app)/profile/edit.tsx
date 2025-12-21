@@ -45,11 +45,9 @@ export default function EditProfileScreen() {
   });
   const [errors, setErrors] = useState<Partial<EditProfileForm>>({});
 
-  // Avatar upload hook
   const userId = user?.id || "0";
   const avatarUpload = useUploadAvatar(userId);
 
-  // Refs for input focus management
   const nameRef = useRef<TextInput>(null);
   const phoneRef = useRef<TextInput>(null);
   const addressRef = useRef<TextInput>(null);
@@ -99,7 +97,6 @@ export default function EditProfileScreen() {
 
     setLoading(true);
     try {
-      // Call real API to update profile
       const response = await profileApi.updateProfile({
         fullname: formData.name,
         phone: formData.phone,
@@ -109,7 +106,6 @@ export default function EditProfileScreen() {
 
       if (response.success) {
         showToast("Cập nhật thành công", "success");
-        // Wait for toast to show before navigating back
         setTimeout(() => {
           router.back();
         }, 1500);
@@ -129,7 +125,6 @@ export default function EditProfileScreen() {
   const handlePickImage = useCallback(async () => {
     try {
       await avatarUpload.start();
-      // If upload succeeds, reload profile to get updated avatar URL
       const profileResponse = await profileApi.getProfile();
       if (profileResponse.success && profileResponse.data) {
         setFormData((prev) => ({
@@ -139,7 +134,6 @@ export default function EditProfileScreen() {
         showToast("Cập nhật ảnh đại diện thành công", "success");
       }
     } catch (err) {
-      // Error is already handled in hook, just show toast if needed
       if (avatarUpload.error && avatarUpload.error !== "Đã hủy tải lên") {
         showToast(avatarUpload.error, "error");
       }
@@ -158,7 +152,6 @@ export default function EditProfileScreen() {
 
 
 
-  // Load profile data on component mount
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -183,7 +176,6 @@ export default function EditProfileScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Toast Notification */}
       <Toast
         visible={toast.visible}
         message={toast.message}
@@ -191,7 +183,6 @@ export default function EditProfileScreen() {
         onHide={hideToast}
       />
 
-      {/* Header */}
       <SafeAreaView edges={["top"]} style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity
@@ -219,14 +210,12 @@ export default function EditProfileScreen() {
           keyboardShouldPersistTaps="handled"
           bounces={true}
         >
-          {/* Avatar Section */}
           <AvatarEditCard
             fullName={formData.name}
             avatarUri={formData.avatar}
             onPress={handlePickImage}
           />
 
-          {/* Upload Progress & Cancel */}
           {avatarUpload.isUploading && (
             <View style={styles.uploadContainer}>
               <View style={styles.progressContainer}>
@@ -251,19 +240,16 @@ export default function EditProfileScreen() {
             </View>
           )}
 
-          {/* Upload Error */}
           {avatarUpload.error && !avatarUpload.isUploading && (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{avatarUpload.error}</Text>
             </View>
           )}
 
-          {/* Form Section */}
           <View style={styles.formSection}>
             <Text style={styles.sectionTitle}>Thông tin cá nhân</Text>
 
             <View style={styles.formContent}>
-              {/* Name Input */}
               <FormInput
                 ref={nameRef}
                 label="Họ và tên"
@@ -279,7 +265,6 @@ export default function EditProfileScreen() {
                 onSubmitEditing={() => focusNextField(phoneRef)}
               />
 
-              {/* Email Input (Disabled) */}
               <FormInput
                 label="Email"
                 icon="mail-outline"
@@ -290,7 +275,6 @@ export default function EditProfileScreen() {
                 autoCapitalize="none"
               />
 
-              {/* Phone Input */}
               <FormInput
                 ref={phoneRef}
                 label="Số điện thoại"
@@ -305,7 +289,6 @@ export default function EditProfileScreen() {
                 onSubmitEditing={() => focusNextField(addressRef)}
               />
 
-              {/* Address Input */}
               <FormInput
                 ref={addressRef}
                 label="Địa chỉ"
@@ -324,8 +307,7 @@ export default function EditProfileScreen() {
             </View>
           </View>
         </ScrollView>
-
-        {/* Bottom Save Button */}
+          
         <View style={styles.bottomButtonContainer}>
           <SaveButton
             onPress={handleSave}

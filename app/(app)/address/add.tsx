@@ -52,7 +52,6 @@ export default function AddAddressScreen() {
     findWard,
   } = useProvinceData();
 
-  // Form state
   const [formData, setFormData] = useState<AddressFormData>({
     customerName: "",
     phoneNumber: "",
@@ -72,7 +71,6 @@ export default function AddAddressScreen() {
     type: null,
   });
 
-  // Cascading data
   const availableDistricts = useMemo(
     () => getDistrictsByProvince(formData.provinceCode),
     [formData.provinceCode, getDistrictsByProvince]
@@ -83,7 +81,6 @@ export default function AddAddressScreen() {
     [formData.provinceCode, formData.districtCode, getWardsByDistrict]
   );
 
-  // Display names
   const selectedProvinceName = findProvince(formData.provinceCode)?.name || "";
   const selectedDistrictName =
     findDistrict(formData.provinceCode, formData.districtCode)?.name || "";
@@ -91,7 +88,6 @@ export default function AddAddressScreen() {
     findWard(formData.provinceCode, formData.districtCode, formData.wardCode)
       ?.name || "";
 
-  // Create address mutation
   const createAddressMutation = useMutation({
     mutationFn: addressesApi.create,
     onSuccess: () => {
@@ -104,7 +100,6 @@ export default function AddAddressScreen() {
     },
   });
 
-  // Handlers
   const handleBack = useCallback(() => {
     router.back();
   }, []);
@@ -112,7 +107,6 @@ export default function AddAddressScreen() {
   const handleUpdateField = useCallback(
     (field: keyof AddressFormData, value: string | boolean) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
-      // Clear error for this field (only if it's a field that can have errors)
       if (field in errors && errors[field as keyof AddressValidationErrors]) {
         setErrors((prev) => {
           const newErrors = { ...prev };
@@ -137,8 +131,8 @@ export default function AddAddressScreen() {
       setFormData((prev) => ({
         ...prev,
         provinceCode: item.code,
-        districtCode: "", // Reset district
-        wardCode: "", // Reset ward
+        districtCode: "",
+        wardCode: "",
       }));
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -156,7 +150,7 @@ export default function AddAddressScreen() {
       setFormData((prev) => ({
         ...prev,
         districtCode: item.code,
-        wardCode: "", // Reset ward
+        wardCode: "",
       }));
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -187,7 +181,6 @@ export default function AddAddressScreen() {
   }, []);
 
   const handleSubmit = useCallback(() => {
-    // Validate
     const validationErrors = validateAddressForm({
       customerName: formData.customerName,
       phoneNumber: formData.phoneNumber,
@@ -200,12 +193,10 @@ export default function AddAddressScreen() {
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       toast.error("Thông tin chưa đầy đủ", "Vui lòng kiểm tra lại các trường");
-      // Scroll to first error
       scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       return;
     }
 
-    // Submit
     const province = findProvince(formData.provinceCode);
     const district = findDistrict(formData.provinceCode, formData.districtCode);
     const ward = findWard(
@@ -229,7 +220,6 @@ export default function AddAddressScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={handleBack}
@@ -253,7 +243,6 @@ export default function AddAddressScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Contact Information Card */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Ionicons name="person-outline" size={22} color="#00A86B" />
@@ -282,7 +271,6 @@ export default function AddAddressScreen() {
             />
           </View>
 
-          {/* Address Details Card */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Ionicons name="location-outline" size={22} color="#00A86B" />
@@ -334,7 +322,6 @@ export default function AddAddressScreen() {
             />
           </View>
 
-          {/* Default Address Card */}
           <TouchableOpacity
             style={styles.card}
             onPress={() =>
@@ -375,7 +362,6 @@ export default function AddAddressScreen() {
           <View style={styles.bottomSpacer} />
         </ScrollView>
 
-        {/* Bottom Save Button */}
         <View style={styles.footer}>
           <LinearGradient
             colors={["rgba(249,250,251,0.98)", "rgba(249,250,251,1)"]}
@@ -412,8 +398,7 @@ export default function AddAddressScreen() {
           </LinearGradient>
         </View>
       </KeyboardAvoidingView>
-
-      {/* Location Pickers */}
+              
       <LocationPicker
         visible={pickerState.visible && pickerState.type === "province"}
         title="Chọn Tỉnh/Thành phố"

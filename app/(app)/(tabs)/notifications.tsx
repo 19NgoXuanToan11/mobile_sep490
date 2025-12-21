@@ -9,7 +9,6 @@ import {
     ListRenderItemInfo,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { EmptyState } from "../../../src/shared/ui";
 import { useNotifications, Notification } from "../../../src/shared/hooks";
 import {
@@ -18,7 +17,6 @@ import {
     NotificationHeader,
 } from "../../../src/features/notifications/components";
 
-// Group notifications by time
 interface GroupedNotification {
     type: "header" | "item";
     id: string;
@@ -31,24 +29,20 @@ const getTimeGroup = (timestamp: string): string => {
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-    // Today
     if (diffInHours < 24 && date.getDate() === now.getDate()) {
         return "Hôm nay";
     }
 
-    // Yesterday
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
     if (date.getDate() === yesterday.getDate() && diffInHours < 48) {
         return "Hôm qua";
     }
 
-    // This week
     if (diffInHours < 7 * 24) {
         return "Tuần này";
     }
 
-    // Earlier
     return "Trước đó";
 };
 
@@ -57,7 +51,6 @@ const groupNotificationsByTime = (
 ): GroupedNotification[] => {
     const groups: { [key: string]: Notification[] } = {};
 
-    // Group notifications
     notifications.forEach((notification) => {
         const group = getTimeGroup(notification.timestamp);
         if (!groups[group]) {
@@ -66,20 +59,17 @@ const groupNotificationsByTime = (
         groups[group].push(notification);
     });
 
-    // Convert to flat list with headers
     const result: GroupedNotification[] = [];
     const groupOrder = ["Hôm nay", "Hôm qua", "Tuần này", "Trước đó"];
 
     groupOrder.forEach((groupTitle) => {
         if (groups[groupTitle] && groups[groupTitle].length > 0) {
-            // Add header
             result.push({
                 type: "header",
                 id: `header-${groupTitle}`,
                 title: groupTitle,
             });
 
-            // Add items
             groups[groupTitle].forEach((notification) => {
                 result.push({
                     type: "item",
@@ -99,12 +89,10 @@ export default function NotificationsScreen() {
     const { notifications, isLoading, markAsRead, loadNotifications } =
         useNotifications();
 
-    // Group notifications by time (single consolidated list)
     const groupedData = useMemo(() => {
         return groupNotificationsByTime(notifications);
     }, [notifications]);
 
-    // Handlers
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
         await loadNotifications();
@@ -113,20 +101,16 @@ export default function NotificationsScreen() {
 
     const handleNotificationPress = useCallback(
         (notification: Notification) => {
-            // Mark as read when pressed
             if (!notification.isRead) {
                 markAsRead(notification.id);
             }
 
-            // Navigate to specific screen if needed
-            if (notification.actionUrl) {
-                // router.push(notification.actionUrl);
+            if (notification.actionUrl) {   
             }
         },
         [markAsRead]
     );
 
-    // FlatList optimization
     const keyExtractor = useCallback(
         (item: GroupedNotification) => item.id,
         []
@@ -158,7 +142,7 @@ export default function NotificationsScreen() {
 
     const getItemLayout = useCallback(
         (_: any, index: number) => ({
-            length: 120, // Approximate item height
+            length: 120,
             offset: 120 * index,
             index,
         }),
@@ -187,12 +171,10 @@ export default function NotificationsScreen() {
                 translucent
             />
 
-            {/* Header */}
             <SafeAreaView edges={["top"]} style={styles.safeArea}>
                 <NotificationHeader />
             </SafeAreaView>
 
-            {/* Content */}
             <FlatList
                 data={groupedData}
                 renderItem={renderItem}
@@ -208,7 +190,6 @@ export default function NotificationsScreen() {
                         colors={["#00A86B"]}
                     />
                 }
-                // Performance optimizations
                 initialNumToRender={8}
                 maxToRenderPerBatch={8}
                 windowSize={7}

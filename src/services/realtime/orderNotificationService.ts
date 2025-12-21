@@ -186,15 +186,12 @@ class OrderNotificationService {
   private handleIncomingMessage(update: OrderStatusUpdateMessage) {
     const timestamp = update.timestamp ?? new Date().toISOString();
 
-    // Determine notification title and type based on status
     const { title, notificationType } = this.getNotificationDetails(
       update.status
     );
 
     const { addNotification } = useNotificationStore.getState();
 
-    // Luôn hiển thị nội dung tiếng Việt phía client, độc lập với chuỗi message
-    // backend gửi lên (backend hiện đang dùng tiếng Anh).
     addNotification({
       title,
       message: this.getDefaultMessage(update.status, update.orderId),
@@ -208,7 +205,6 @@ class OrderNotificationService {
       },
     });
 
-    // Log critical status changes for debugging
     if (
       isDev &&
       (update.status === "COMPLETED" || update.status === "CANCELLED")
@@ -227,9 +223,6 @@ class OrderNotificationService {
     });
   }
 
-  /**
-   * Get notification title and type based on order status
-   */
   private getNotificationDetails(status: OrderStatus): {
     title: string;
     notificationType: "order" | "payment" | "delivery";
@@ -277,9 +270,6 @@ class OrderNotificationService {
     }
   }
 
-  /**
-   * Get default message if backend doesn't provide one
-   */
   private getDefaultMessage(status: OrderStatus, orderId: number): string {
     switch (status) {
       case "COMPLETED":
@@ -287,8 +277,6 @@ class OrderNotificationService {
       case "CANCELLED":
         return `Đơn hàng #${orderId} đã bị hủy. Nếu bạn có thắc mắc, vui lòng liên hệ hỗ trợ.`;
       case "DELIVERED":
-        // Check if this is actually a shipping status (from updateDeliveryStatus endpoint)
-        // Backend sends "DELIVERED" with "is on the way" message for shipping
         return `Đơn hàng #${orderId} đang trên đường giao đến bạn.`;
       case "SHIPPING":
       case "SHIPPED":

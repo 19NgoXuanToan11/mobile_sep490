@@ -86,7 +86,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
 
       useCartStore.getState().clearCart();
-      // Xóa toàn bộ thông báo khi người dùng đăng xuất
       useNotificationStore.getState().clearNotifications();
     } catch (error) {}
   },
@@ -94,7 +93,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const token = await authStorage.getAccessToken();
       if (!token) {
-        // Không có token -> trạng thái guest, không nên hiển thị thông báo của user cũ
         useNotificationStore.getState().clearNotifications();
         set({ isLoading: false, user: null, isAuthenticated: false });
         return;
@@ -288,9 +286,9 @@ export const useCart = () => {
   const cart = useMemo((): Cart => {
     const itemCount = store.items.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = store.items.reduce((sum, item) => sum + item.subtotal, 0);
-    const shippingFee = 0; // Không tính phí ship
+    const shippingFee = 0;
     const discount = 0;
-    const total = subtotal - discount; // Tổng thanh toán = tạm tính - giảm giá
+    const total = subtotal - discount;
     return {
       items: store.items,
       itemCount,

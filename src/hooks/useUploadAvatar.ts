@@ -24,24 +24,20 @@ export function useUploadAvatar(userId: string | number): {
       setProgress(0);
       setError(null);
 
-      // Step 1: Pick image
       let fileUri: string;
       try {
         fileUri = await pickAvatarImage();
       } catch (err) {
         if (err instanceof Error && err.message === "PICKER_CANCELED") {
-          // User canceled - not an error
           setIsUploading(false);
           return;
         }
         throw err;
       }
 
-      // Step 2: Create AbortController for cancellation
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      // Step 3: Upload to Cloudinary
       let secureUrl: string;
       try {
         secureUrl = await uploadAvatarDirectToCloudinary({
@@ -70,7 +66,6 @@ export function useUploadAvatar(userId: string | number): {
         throw err;
       }
 
-      // Step 4: Get current profile to merge with new image URL
       const currentProfileResponse = await profileApi.getProfile();
       if (!currentProfileResponse.success || !currentProfileResponse.data) {
         throw new Error("Không thể lấy thông tin hồ sơ hiện tại");
@@ -78,7 +73,6 @@ export function useUploadAvatar(userId: string | number): {
 
       const currentProfile = currentProfileResponse.data;
 
-      // Step 5: Update profile with new image URL
       const updateResponse = await profileApi.updateProfile({
         fullname: currentProfile.fullname || "",
         phone: currentProfile.phone,
@@ -93,7 +87,6 @@ export function useUploadAvatar(userId: string | number): {
         throw new Error(updateResponse.message || "Không thể cập nhật hồ sơ");
       }
 
-      // Success - reset state
       setIsUploading(false);
       setProgress(0);
       setError(null);

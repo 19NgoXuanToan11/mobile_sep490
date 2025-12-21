@@ -17,7 +17,6 @@ export class ProductServiceClass {
     limit = 20
   ): Promise<ApiResponse<PaginatedResponse<Product>>> {
     try {
-      // Ensure API base URL is configured
       OpenAPI.BASE = env.API_URL;
 
       const hasCategoryFilter =
@@ -159,7 +158,6 @@ export class ProductServiceClass {
 export class CategoryServiceClass {
   async getAll(): Promise<ApiResponse<Category[]>> {
     try {
-      // Ensure API base URL is configured
       OpenAPI.BASE = env.API_URL;
 
       const res = await CategoryService.getApiV1CategoryGetAll();

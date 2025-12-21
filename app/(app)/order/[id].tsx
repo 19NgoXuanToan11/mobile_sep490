@@ -20,12 +20,12 @@ import {
   OrderItemCard,
   ShippingAddressCard,
 } from "../../../src/features/order/components";
+import type { Order } from "../../../src/types";
 
 export default function OrderDetailScreen() {
   const { id, status: statusParam } = useLocalSearchParams<{ id: string; status?: Order["status"] }>();
   const { order, isLoading, error, refreshing, onRefresh } = useOrderDetail(id);
   useOrderStatusUpdates({ orderId: id });
-  // Ưu tiên status truyền từ màn danh sách để đảm bảo nhất quán badge
   const displayStatus = (statusParam as Order["status"]) || order?.status;
   const orderForDisplay = order ? { ...order, status: displayStatus || order.status } : order;
 
@@ -68,7 +68,6 @@ export default function OrderDetailScreen() {
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
       <View className="bg-white border-b border-gray-100 px-4 py-3 flex-row items-center justify-between">
         <TouchableOpacity
           onPress={() => {
@@ -90,10 +89,8 @@ export default function OrderDetailScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {/* Order Header Card */}
         <OrderHeaderCard order={orderForDisplay!} />
 
-        {/* Order Items */}
         <View className="mx-4 mt-4">
           <Text className="text-lg font-bold text-gray-900 mb-3">Sản phẩm</Text>
           {order.items.map((item) => (
@@ -101,7 +98,6 @@ export default function OrderDetailScreen() {
           ))}
         </View>
 
-        {/* Shipping Address */}
         <View className="mx-4 mt-4">
           <Text className="text-lg font-bold text-gray-900 mb-3">Địa chỉ giao hàng</Text>
           <ShippingAddressCard address={order.shippingAddress} />
@@ -118,7 +114,6 @@ export default function OrderDetailScreen() {
           </View>
         )}
 
-        {/* Bottom Spacing */}
         <View className="h-6" />
       </ScrollView>
     </SafeAreaView>

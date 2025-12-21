@@ -55,14 +55,11 @@ export default function CatalogScreen() {
   const [searchFocused, setSearchFocused] = useState(false);
   const debouncedQuery = useDebounce(searchQuery, 300);
 
-  // Apple-style Animation References
   const scrollY = useRef(new Animated.Value(0)).current;
   const searchBarAnim = useRef(new Animated.Value(1)).current;
   const filterButtonScale = useRef(new Animated.Value(1)).current;
   const modalSlideAnim = useRef(new Animated.Value(0)).current;
 
-  // Use backend category names, preferring the Vietnamese part if available.
-  // Example: "Leafy Vegetables - Rau Ăn Lá" -> "Rau Ăn Lá"
   const getDisplayCategoryName = (categoryName: string): string => {
     if (!categoryName) return "";
     const parts = categoryName.split(" - ");
@@ -115,7 +112,6 @@ export default function CatalogScreen() {
     { id: "name", label: "Tên A-Z" },
   ];
 
-  // ✨ Premium Shimmer Loader - Apple Style
   const ShimmerProductCard = () => {
     const shimmerAnim = useRef(new Animated.Value(0)).current;
 
@@ -149,7 +145,6 @@ export default function CatalogScreen() {
           ...appleDesign.shadows.soft,
         }}
       >
-        {/* Image Placeholder */}
         <Animated.View
           className="w-full h-36 mb-3"
           style={{
@@ -159,7 +154,6 @@ export default function CatalogScreen() {
           }}
         />
 
-        {/* Title Lines */}
         <Animated.View
           className="h-4 mb-2"
           style={{
@@ -203,18 +197,16 @@ export default function CatalogScreen() {
     );
   };
 
-  // ✨ Product Grid Item Component (with Fade-Up Animation)
   const ProductGridItem = React.memo(({ product, index }: { product: any; index: number }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const translateY = useRef(new Animated.Value(30)).current;
 
     useEffect(() => {
-      // Stagger animation for each card
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 500,
-          delay: index * 50, // Stagger delay
+          delay: index * 50,
           useNativeDriver: true,
         }),
         Animated.spring(translateY, {
@@ -250,7 +242,6 @@ export default function CatalogScreen() {
     );
   });
 
-  // ✨ Category Pill Component (with Scale Animation)
   const CategoryPill = React.memo(({
     item,
     isSelected,
@@ -265,7 +256,6 @@ export default function CatalogScreen() {
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
     const handlePress = () => {
-      // Animation on press
       Animated.sequence([
         Animated.spring(scaleAnim, {
           toValue: 0.92,
@@ -310,7 +300,6 @@ export default function CatalogScreen() {
     );
   });
 
-  // ✨ Filter Option Component (with Ripple Animation)
   const FilterOption = React.memo(({
     option,
     isSelected,
@@ -323,7 +312,6 @@ export default function CatalogScreen() {
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
     const handlePress = () => {
-      // Ripple animation
       Animated.sequence([
         Animated.timing(scaleAnim, {
           toValue: 0.96,
@@ -379,7 +367,6 @@ export default function CatalogScreen() {
     return <ProductGridItem product={product} index={index} />;
   };
 
-  // ✨ Apple Premium Filter Modal - Bottom Sheet Style
   const FilterModal = () => {
     const screenHeight = Dimensions.get("window").height;
 
@@ -421,7 +408,6 @@ export default function CatalogScreen() {
             ...appleDesign.shadows.strong,
           }}
         >
-          {/* Handle Bar */}
           <View className="items-center pt-3 pb-2">
             <View
               className="bg-neutral-300"
@@ -433,7 +419,6 @@ export default function CatalogScreen() {
             />
           </View>
 
-          {/* Header */}
           <View className="px-6 pt-4 pb-3">
             <Text
               className="text-center text-neutral-900"
@@ -447,7 +432,6 @@ export default function CatalogScreen() {
             </Text>
           </View>
 
-          {/* Sort Options - Apple List Style */}
           <View className="px-5 py-2">
             {filterOptions.map((option) => (
               <FilterOption
@@ -458,10 +442,8 @@ export default function CatalogScreen() {
               />
             ))}
           </View>
-
-          {/* Bottom Actions */}
+            
           <View className="px-6 pt-6 pb-8" style={{ gap: 12 }}>
-            {/* Done Button - Gradient */}
             <TouchableOpacity
               onPress={() => setShowFilters(false)}
               activeOpacity={0.85}

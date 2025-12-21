@@ -141,11 +141,9 @@ export default function SearchScreen() {
     queryFn: async () => {
       try {
         if (debouncedQuery && debouncedQuery.trim()) {
-          // Search by query
           const response = await productsApi.search(debouncedQuery.trim());
           let results = response.data || [];
 
-          // Filter by category if selected
           if (selectedCategory !== "all") {
             results = results.filter(
               (product) => product.categoryId === selectedCategory
@@ -154,13 +152,11 @@ export default function SearchScreen() {
 
           return results;
         } else if (selectedCategory !== "all") {
-          // Filter by category only
           const response = await productsApi.getAll({
             categories: [selectedCategory],
           });
           return response.data?.data || [];
         } else {
-          // Show limited products when no search query
           const response = await productsApi.getAll({}, 1, 20);
           return response.data?.data || [];
         }
@@ -168,7 +164,7 @@ export default function SearchScreen() {
         return [];
       }
     },
-    enabled: true, // Always enable to allow category filtering
+    enabled: true,
   });
 
   const handleAddToCart = async (productId: string, productName: string) => {
@@ -181,7 +177,7 @@ export default function SearchScreen() {
 
   const renderEmptyState = () => {
     if (isLoading) {
-      return null; // Don't show empty state while loading
+      return null;
     }
 
     if (debouncedQuery && debouncedQuery.trim()) {
@@ -219,7 +215,6 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Search Bar */}
       <View className="px-4 py-4 border-b border-neutral-100">
         <Input
           placeholder="Tìm kiếm sản phẩm..."
@@ -231,7 +226,6 @@ export default function SearchScreen() {
         />
       </View>
 
-      {/* Category Filter */}
       {categories.length > 0 && (
         <CategoryFilter
           categories={categories}
@@ -240,7 +234,6 @@ export default function SearchScreen() {
         />
       )}
 
-      {/* Search Results */}
       <FlatList
         data={searchResults}
         keyExtractor={(item) => item.id}
@@ -256,12 +249,10 @@ export default function SearchScreen() {
         columnWrapperStyle={{ justifyContent: "space-between" }}
         ListEmptyComponent={renderEmptyState()}
         onRefresh={() => {
-          // Trigger refetch
         }}
         refreshing={isLoading}
       />
 
-      {/* Search Results Count */}
       {searchResults.length > 0 && !isLoading && (
         <View className="px-4 py-2 border-t border-neutral-100 bg-neutral-50">
           <Text className="text-sm text-neutral-600 text-center">

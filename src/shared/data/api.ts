@@ -38,7 +38,6 @@ const withDelay = async <T>(data: T, delay?: number): Promise<T> => {
   return data;
 };
 
-// Chuẩn hóa trạng thái đơn hàng từ backend (số hoặc chuỗi) sang enum dùng trong app
 const normalizeOrderStatus = (status: any): number => {
   if (typeof status === "number" && !Number.isNaN(status)) return status;
   const raw = String(status ?? "")
@@ -86,19 +85,19 @@ const normalizeOrderStatus = (status: any): number => {
 const mapMobileStatus = (normalized: number): Order["status"] => {
   switch (normalized) {
     case 0:
-      return "PLACED"; // Chờ thanh toán/xử lý
+      return "PLACED";
     case 1:
-      return "CONFIRMED"; // Đã thanh toán/xác nhận
+      return "CONFIRMED";
     case 2:
-      return "FAILED"; // Thanh toán thất bại
+      return "FAILED";
     case 3:
-      return "PENDING"; // Đang xử lý
+      return "PENDING";
     case 4:
-      return "CANCELLED"; // Đã hủy
+      return "CANCELLED";
     case 5:
-      return "COMPLETED"; // Hoàn thành
+      return "COMPLETED";
     case 6:
-      return "DELIVERED"; // Đang giao/đã giao
+      return "DELIVERED";
     default:
       return "PLACED";
   }
@@ -107,7 +106,6 @@ const mapMobileStatus = (normalized: number): Order["status"] => {
 const mapBackendStatusToMobile = (status: any): Order["status"] =>
   mapMobileStatus(normalizeOrderStatus(status));
 
-// Lấy giá trị trạng thái gốc từ nhiều field tiềm năng của backend
 const extractOrderStatus = (o: any): any => {
   const candidates = [
     o?.paymentStatus,
@@ -130,10 +128,9 @@ const extractOrderStatus = (o: any): any => {
       return c;
     }
   }
-  return o?.status; // cuối cùng fallback
+  return o?.status;
 };
 
-// Auth API - Uses service layer
 export const authApi = {
   login: (credentials: LoginFormData) => authService.login(credentials),
   register: (userData: RegisterFormData) => authService.register(userData),
@@ -141,13 +138,11 @@ export const authApi = {
   getCurrentUser: () => authService.getCurrentUser(),
 };
 
-// Categories API - Uses service layer
 export const categoriesApi = {
   getAll: () => categoryService.getAll(),
   getById: (id: string) => categoryService.getById(id),
 };
 
-// Products API - Uses service layer
 export const productsApi = {
   getAll: (filters?: Partial<FilterState>, page = 1, limit = 20) =>
     productService.getAll(filters, page, limit),
@@ -283,8 +278,7 @@ export const feedbackApi = {
       const res = await FeedbackService.getApiV1FeedbackFeedbackByProduct({
         productId,
       });
-      const payload: any = (res as any)?.data ?? (res as any);
-      // Handle both array and object with items/data property
+      const payload: any = (res as any)?.data ?? (res as any);    
       let list: any[] = [];
       if (Array.isArray(payload)) {
         list = payload;
@@ -878,7 +872,6 @@ export const ordersApi = {
       });
       const o: any = res?.data?.data ?? res?.data ?? res;
 
-      // Map orderDetails to items
       const items = (o.orderDetails ?? []).map((item: any) => ({
         id: String(item.orderDetailId ?? ""),
         productId: String(item.productId ?? ""),
@@ -915,7 +908,6 @@ export const ordersApi = {
         },
       }));
 
-      // Parse shipping address
       const shippingAddr = String(o.shippingAddress ?? "");
       const addressParts = shippingAddr.split("\n");
       const namePhone = addressParts[0]?.split(" - ") ?? [];
@@ -923,7 +915,6 @@ export const ordersApi = {
       const phoneNumber = namePhone[1]?.trim() ?? "";
       const fullAddress = addressParts.slice(1).join(", ");
 
-      // Đồng bộ logic map trạng thái với màn hình danh sách (ưu tiên paymentStatus nếu có)
       const mappedStatus = mapBackendStatusToMobile(extractOrderStatus(o));
 
       const order: Order = {
@@ -970,7 +961,6 @@ export const ordersApi = {
     }
   },
 
-  // Get full order detail with all backend data (customer, payments, etc.)
   async getFullDetailById(id: string): Promise<ApiResponse<any>> {
     try {
       const res = await OrderService.getApiV1OrderOrder({
@@ -988,7 +978,7 @@ export const ordersApi = {
   },
 
   async getByDate(params: {
-    date: string; // Format: YYYY-MM-DD
+    date: string;
     pageIndex?: number;
     pageSize?: number;
   }): Promise<
@@ -1006,7 +996,6 @@ export const ordersApi = {
       OpenAPI.BASE = env.API_URL;
       OpenAPI.TOKEN = token;
 
-      // Format date as YYYY-MM-DD for the API
       const dateStr = params.date;
 
       const res = await OrderService.postApiV1OrderOrderListByDate({
@@ -1072,25 +1061,21 @@ export const ordersApi = {
           })),
           status: (() => {
             const statusValue = String(o.status ?? "0");
-            // Nếu status = 2 (UNDISCHARGED), hiển thị "FAILED" (Thất bại)
-            // Vì khi payment failed, backend set status = 2
-            // Khi payment thành công, backend set status = PAID (1), không phải 2
             if (statusValue === "2") {
-              return "FAILED"; // Thanh toán thất bại
+              return "FAILED";
             }
-            // Các status khác giữ nguyên logic cũ
             return statusValue === "0"
-              ? "PLACED" // UNPAID - Chờ thanh toán
+              ? "PLACED"
               : statusValue === "1"
-              ? "CONFIRMED" // PAID - Đã thanh toán/xác nhận
+              ? "CONFIRMED"
               : statusValue === "3"
-              ? "PENDING" // PENDING - Chờ xác nhận
+              ? "PENDING"
               : statusValue === "4"
-              ? "CANCELLED" // CANCELLED - Đã hủy
+              ? "CANCELLED"
               : statusValue === "5"
-              ? "COMPLETED" // COMPLETED - Hoàn thành
+              ? "COMPLETED"
               : statusValue === "6"
-              ? "DELIVERED" // DELIVERED - Đã giao
+              ? "DELIVERED"
               : "PLACED";
           })(),
           statusHistory: [],
@@ -1220,16 +1205,12 @@ export const ordersApi = {
         url: `/api/v1/account/buy-again/${orderId}`,
       });
 
-      // Backend returns ResponseDTO with Status (capital S), Message, and Data
-      // SUCCESS_CREATE_CODE = 1, FAIL_READ_CODE = -1, WARNING_NO_DATA_CODE = 4, FAIL_CREATE_CODE = -1
       const payload = (result as any)?.data ?? result;
 
-      // Check the Status field from ResponseDTO (backend uses capital S)
       const responseStatus =
         payload?.Status ?? payload?.status ?? payload?.code;
       const message = payload?.Message ?? payload?.message ?? "";
 
-      // SUCCESS_CREATE_CODE = 1 means success
       if (responseStatus === 1) {
         return {
           success: true,
@@ -1240,7 +1221,6 @@ export const ordersApi = {
         };
       }
 
-      // FAIL_READ_CODE = -1 or WARNING_NO_DATA_CODE = 4 means bad request
       if (responseStatus === -1 || responseStatus === 4) {
         return {
           success: false,
@@ -1249,14 +1229,12 @@ export const ordersApi = {
         };
       }
 
-      // Any other status is an error
       return {
         success: false,
         data: { message: "" },
         message: message || "Lỗi khi thêm sản phẩm vào giỏ hàng",
       };
     } catch (error: any) {
-      // Handle HTTP errors (400, 500, etc.)
       const errorPayload = error?.response?.data ?? error?.body ?? error;
       const errorStatus = errorPayload?.Status ?? errorPayload?.status;
       const errorMessage =
@@ -1265,8 +1243,6 @@ export const ordersApi = {
         error?.message ??
         "Lỗi khi mua lại đơn hàng";
 
-      // If backend returned a structured error with Status = 1, it's actually success
-      // This handles cases where HTTP error but Status = 1 (shouldn't happen but just in case)
       if (errorStatus === 1) {
         return {
           success: true,

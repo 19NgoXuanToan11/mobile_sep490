@@ -21,45 +21,30 @@ import {
   StickyCTA,
 } from "../../src/features/checkout/components";
 
-/**
- * CheckoutScreen - Apple Premium Style
- * Features:
- * - Clean section-based layout
- * - Radio card selection for address & payment
- * - Sticky CTA with disable/enable states
- * - VNPay integration with deep link callback
- * - Optimized performance with memo & callbacks
- */
 export default function CheckoutScreen() {
   const toast = useToast();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const {
-    // Data
     addresses,
     paymentMethods,
     cart,
     selectedItems,
 
-    // States
     selectedAddressId,
     selectedPaymentMethodId,
     setSelectedAddressId,
     setSelectedPaymentMethodId,
 
-    // Loading
     isLoading,
     isPlacingOrder,
 
-    // Validation
     canProceed,
 
-    // Actions
     placeOrder,
     refetchAddresses,
   } = useCheckout();
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
       toast.info(
@@ -70,7 +55,6 @@ export default function CheckoutScreen() {
     }
   }, [isAuthenticated, isAuthLoading]);
 
-  // Refresh addresses when screen focuses
   useEffect(() => {
     refetchAddresses();
   }, []);
@@ -84,7 +68,6 @@ export default function CheckoutScreen() {
     );
   }
 
-  // Get disabled message for CTA
   const getDisabledMessage = (): string | undefined => {
     if (cart.items.length === 0) {
       return "Giỏ hàng trống";
@@ -102,7 +85,6 @@ export default function CheckoutScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}

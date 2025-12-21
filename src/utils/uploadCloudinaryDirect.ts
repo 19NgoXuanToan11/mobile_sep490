@@ -14,10 +14,6 @@ export class CloudinaryUploadError extends Error {
   }
 }
 
-/**
- * Upload avatar directly from mobile to Cloudinary using unsigned preset.
- * Returns secure_url string.
- */
 export function uploadAvatarDirectToCloudinary(
   options: DirectUploadOptions
 ): Promise<string> {
@@ -25,17 +21,14 @@ export function uploadAvatarDirectToCloudinary(
 
   const formData = new FormData();
 
-  // react-native / expo FormData file descriptor
   formData.append("file", {
     uri: fileUri,
     type: "image/jpeg",
     name: `avatar_${Date.now()}.jpg`,
   } as any);
 
-  // required unsigned preset
   formData.append("upload_preset", CLOUDINARY.unsignedPreset);
 
-  // optional: logical folder (server-side controlled by preset + this param)
   formData.append("folder", `${CLOUDINARY.folder}/${userId}`);
 
   const xhr = new XMLHttpRequest();
@@ -43,8 +36,7 @@ export function uploadAvatarDirectToCloudinary(
   const promise = new Promise<string>((resolve, reject) => {
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable && onProgress) {
-        const percent = Math.round((event.loaded / event.total) * 100);
-        // Giới hạn tối đa 100%
+        const percent = Math.round((event.loaded / event.total) * 100); 
         onProgress(Math.min(100, percent));
       }
     };

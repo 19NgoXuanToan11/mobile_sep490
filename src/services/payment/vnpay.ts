@@ -16,10 +16,6 @@ export interface VNPayCallbackParams {
   [key: string]: string | undefined;
 }
 
-/**
- * Mở payment URL trong WebView component trực tiếp trong app
- * Navigate đến payment-webview screen với paymentUrl
- */
 export const openPayment = async (
   paymentUrl: string,
   orderId?: number
@@ -34,8 +30,6 @@ export const openPayment = async (
       ...(orderId && { orderId: String(orderId) }),
     };
 
-    // Navigate đến payment-webview screen với paymentUrl
-    // Sử dụng setTimeout để đảm bảo navigation không bị conflict với các navigation khác
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         try {
@@ -45,12 +39,11 @@ export const openPayment = async (
           });
           resolve();
         } catch (error) {
-          resolve(); // Resolve anyway để không block flow
+          resolve();
         }
-      }, 100); // Delay nhỏ để tránh navigation conflict
+      }, 100);
     });
   } catch (error) {
-    // Fallback: nếu navigate không hoạt động, mở trình duyệt hệ thống
     if (paymentUrl) {
       await Linking.openURL(paymentUrl);
     }
@@ -138,7 +131,6 @@ export const completePaymentFlow = async (url: string): Promise<void> => {
 
     const verification = await verifyPayment(orderId);
 
-    // Pass additional params from callback (amount, code, message)
     navigateToPaymentResult(orderId, verification.success && isSuccess, {
       amount: callbackParams.amount,
       code: callbackParams.vnp_ResponseCode || callbackParams.code,

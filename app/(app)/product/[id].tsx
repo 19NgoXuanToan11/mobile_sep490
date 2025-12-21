@@ -55,7 +55,6 @@ export default function ProductDetailScreen() {
     const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
     const [addedToCart, setAddedToCart] = React.useState(false);
 
-    // Animation values
     const scrollY = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.95)).current;
@@ -65,7 +64,6 @@ export default function ProductDetailScreen() {
 
     const productId = parseInt(id || "0", 10);
 
-    // Entrance animations
     React.useEffect(() => {
         Animated.parallel([
             Animated.timing(fadeAnim, {
@@ -88,7 +86,6 @@ export default function ProductDetailScreen() {
         ]).start();
     }, []);
 
-    // 获取产品详情
     const {
         data: product,
         isLoading: isProductLoading,
@@ -100,7 +97,6 @@ export default function ProductDetailScreen() {
         enabled: !!productId,
     });
 
-    // 获取产品评价
     const {
         data: feedbackData,
         isLoading: isFeedbackLoading,
@@ -122,7 +118,6 @@ export default function ProductDetailScreen() {
     }, [refetchProduct, refetchFeedback]);
 
 
-    // Animate quantity change
     const handleQuantityChange = (newQuantity: number) => {
         setQuantity(newQuantity);
         Animated.sequence([
@@ -142,7 +137,6 @@ export default function ProductDetailScreen() {
     const handleAddToCart = async () => {
         if (!product?.data) return;
 
-        // Button press animation
         Animated.sequence([
             Animated.timing(cartButtonScaleAnim, {
                 toValue: 0.95,
@@ -164,7 +158,6 @@ export default function ProductDetailScreen() {
                 `${product.data.productName} (x${quantity}) đã được thêm vào giỏ hàng`
             );
 
-            // Reset added state after 2 seconds
             setTimeout(() => {
                 setAddedToCart(false);
             }, 2000);
@@ -175,7 +168,6 @@ export default function ProductDetailScreen() {
 
 
 
-    // Parallax effect for image
     const imageTranslateY = scrollY.interpolate({
         inputRange: [0, 300],
         outputRange: [0, -50],
@@ -229,10 +221,8 @@ export default function ProductDetailScreen() {
     }
 
     const productData = product?.data;
-    // Parse feedback data - feedbackData is already an array from getByProduct
     const feedbacks: FeedbackListItem[] = Array.isArray(feedbackData) ? feedbackData : [];
 
-    // 计算平均评分
     const averageRating = feedbacks.length > 0
         ? feedbacks.reduce((acc, feedback) => acc + (feedback.rating || 0), 0) / feedbacks.length
         : (productData?.rating || 0);
@@ -251,10 +241,8 @@ export default function ProductDetailScreen() {
         <View className="flex-1" style={{ backgroundColor: '#FFFFFF' }}>
             <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-            {/* Premium Header - Minimal & Clean */}
             <SafeAreaView className="absolute top-0 left-0 right-0 z-10">
                 <View className="flex-row items-center justify-between px-5 py-3">
-                    {/* Back Button */}
                     <Pressable
                         onPress={() => router.back()}
                         className="w-11 h-11 rounded-full items-center justify-center"
@@ -270,7 +258,6 @@ export default function ProductDetailScreen() {
                         <Ionicons name="chevron-back" size={24} color="#111827" />
                     </Pressable>
 
-                    {/* Title - Subtle */}
                     <Animated.Text
                         className="text-base font-semibold flex-1 text-center mx-4"
                         style={{
@@ -302,7 +289,6 @@ export default function ProductDetailScreen() {
                 )}
                 scrollEventThrottle={16}
             >
-                {/* Premium Product Image with Parallax */}
                 <Animated.View
                     className="overflow-hidden"
                     style={{
@@ -310,7 +296,6 @@ export default function ProductDetailScreen() {
                         transform: [{ translateY: imageTranslateY }]
                     }}
                 >
-                    {/* Gradient Background */}
                     <LinearGradient
                         colors={['#FFFFFF', '#F6FFF8', '#FFFFFF']}
                         start={{ x: 0, y: 0 }}
@@ -326,7 +311,6 @@ export default function ProductDetailScreen() {
                         }}
                     >
                         {(() => {
-                            // Handle both string and array formats for images
                             let imagesToShow: string[] = [];
 
                             if (productData?.images) {
@@ -378,7 +362,6 @@ export default function ProductDetailScreen() {
                         })()}
                     </Animated.View>
 
-                    {/* Subtle Indicators */}
                     {(() => {
                         let imagesToShow: string[] = [];
                         if (productData?.images) {
@@ -688,7 +671,6 @@ export default function ProductDetailScreen() {
                             </Pressable>
                         </View>
 
-                        {/* Premium Add to Cart Button */}
                         <Animated.View style={{ transform: [{ scale: cartButtonScaleAnim }] }}>
                             <Pressable
                                 onPress={handleAddToCart}
@@ -735,7 +717,6 @@ export default function ProductDetailScreen() {
                         )}
                     </View>
 
-                    {/* Premium Reviews Section */}
                     <View
                         className="mb-6 p-5"
                         style={{
@@ -816,7 +797,6 @@ export default function ProductDetailScreen() {
             </Animated.ScrollView>
 
 
-            {/* Premium Floating Bottom Bar */}
             <View
                 className="absolute bottom-0 left-0 right-0"
                 style={{
@@ -833,7 +813,6 @@ export default function ProductDetailScreen() {
                 <SafeAreaView edges={["bottom"]}>
                     <View className="px-6 py-4">
                         <View className="flex-row items-center">
-                            {/* Cart Icon Button */}
                             <Pressable
                                 onPress={() => router.push("/(app)/(tabs)/cart")}
                                 className="w-14 h-14 rounded-full items-center justify-center mr-3"
@@ -844,7 +823,6 @@ export default function ProductDetailScreen() {
                                 <Ionicons name="cart-outline" size={26} color="#111827" />
                             </Pressable>
 
-                            {/* Buy Now Button - Premium Gradient */}
                             <Pressable
                                 onPress={() => {
                                     handleAddToCart();

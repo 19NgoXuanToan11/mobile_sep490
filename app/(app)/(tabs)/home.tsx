@@ -47,11 +47,9 @@ export default function HomeScreen() {
         setAvatarUri(response.data.images);
       }
     } catch (error) {
-      // Silent fail
     }
   };
 
-  // Animation values
   const scrollY = React.useRef(new Animated.Value(0)).current;
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -63,7 +61,6 @@ export default function HomeScreen() {
     }).start();
   }, []);
 
-  // Header parallax effect
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [1, 0.3],
@@ -76,7 +73,6 @@ export default function HomeScreen() {
     extrapolate: "clamp",
   });
 
-  // Get personalized greeting
   const getPersonalizedGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Chào buổi sáng";
@@ -120,7 +116,6 @@ export default function HomeScreen() {
         translucent
       />
 
-      {/* Apple-style Gradient Header */}
       <Animated.View
         style={{
           opacity: headerOpacity,
@@ -212,7 +207,6 @@ export default function HomeScreen() {
         )}
         scrollEventThrottle={16}
       >
-        {/* Featured Banners */}
         {banners.length > 0 && (
           <View style={{ marginBottom: appleDesign.spacing.lg, marginTop: appleDesign.spacing.md }}>
             <ScrollView
@@ -243,9 +237,7 @@ export default function HomeScreen() {
                       className="absolute inset-0"
                     />
 
-                    {/* Content */}
                     <View className="absolute inset-0 p-5 justify-between">
-                      {/* Top: Discount Badge */}
                       {index === 0 && (
                         <View className="self-start">
                           <View
@@ -268,7 +260,6 @@ export default function HomeScreen() {
                         </View>
                       )}
 
-                      {/* Bottom: Title & CTA */}
                       <View className="space-y-3">
                         <View>
                           <Text
@@ -289,7 +280,6 @@ export default function HomeScreen() {
                           )}
                         </View>
 
-                        {/* Apple-style CTA Button */}
                         <TouchableOpacity
                           onPress={() => router.push("/(app)/(tabs)/catalog")}
                           style={{
@@ -327,7 +317,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Featured Products Section */}
         <View style={{ marginTop: appleDesign.spacing.md, marginBottom: appleDesign.spacing.xl }}>
           <View className="px-5 mb-4 flex-row items-center justify-between">
             <Text
@@ -387,7 +376,6 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* Trending Products Grid */}
         {trendingProducts.length > 0 && (
           <View className="px-5" style={{ marginBottom: appleDesign.spacing.xl }}>
             <View className="mb-4 flex-row items-center justify-between">

@@ -26,7 +26,6 @@ export default function PaymentWebViewScreen() {
     orderId: string;
   }>();
 
-  // Memoize params để tránh re-render không cần thiết
   const paymentUrl = useMemo(() => params.paymentUrl, [params.paymentUrl]);
   const orderId = useMemo(() => params.orderId, [params.orderId]);
 
@@ -42,7 +41,6 @@ export default function PaymentWebViewScreen() {
   const processingCallbackRef = useRef(false);
   const mountedRef = useRef(false);
 
-  // Debug: Log params khi component mount
   useEffect(() => {
     if (mountedRef.current) {
       return;
@@ -50,7 +48,6 @@ export default function PaymentWebViewScreen() {
 
     mountedRef.current = true;
 
-    // Validate paymentUrl
     if (paymentUrl) {
       try {
         if (!paymentUrl.includes("vnpayment.vn")) {
@@ -70,11 +67,9 @@ export default function PaymentWebViewScreen() {
       }
     }
 
-    // Log khi component unmount
     return () => {
       mountedRef.current = false;
 
-      // Cleanup WebView
       if (webViewRef.current) {
         try {
           webViewRef.current.injectJavaScript(`
@@ -95,9 +90,8 @@ export default function PaymentWebViewScreen() {
       currentUrl.current = "";
       redirectCount.current = 0;
     };
-  }, []); // Empty deps - chỉ chạy một lần khi mount
+  }, []);
 
-  // Validate paymentUrl
   useEffect(() => {
     if (!paymentUrl) {
       setError("URL thanh toán không hợp lệ hoặc trống");
@@ -105,7 +99,6 @@ export default function PaymentWebViewScreen() {
     }
   }, [paymentUrl]);
 
-  // BackHandler để xử lý hardware back button
   useEffect(() => {
     const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
       if (isProcessingPayment) {
@@ -135,7 +128,6 @@ export default function PaymentWebViewScreen() {
     };
   }, [isProcessingPayment]);
 
-  // Loading time counter
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
 
@@ -151,7 +143,6 @@ export default function PaymentWebViewScreen() {
     };
   }, [loading]);
 
-  // Loading timeout alert
   useEffect(() => {
     if (loading) {
       const timeoutId = setTimeout(() => {
@@ -213,12 +204,8 @@ export default function PaymentWebViewScreen() {
     }
   }, [loading, paymentUrl]);
 
-  /**
-   * Xử lý VNPay response từ URL
-   */
   const handleVNPayResponse = useCallback(
     (url: string) => {
-      // Prevent duplicate processing
       if (processingCallbackRef.current) {
         return;
       }
@@ -254,16 +241,13 @@ export default function PaymentWebViewScreen() {
         const responseCode =
           callbackParams.vnp_ResponseCode || callbackParams.code || "";
 
-        // Đóng WebView ngay lập tức
         setWebviewVisible(false);
         setLoading(false);
 
-        // Update payment status on backend (async, không chờ) nếu có dữ liệu VNPay
         if (callbackParams.vnp_ResponseCode) {
           updatePaymentStatusOnBackend(callbackParams);
         }
 
-        // Stop WebView và cleanup
         if (webViewRef.current) {
           try {
             webViewRef.current.injectJavaScript(`
@@ -290,7 +274,6 @@ export default function PaymentWebViewScreen() {
           callbackParams.success &&
           callbackParams.success.toLowerCase() === "true";
 
-        // Navigate ngay lập tức đến payment-result screen
         if (responseCode === "00" || successFlag) {
           router.replace({
             pathname: "/(app)/payment-result",
@@ -333,7 +316,6 @@ export default function PaymentWebViewScreen() {
         });
       } finally {
         setIsProcessingPayment(false);
-        // Reset flag sau 2 giây để cho phép retry nếu cần
         setTimeout(() => {
           processingCallbackRef.current = false;
         }, 2000);
@@ -342,9 +324,6 @@ export default function PaymentWebViewScreen() {
     [orderId]
   );
 
-  /**
-   * Lấy thông báo lỗi từ VNPay response code
-   */
   const getVNPayErrorMessage = (code: string): string => {
     const errorMessages: Record<string, string> = {
       "00": "Giao dịch thành công",
@@ -363,9 +342,6 @@ export default function PaymentWebViewScreen() {
     return errorMessages[code] || `Lỗi thanh toán (Mã: ${code})`;
   };
 
-  /**
-   * Update payment status on backend
-   */
   const updatePaymentStatusOnBackend = async (params: Record<string, string>) => {
     try {
       if (!params) return;
@@ -399,16 +375,11 @@ export default function PaymentWebViewScreen() {
           timeout: 10000,
         });
       } catch (error) {
-        // Silent fail - không cần log error
       }
     } catch (error) {
-      // Silent fail
     }
   };
 
-  /**
-   * Xử lý khi WebView navigate đến URL mới
-   */
   const handleNavigationStateChange = useCallback(
     async (navState: any) => {
       setIsProcessingPayment(true);
@@ -429,7 +400,6 @@ export default function PaymentWebViewScreen() {
         }
       }
 
-      // Detect VNPay response từ URL hoặc URL đã redirect về payment-result
       const url = navState.url || "";
       const hasVNPayParams = url.includes("vnp_ResponseCode=");
       const hasPaymentResultParams =
@@ -442,7 +412,6 @@ export default function PaymentWebViewScreen() {
         return false;
       }
 
-      // Detect deep link callback
       const deepLinkPatterns = [
         /^ifms:\/\//,
         /^https:\/\/web-sep490\.vercel\.app\/mobile-redirect\//,
@@ -492,7 +461,6 @@ export default function PaymentWebViewScreen() {
       return;
     }
 
-    // Xử lý VNPay response từ injected JavaScript
     try {
       const data = JSON.parse(message);
       if (data.type === "VNPAY_RESPONSE" && data.url) {
@@ -502,13 +470,9 @@ export default function PaymentWebViewScreen() {
         }
       }
     } catch (error) {
-      // Không phải JSON message, bỏ qua
     }
   };
 
-  /**
-   * Xử lý khi user nhấn nút back
-   */
   const handleGoBack = () => {
     if (isProcessingPayment) {
       Alert.alert(
@@ -562,9 +526,6 @@ export default function PaymentWebViewScreen() {
     }
   };
 
-  /**
-   * Xử lý khi user chọn "Đã thanh toán" từ external browser
-   */
   const handlePaymentSuccess = () => {
     const fakeSuccessParams: Record<string, string> = {
       vnp_ResponseCode: "00",
@@ -573,9 +534,6 @@ export default function PaymentWebViewScreen() {
     handleVNPayResponse(fakeSuccessParams as any);
   };
 
-  /**
-   * Xử lý khi user chọn "Đã hủy thanh toán" từ external browser
-   */
   const handlePaymentCancel = () => {
     const fakeCancelParams: Record<string, string> = {
       vnp_ResponseCode: "24",
@@ -584,9 +542,6 @@ export default function PaymentWebViewScreen() {
     handleVNPayResponse(fakeCancelParams as any);
   };
 
-  /**
-   * Xử lý khi user chọn "Gặp lỗi khác" từ external browser
-   */
   const handlePaymentError = (errorCode: string = "99") => {
     const fakeErrorParams: Record<string, string> = {
       vnp_ResponseCode: errorCode,
@@ -595,9 +550,6 @@ export default function PaymentWebViewScreen() {
     handleVNPayResponse(fakeErrorParams as any);
   };
 
-  /**
-   * Render external browser button
-   */
   const renderExternalBrowserButton = () => {
     if (loadingTime < 10 || !paymentUrl) return null;
 
@@ -650,9 +602,6 @@ export default function PaymentWebViewScreen() {
     );
   };
 
-  /**
-   * Render loading indicator với thông tin chi tiết
-   */
   const renderLoading = () => {
     if (!loading) return null;
 
@@ -695,9 +644,6 @@ export default function PaymentWebViewScreen() {
     );
   };
 
-  /**
-   * Render error screen
-   */
   const renderError = () => {
     if (!error) return null;
 
@@ -747,7 +693,6 @@ export default function PaymentWebViewScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor="#00A86B" />
 
-      {/* Header với LinearGradient */}
       <LinearGradient
         colors={["#00A86B", "#00C97A"]}
         style={styles.header}
@@ -762,7 +707,6 @@ export default function PaymentWebViewScreen() {
         </View>
       </LinearGradient>
 
-      {/* Error hoặc WebView */}
       {error ? (
         renderError()
       ) : webviewVisible ? (
@@ -790,11 +734,9 @@ export default function PaymentWebViewScreen() {
               originWhitelist={["*"]}
               injectedJavaScript={`
                 (function() {
-                  // Function để detect VNPay response từ URL
                   function detectVNPayResponse(url) {
                     if (!url || typeof url !== 'string') return null;
                     
-                    // Check nếu URL chứa VNPay response parameters
                     if (
                       url.includes('vnp_ResponseCode=') ||
                       url.includes('vnp_TransactionNo=') ||
@@ -803,23 +745,19 @@ export default function PaymentWebViewScreen() {
                       return url;
                     }
                     
-                    // Check trong query params
                     try {
                       const urlObj = new URL(url);
                       if (urlObj.searchParams.has('vnp_ResponseCode')) {
                         return url;
                       }
                     } catch (e) {
-                      // URL không hợp lệ, bỏ qua
                     }
                     
                     return null;
                   }
 
-                  // Monitor URL changes
                   let lastUrl = window.location.href;
                   
-                  // Check URL hiện tại ngay khi script chạy
                   const currentUrl = window.location.href;
                   const vnpayResponse = detectVNPayResponse(currentUrl);
                   if (vnpayResponse && window.ReactNativeWebView) {
@@ -830,7 +768,6 @@ export default function PaymentWebViewScreen() {
                     return;
                   }
 
-                  // Override pushState và replaceState để detect URL changes
                   const originalPushState = history.pushState;
                   const originalReplaceState = history.replaceState;
                   
@@ -861,21 +798,18 @@ export default function PaymentWebViewScreen() {
                     }, 100);
                   };
 
-                  // Monitor hash changes
                   window.addEventListener('hashchange', function() {
                     setTimeout(function() {
                       checkAndNotify(window.location.href);
                     }, 100);
                   });
 
-                  // Monitor popstate (back/forward button)
                   window.addEventListener('popstate', function() {
                     setTimeout(function() {
                       checkAndNotify(window.location.href);
                     }, 100);
                   });
 
-                  // Poll URL changes mỗi 500ms để đảm bảo không bỏ sót
                   setInterval(function() {
                     const currentUrl = window.location.href;
                     if (currentUrl !== lastUrl) {
@@ -883,7 +817,6 @@ export default function PaymentWebViewScreen() {
                     }
                   }, 500);
 
-                  // Monitor form submissions và link clicks
                   document.addEventListener('click', function(e) {
                     const target = e.target;
                     if (target.tagName === 'A' || target.closest('a')) {
@@ -896,7 +829,6 @@ export default function PaymentWebViewScreen() {
                     }
                   }, true);
 
-                  // Monitor form submissions
                   document.addEventListener('submit', function(e) {
                     setTimeout(function() {
                       checkAndNotify(window.location.href);
@@ -921,7 +853,6 @@ export default function PaymentWebViewScreen() {
           {renderLoading()}
         </>
       ) : (
-        // WebView đã đóng, đang chuyển đến payment-result screen
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#00A86B" />
           <Text style={styles.loadingText}>Đang xử lý kết quả thanh toán...</Text>

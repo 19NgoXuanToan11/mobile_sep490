@@ -29,9 +29,7 @@ export function formatDate(
 ) {
   const dateObj = typeof date === "string" ? new Date(date) : date;
   const formatted = new Intl.DateTimeFormat(locale, options).format(dateObj);
-  // Ensure dd/mm/yyyy format for vi-VN locale
   if (locale === "vi-VN") {
-    // Intl.DateTimeFormat with vi-VN might return different format, so we manually format
     const d = dateObj.getDate().toString().padStart(2, "0");
     const m = (dateObj.getMonth() + 1).toString().padStart(2, "0");
     const y = dateObj.getFullYear();
@@ -164,14 +162,9 @@ export function sleep(ms: number): Promise<void> {
 export function getRandomDelay(): number {
   return Math.floor(Math.random() * 300) + 200;
 }
-/**
- * Normalizes product unit from backend to display format
- * Temporarily converts "Bó" or "bó" to "Kg" until backend is updated
- */
 export function normalizeUnit(unit: string | undefined | null): string {
   if (!unit) return "Kg";
   const normalized = unit.trim();
-  // Convert "Bó" or "bó" to "Kg" (temporary hardcode until backend is fixed)
   if (normalized.toLowerCase() === "bó" || normalized === "Bó") {
     return "Kg";
   }

@@ -7,7 +7,6 @@ import { Ionicons } from "@expo/vector-icons";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-// Floating particles component
 const FloatingParticles = () => {
   const particles = Array.from({ length: 3 }, (_, i) => ({
     id: i,
@@ -70,7 +69,6 @@ const FloatingParticles = () => {
   );
 };
 
-// Minimalist logo component with breathing animation
 const Logo = ({ size = 80 }: { size?: number }) => {
   const breatheAnim = useRef(new Animated.Value(1)).current;
 
@@ -124,7 +122,6 @@ const Logo = ({ size = 80 }: { size?: number }) => {
   );
 };
 
-// Animated welcome text component
 const WelcomeText = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -165,7 +162,6 @@ export default function WelcomeScreen() {
   const screenFadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Logo entrance animation
     Animated.parallel([
       Animated.timing(logoOpacity, {
         toValue: 1,
@@ -180,15 +176,12 @@ export default function WelcomeScreen() {
       }),
     ]).start();
 
-    // Auto-navigation after 2 seconds with smooth fade-out
     const navigationTimer = setTimeout(() => {
-      // Start fade-out animation
       Animated.timing(screenFadeAnim, {
         toValue: 0,
         duration: 400,
         useNativeDriver: true,
       }).start(() => {
-        // Navigate to onboarding after fade-out completes
         router.replace("/(public)/onboarding");
       });
     }, 2000);
@@ -204,17 +197,14 @@ export default function WelcomeScreen() {
           opacity: screenFadeAnim,
         }}
       >
-        {/* Subtle gradient background */}
         <LinearGradient
           colors={["#f0f9f5", "#ffffff", "#ffffff"]}
           className="absolute inset-0"
         />
 
-        {/* Floating particles */}
         <FloatingParticles />
 
         <View className="flex-1 items-center justify-center px-8">
-          {/* Logo section - perfectly centered */}
           <Animated.View
             style={{
               opacity: logoOpacity,
@@ -225,7 +215,6 @@ export default function WelcomeScreen() {
           </Animated.View>
         </View>
 
-        {/* Subtle decorative elements */}
         <View className="absolute top-20 right-8 opacity-5">
           <Ionicons name="leaf-outline" size={24} color="#00623A" />
         </View>

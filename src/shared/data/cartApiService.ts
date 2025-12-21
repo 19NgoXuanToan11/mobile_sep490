@@ -155,7 +155,6 @@ async function transformCartItem(
     }
   }
   const quantity = Number(item.quantity ?? 1);
-  // Dùng product.price trực tiếp làm giá đơn vị - đáng tin cậy và chính xác nhất
   const itemPrice = product.price;
   return {
     id: String(item.cartItemId ?? generateId("cart")),

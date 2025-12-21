@@ -30,18 +30,12 @@ export default function PaymentResultScreen() {
   const toast = useToast();
   const { clearCart } = useCart();
 
-  // Initialize payment status based on params to avoid showing loading screen
-  // if we already have payment result from deep link
   const getInitialPaymentStatus = (): "loading" | "success" | "failed" => {
     if (success === "true") {
-      // If we have success param, start with loading state but will quickly process
-      // This prevents showing "failed" state initially
       return "loading";
     } else if (success === "false") {
-      // If we have failed param, show failed state immediately
       return "failed";
     }
-    // If no success param, we're polling for status
     return "loading";
   };
 
@@ -51,20 +45,17 @@ export default function PaymentResultScreen() {
   const hasProcessedPaymentRef = useRef(false);
   const isProcessingRef = useRef(false);
 
-  // Store message in ref to avoid recreating callback
   const messageRef = useRef(message);
   useEffect(() => {
     messageRef.current = message;
   }, [message]);
 
-  // Reset processing flags when orderId changes
   useEffect(() => {
     hasProcessedPaymentRef.current = false;
     isProcessingRef.current = false;
   }, [orderId]);
 
   const handlePaymentSuccess = useCallback(async () => {
-    // Prevent multiple simultaneous calls
     if (isProcessingRef.current || hasProcessedPaymentRef.current) {
       return;
     }
@@ -73,43 +64,33 @@ export default function PaymentResultScreen() {
     hasProcessedPaymentRef.current = true;
 
     try {
-      // Create order payment record
       const paymentResult = await ordersApi.createOrderPayment(Number(orderId));
 
       if (paymentResult.success) {
-        // Clear cart
         await clearCart();
-        // Không hiển thị toast thành công để tránh trùng với UI màn kết quả
         setPaymentStatus("success");
       } else {
         toast.error("Lỗi thanh toán", "Không thể hoàn tất đơn hàng");
         setPaymentStatus("failed");
-        hasProcessedPaymentRef.current = false; // Allow retry
+        hasProcessedPaymentRef.current = false;
       }
     } catch (error) {
       toast.error("Lỗi xử lý thanh toán", "Vui lòng liên hệ hỗ trợ");
       setPaymentStatus("failed");
-      hasProcessedPaymentRef.current = false; // Allow retry
+      hasProcessedPaymentRef.current = false;
     } finally {
       isProcessingRef.current = false;
     }
   }, [orderId, clearCart, toast]);
 
-  // Handle deep link parameters from VNPay callback - only process once
-  // This effect runs immediately when component mounts with success param
   useEffect(() => {
-    // Only process if we have success param and haven't processed yet
     if (success !== undefined && !hasProcessedPaymentRef.current) {
       if (success === "true") {
-        // Process payment success immediately
-        // This will quickly change status from "loading" to "success"
         handlePaymentSuccess();
       } else if (success === "false") {
-        // Payment failed - already set in initial state
         setPaymentStatus("failed");
         if (!hasProcessedPaymentRef.current) {
-          // Không hiển thị toast để tránh trùng với UI màn kết quả
-          hasProcessedPaymentRef.current = true; // Prevent duplicate processing
+          hasProcessedPaymentRef.current = true;
         }
       }
     }
@@ -121,21 +102,19 @@ export default function PaymentResultScreen() {
     toast,
   ]);
 
-  // Check payment status (only if not from deep link)
   const { data: paymentData, isLoading } = useQuery({
     queryKey: ["payment-status", orderId],
     queryFn: async () => {
       if (!orderId) throw new Error("Order ID not found");
       return await ordersApi.getPaymentStatus(Number(orderId));
     },
-    enabled: !!orderId && success === undefined, // Only poll if not from deep link
+    enabled: !!orderId && success === undefined,
     refetchInterval:
       paymentStatus === "loading" && success === undefined ? 3000 : false,
     refetchIntervalInBackground: false,
   });
 
   useEffect(() => {
-    // Only process API data if not from deep link and haven't processed yet
     if (
       success === undefined &&
       paymentData?.success &&
@@ -143,17 +122,13 @@ export default function PaymentResultScreen() {
     ) {
       const { isSuccess, vnpayResponseCode, isPending } = paymentData.data;
 
-      // Check isPending first
       if (isPending === true) {
         setPaymentStatus("loading");
       } else if (isSuccess === true) {
-        // Process payment success (only once)
         handlePaymentSuccess();
       } else if (isSuccess === false) {
         setPaymentStatus("failed");
-        // Không hiển thị toast để tránh trùng với UI màn kết quả
       } else {
-        // Keep loading state để tiếp tục polling
       }
     } else if (success === undefined && paymentData?.success === false) {
       setPaymentStatus("failed");
