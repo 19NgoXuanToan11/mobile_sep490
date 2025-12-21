@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { formatDate } from "../../../shared/lib/utils";
 import { getStatusInfo, StatusInfo } from "../utils/orderStatus";
 import { Order } from "../../../types";
@@ -29,20 +28,15 @@ export const OrderHeaderCard = React.memo<OrderHeaderCardProps>(
                         </Text>
                     </View>
                     <View
-                        className="px-4 py-2 rounded-full flex-row items-center"
+                        className="px-4 py-2 rounded-full"
                         style={{
                             backgroundColor: statusInfo.bgColor,
                             borderWidth: 1,
                             borderColor: statusInfo.borderColor,
                         }}
                     >
-                        <Ionicons
-                            name={statusInfo.icon as any}
-                            size={18}
-                            color={statusInfo.color}
-                        />
                         <Text
-                            className="ml-2 font-semibold text-sm"
+                            className="font-semibold text-sm"
                             style={{ color: statusInfo.color }}
                         >
                             {statusInfo.text}

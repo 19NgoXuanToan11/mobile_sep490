@@ -108,6 +108,7 @@ export default function PersonalInfoScreen() {
             style={styles.backButton}
             activeOpacity={0.6}
           >
+            <Ionicons name="chevron-back" size={24} color="#111827" />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Thông tin cá nhân</Text>

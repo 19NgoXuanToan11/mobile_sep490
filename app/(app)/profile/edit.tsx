@@ -190,6 +190,7 @@ export default function EditProfileScreen() {
             style={styles.backButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
+            <Ionicons name="chevron-back" size={24} color="#111827" />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Chỉnh sửa thông tin</Text>
@@ -307,7 +308,7 @@ export default function EditProfileScreen() {
             </View>
           </View>
         </ScrollView>
-          
+
         <View style={styles.bottomButtonContainer}>
           <SaveButton
             onPress={handleSave}

@@ -330,7 +330,8 @@ export default function OnboardingScreen() {
             position: "absolute",
             left: 24,
             right: 24,
-            bottom: index === 0 ? 160 : 140,
+            // Shift content up by ~20px to add more space from bottom action button on devices like BlueStacks
+            bottom: index === 0 ? 180 : 160,
             alignItems:
               index === slides.length - 1
                 ? "flex-start"
