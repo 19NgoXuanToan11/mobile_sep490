@@ -173,7 +173,6 @@ export default function CatalogScreen() {
           }}
         />
 
-        {/* Price */}
         <Animated.View
           className="h-5 mb-3"
           style={{
@@ -184,7 +183,6 @@ export default function CatalogScreen() {
           }}
         />
 
-        {/* Button */}
         <Animated.View
           className="h-10"
           style={{
@@ -471,7 +469,6 @@ export default function CatalogScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Reset Button */}
             <TouchableOpacity
               onPress={() => {
                 setSortBy("newest");
@@ -503,7 +500,6 @@ export default function CatalogScreen() {
     <View className="flex-1" style={{ backgroundColor: "#FFFFFF" }}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {/* ✨ Premium Search Bar - Apple Style */}
       <Animated.View
         className="bg-white pt-12 pb-4 px-4"
         style={{
@@ -511,7 +507,6 @@ export default function CatalogScreen() {
         }}
       >
         <View className="flex-row items-center" style={{ gap: 12 }}>
-          {/* Search Input Container */}
           <View
             className="flex-1 flex-row items-center bg-white px-4 py-3"
             style={{
@@ -550,7 +545,6 @@ export default function CatalogScreen() {
             )}
           </View>
 
-          {/* Filter Button - Glass Blur */}
           <TouchableOpacity
             onPress={() => setShowFilters(true)}
             onPressIn={() => {
@@ -588,7 +582,6 @@ export default function CatalogScreen() {
         </View>
       </Animated.View>
 
-      {/* ✨ Category Pills - Apple Style with Fade Edges */}
       <View
         className="bg-white py-4"
         style={{
@@ -617,7 +610,6 @@ export default function CatalogScreen() {
         </ScrollView>
       </View>
 
-      {/* ✨ Products Grid with Premium Loading */}
       <View className="flex-1" style={{ backgroundColor: "#F9FAFB" }}>
         {isLoading ? (
           <View className="flex-1 px-4 pt-4">
@@ -659,7 +651,6 @@ export default function CatalogScreen() {
         )}
       </View>
 
-      {/* ✨ Filter Modal - Apple Style Bottom Sheet */}
       <Modal
         visible={showFilters}
         transparent={true}
@@ -667,8 +658,7 @@ export default function CatalogScreen() {
         onRequestClose={() => setShowFilters(false)}
         presentationStyle="overFullScreen"
       >
-        <View className="flex-1">
-          {/* Backdrop with fade animation */}
+        <View className="flex-1">   
           <TouchableOpacity
             className="absolute inset-0"
             onPress={() => setShowFilters(false)}

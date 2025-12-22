@@ -13,7 +13,6 @@ import {
 import { Stack, router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
     changePasswordSchema,
@@ -191,7 +190,6 @@ export default function ChangePasswordScreen() {
                                 )}
                             />
 
-                            {/* Password Requirements Hint */}
                             {!errors.newPassword && (
                                 <Text
                                     style={{
@@ -206,7 +204,6 @@ export default function ChangePasswordScreen() {
                             )}
                         </View>
 
-                        {/* Confirm Password */}
                         <View>
                             <Text
                                 style={{
@@ -241,7 +238,6 @@ export default function ChangePasswordScreen() {
                     </View>
                 </ScrollView>
 
-                {/* Submit Button - Fixed at Bottom */}
                 <View
                     style={{
                         position: "absolute",

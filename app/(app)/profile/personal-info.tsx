@@ -100,7 +100,6 @@ export default function PersonalInfoScreen() {
         translucent
       />
 
-      {/* Header */}
       <SafeAreaView edges={["top"]} style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity
@@ -131,7 +130,6 @@ export default function PersonalInfoScreen() {
           </View>
         ) : (
           <>
-            {/* Profile Summary Card */}
             <ProfileSummaryCard
               fullName={
                 profileData?.fullname ||
@@ -147,7 +145,6 @@ export default function PersonalInfoScreen() {
               avatarUri={profileData?.images}
             />
 
-            {/* Personal Information Section */}
             <InfoSection
               title="Thông tin cá nhân"
               onEdit={handleEditProfile}
@@ -191,7 +188,6 @@ export default function PersonalInfoScreen() {
               />
             </InfoSection>
 
-            {/* Quick Actions Section */}
             <View style={styles.quickActionsSection}>
               <Text style={styles.quickActionsTitle}>
                 Hành động nhanh
@@ -219,7 +215,6 @@ export default function PersonalInfoScreen() {
               </View>
             </View>
 
-            {/* Bottom Edit Button */}
             <View style={styles.bottomButtonContainer}>
               <TouchableOpacity
                 style={styles.editButton}

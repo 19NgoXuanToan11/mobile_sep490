@@ -394,9 +394,7 @@ export default function ProductDetailScreen() {
                     })()}
                 </Animated.View>
 
-                {/* Premium Product Info Section */}
                 <View className="px-6 pt-6">
-                    {/* Product Name - Apple Style */}
                     <Animated.View
                         className="mb-2"
                         style={{
@@ -417,7 +415,6 @@ export default function ProductDetailScreen() {
                         </Text>
                     </Animated.View>
 
-                    {/* Price - Premium Style */}
                     <Animated.View
                         className="mb-6"
                         style={{
@@ -496,7 +493,6 @@ export default function ProductDetailScreen() {
                         )}
                     </Animated.View>
 
-                    {/* Premium Product Details Card */}
                     <View
                         className="mb-6 p-5"
                         style={{
@@ -595,7 +591,6 @@ export default function ProductDetailScreen() {
                         </View>
                     </View>
 
-                    {/* Premium Quantity Selector */}
                     <View
                         className="mb-6 p-5"
                         style={{
@@ -618,8 +613,7 @@ export default function ProductDetailScreen() {
                         >
                             Chọn số lượng
                         </Text>
-
-                        {/* Custom Quantity Stepper */}
+                            
                         <View className="flex-row items-center mb-4">
                             <Pressable
                                 onPress={() => quantity > 1 && handleQuantityChange(quantity - 1)}

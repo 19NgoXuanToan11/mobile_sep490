@@ -1236,7 +1236,6 @@ export default function OrdersScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Selected date indicator */}
         {selectedDate && (
           <View className="px-4 mb-2">
             <TouchableOpacity
@@ -1251,10 +1250,8 @@ export default function OrdersScreen() {
           </View>
         )}
 
-        {/* Search bar */}
         {renderSearchBar()}
 
-        {/* Filter chips */}
         <View className="px-4">
           <FlatList
             data={filterChips}
@@ -1369,7 +1366,6 @@ export default function OrdersScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Quick date buttons */}
             <View className="mt-6 pt-6 border-t border-gray-200">
               <Text className="text-sm text-gray-600 mb-3 font-medium">
                 Chọn nhanh:

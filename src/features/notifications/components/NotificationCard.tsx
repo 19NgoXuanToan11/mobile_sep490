@@ -55,7 +55,6 @@ export const NotificationCard = React.memo<NotificationCardProps>(
                 >
                     <View style={styles.content}>
                         <View style={styles.mainContent}>
-                            {/* Top: title + time */}
                             <View style={styles.topRow}>
                                 <View style={styles.titleRow}>
                                     {!notification.isRead && <View style={styles.unreadDot} />}
@@ -76,7 +75,6 @@ export const NotificationCard = React.memo<NotificationCardProps>(
                                 </Text>
                             </View>
 
-                            {/* Message */}
                             <Text
                                 style={[
                                     styles.message,

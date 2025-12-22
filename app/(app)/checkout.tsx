@@ -97,20 +97,17 @@ export default function CheckoutScreen() {
         <View style={styles.headerRight} />
       </View>
 
-      {/* Content */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Order Summary Section */}
         <OrderSummaryCard
           items={selectedItems}
           subtotal={cart.subtotal}
           total={cart.total}
         />
 
-        {/* Delivery Address Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Địa Chỉ Giao Hàng</Text>
@@ -148,7 +145,6 @@ export default function CheckoutScreen() {
           )}
         </View>
 
-        {/* Payment Method Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Phương Thức Thanh Toán</Text>
@@ -166,11 +162,9 @@ export default function CheckoutScreen() {
           </View>
         </View>
 
-        {/* Bottom spacing for sticky CTA */}
         <View style={{ height: 50 }} />
       </ScrollView>
-
-      {/* Sticky CTA */}
+              
       <StickyCTA
         isEnabled={canProceed}
         isLoading={isPlacingOrder}

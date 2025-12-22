@@ -160,7 +160,6 @@ export default function MyAddressScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
@@ -175,7 +174,6 @@ export default function MyAddressScreen() {
         <AddNewButton onPress={handleAddAddress} />
       </View>
 
-      {/* Address List */}
       <FlatList
         data={addresses}
         renderItem={renderAddressCard}
@@ -188,8 +186,7 @@ export default function MyAddressScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       />
-
-      {/* Confirm Dialog */}
+  
       <ConfirmDialog
         visible={dialog.visible}
         title={
