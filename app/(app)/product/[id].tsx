@@ -10,6 +10,8 @@ import {
     RefreshControl,
     Animated,
     Pressable,
+    TextInput,
+    Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -52,8 +54,11 @@ export default function ProductDetailScreen() {
 
     const [refreshing, setRefreshing] = React.useState(false);
     const [quantity, setQuantity] = React.useState(1);
+    const [quantityInput, setQuantityInput] = React.useState(String(1));
+    const [quantityError, setQuantityError] = React.useState<string | null>(null);
     const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
     const [addedToCart, setAddedToCart] = React.useState(false);
+    const [buyNowLoading, setBuyNowLoading] = React.useState(false);
 
     const scrollY = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -63,6 +68,14 @@ export default function ProductDetailScreen() {
     const cartButtonScaleAnim = useRef(new Animated.Value(1)).current;
 
     const productId = parseInt(id || "0", 10);
+
+    const getEffectiveStock = () => {
+        const pd = product?.data;
+        if (!pd) return undefined;
+        if (typeof pd.stock !== "undefined") return pd.stock;
+        if (typeof pd.stockQuantity !== "undefined") return pd.stockQuantity;
+        return undefined;
+    };
 
     React.useEffect(() => {
         Animated.parallel([
@@ -119,7 +132,10 @@ export default function ProductDetailScreen() {
 
 
     const handleQuantityChange = (newQuantity: number) => {
-        setQuantity(newQuantity);
+        const maxStock = getEffectiveStock() ?? 999999;
+        const clamped = Math.min(Math.max(1, newQuantity), Math.max(1, maxStock));
+        setQuantity(clamped);
+        setQuantityInput(String(clamped));
         Animated.sequence([
             Animated.timing(quantityScaleAnim, {
                 toValue: 1.2,
@@ -134,8 +150,82 @@ export default function ProductDetailScreen() {
         ]).start();
     };
 
-    const handleAddToCart = async () => {
+    const handleQuantityInputChange = (text: string) => {
+        const cleaned = text.replace(/\D+/g, "");
+        const truncated = cleaned.slice(0, 6);
+        setQuantityInput(truncated);
+        setQuantityError(null);
+    };
+
+    React.useEffect(() => {
+        const delay = 300;
+        const stock = getEffectiveStock() ?? 999999;
+        const handler = setTimeout(() => {
+            const cleaned = (quantityInput || "").replace(/\D+/g, "");
+            if (!cleaned) {
+                setQuantityError("Vui lòng nhập số lượng");
+                return;
+            }
+            const parsed = parseInt(cleaned, 10);
+            if (Number.isNaN(parsed) || parsed <= 0) {
+                setQuantityError("Số lượng phải là số nguyên dương");
+                return;
+            }
+            if (parsed > stock) {
+                setQuantityError(`Chỉ còn ${stock} sản phẩm`);
+                return;
+            }
+            setQuantity(parsed);
+            setQuantityError(null);
+        }, delay);
+
+        return () => clearTimeout(handler);
+    }, [quantityInput, product?.data?.stock]);
+
+    const handleQuantityInputBlur = () => {
+        const stock = getEffectiveStock() ?? 999999;
+        if (!quantityInput || quantityInput.trim() === "") {
+            setQuantity(1);
+            setQuantityInput("1");
+            setQuantityError(null);
+            return;
+        }
+
+        const parsed = parseInt(quantityInput, 10);
+        if (Number.isNaN(parsed) || parsed <= 0) {
+            setQuantity(1);
+            setQuantityInput("1");
+            setQuantityError("Số lượng không hợp lệ. Đã đặt về 1.");
+            return;
+        }
+
+        if (parsed > stock) {
+            setQuantity(stock);
+            setQuantityInput(String(stock));
+            setQuantityError(`Chỉ còn ${stock} sản phẩm trong kho.`);
+            return;
+        }
+
+        setQuantity(parsed);
+        setQuantityInput(String(parsed));
+        setQuantityError(null);
+    };
+
+    const handleAddToCart = async (showToast: boolean = true) => {
         if (!product?.data) return;
+
+        const stock = getEffectiveStock() ?? 0;
+        if (stock <= 0) {
+            toast.error("Sản phẩm hiện hết hàng", "Không thể thêm vào giỏ hàng");
+            return;
+        }
+        if (quantity > stock) {
+            setQuantity(stock);
+            setQuantityInput(String(stock));
+            setQuantityError(`Số lượng vượt quá tồn kho. Đã điều chỉnh về ${stock}.`);
+            toast.error("Số lượng vượt quá tồn kho", `Chỉ còn ${stock} sản phẩm`);
+            return;
+        }
 
         Animated.sequence([
             Animated.timing(cartButtonScaleAnim, {
@@ -153,20 +243,49 @@ export default function ProductDetailScreen() {
         try {
             await addItem(productId.toString(), quantity);
             setAddedToCart(true);
-            toast.success(
-                "Đã thêm vào giỏ ✓",
-                `${product.data.productName} (x${quantity}) đã được thêm vào giỏ hàng`
-            );
+            if (showToast) {
+                toast.success(
+                    "Đã thêm vào giỏ ✓",
+                    `${product.data.productName} (x${quantity}) đã được thêm vào giỏ hàng`
+                );
+            }
 
             setTimeout(() => {
                 setAddedToCart(false);
             }, 2000);
         } catch (error) {
-            toast.error("Lỗi", "Không thể thêm sản phẩm vào giỏ hàng");
+            if (showToast) {
+                toast.error("Lỗi", "Không thể thêm sản phẩm vào giỏ hàng");
+            }
         }
     };
 
-
+    const handleBuyNow = async () => {
+        if (!productData || productData.isInStock === false || buyNowLoading) return;
+        if (quantityError || quantity <= 0) {
+            toast.error("Số lượng không hợp lệ", quantityError || "Vui lòng nhập số lượng hợp lệ.");
+            return;
+        }
+        const edStock = getEffectiveStock();
+        if (typeof edStock !== "undefined" && quantity > edStock) {
+            setQuantity(edStock);
+            setQuantityInput(String(edStock));
+            setQuantityError(`Số lượng vượt quá tồn kho. Đã điều chỉnh về ${edStock}.`);
+            toast.error("Số lượng vượt quá tồn kho", `Chỉ còn ${edStock} sản phẩm`);
+            return;
+        }
+        setBuyNowLoading(true);
+        try {
+            await handleAddToCart(false);
+            setTimeout(() => {
+                router.push("/(app)/checkout");
+            }, 350);
+        } finally {
+            setTimeout(() => {
+                setBuyNowLoading(false);
+            }, 2500);
+        }
+    };
 
     const imageTranslateY = scrollY.interpolate({
         inputRange: [0, 300],
@@ -221,6 +340,7 @@ export default function ProductDetailScreen() {
     }
 
     const productData = product?.data;
+    const effectiveStock = getEffectiveStock();
     const feedbacks: FeedbackListItem[] = Array.isArray(feedbackData) ? feedbackData : [];
 
     const averageRating = feedbacks.length > 0
@@ -257,113 +377,38 @@ export default function ProductDetailScreen() {
                     >
                         <Ionicons name="chevron-back" size={24} color="#111827" />
                     </Pressable>
-
-                    <Animated.Text
-                        className="text-base font-semibold flex-1 text-center mx-4"
-                        style={{
-                            color: '#111827',
-                            letterSpacing: 0.3,
-                            opacity: scrollY.interpolate({
-                                inputRange: [100, 150],
-                                outputRange: [0, 1],
-                                extrapolate: 'clamp',
-                            })
-                        }}
-                        numberOfLines={1}
-                    >
-                        Chi tiết sản phẩm
-                    </Animated.Text>
                 </View>
             </SafeAreaView>
 
-            <Animated.ScrollView
-                className="flex-1"
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00A86B" />
-                }
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 120 }}
-                onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                    { useNativeDriver: true }
-                )}
-                scrollEventThrottle={16}
+            <Animated.View
+                className="overflow-hidden"
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: screenHeight * 0.5,
+                    transform: [{ translateY: imageTranslateY }],
+                    zIndex: 0,
+                }}
             >
+                <LinearGradient
+                    colors={['#FFFFFF', '#F6FFF8', '#FFFFFF']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    className="absolute inset-0"
+                />
+
                 <Animated.View
-                    className="overflow-hidden"
                     style={{
-                        height: screenHeight * 0.5,
-                        transform: [{ translateY: imageTranslateY }]
+                        flex: 1,
+                        opacity: fadeAnim,
+                        transform: [{ scale: Animated.multiply(scaleAnim, imageScale) }]
                     }}
                 >
-                    <LinearGradient
-                        colors={['#FFFFFF', '#F6FFF8', '#FFFFFF']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 0, y: 1 }}
-                        className="absolute inset-0"
-                    />
-
-                    <Animated.View
-                        style={{
-                            flex: 1,
-                            opacity: fadeAnim,
-                            transform: [{ scale: Animated.multiply(scaleAnim, imageScale) }]
-                        }}
-                    >
-                        {(() => {
-                            let imagesToShow: string[] = [];
-
-                            if (productData?.images) {
-                                if (Array.isArray(productData.images)) {
-                                    imagesToShow = productData.images.filter((img: string) => img && img.trim() !== '');
-                                } else if (typeof productData.images === 'string' && productData.images.trim() !== '') {
-                                    imagesToShow = [productData.images];
-                                }
-                            }
-
-                            if (imagesToShow.length === 0 && productData?.image) {
-                                imagesToShow = [productData.image];
-                            }
-
-                            return imagesToShow.length > 0 ? (
-                                <ScrollView
-                                    horizontal
-                                    pagingEnabled
-                                    showsHorizontalScrollIndicator={false}
-                                    onMomentumScrollEnd={(e) => {
-                                        const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
-                                        setSelectedImageIndex(index);
-                                    }}
-                                >
-                                    {imagesToShow.map((image: string, index: number) => (
-                                        <View
-                                            key={index}
-                                            className="items-center justify-center"
-                                            style={{ width: screenWidth, height: screenHeight * 0.5 }}
-                                        >
-                                            <Image
-                                                source={{ uri: image }}
-                                                style={{
-                                                    width: screenWidth * 0.85,
-                                                    height: screenHeight * 0.4,
-                                                    borderRadius: 0,
-                                                }}
-                                                contentFit="contain"
-                                            />
-                                        </View>
-                                    ))}
-                                </ScrollView>
-                            ) : (
-                                <View className="flex-1 items-center justify-center">
-                                    <Ionicons name="leaf-outline" size={64} color="#9ca3af" />
-                                    <Text className="text-neutral-400 mt-3" style={{ fontSize: 14 }}>Không có hình ảnh</Text>
-                                </View>
-                            );
-                        })()}
-                    </Animated.View>
-
                     {(() => {
                         let imagesToShow: string[] = [];
+
                         if (productData?.images) {
                             if (Array.isArray(productData.images)) {
                                 imagesToShow = productData.images.filter((img: string) => img && img.trim() !== '');
@@ -371,30 +416,112 @@ export default function ProductDetailScreen() {
                                 imagesToShow = [productData.images];
                             }
                         }
+
                         if (imagesToShow.length === 0 && productData?.image) {
                             imagesToShow = [productData.image];
                         }
 
-                        return imagesToShow.length > 1 && (
-                            <View className="absolute bottom-8 left-0 right-0 flex-row justify-center space-x-1.5">
-                                {imagesToShow.map((_: any, index: number) => (
+                        return imagesToShow.length > 0 ? (
+                            <ScrollView
+                                horizontal
+                                pagingEnabled
+                                showsHorizontalScrollIndicator={false}
+                                onMomentumScrollEnd={(e) => {
+                                    const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+                                    setSelectedImageIndex(index);
+                                }}
+                            >
+                                {imagesToShow.map((image: string, index: number) => (
                                     <View
                                         key={index}
-                                        style={{
-                                            width: index === selectedImageIndex ? 24 : 6,
-                                            height: 6,
-                                            borderRadius: 3,
-                                            backgroundColor: index === selectedImageIndex ? "#00A86B" : "#D1D5DB",
-                                            opacity: index === selectedImageIndex ? 1 : 0.5,
-                                        }}
-                                    />
+                                        className="items-center justify-center"
+                                        style={{ width: screenWidth, height: screenHeight * 0.5 }}
+                                    >
+                                        <Image
+                                            source={{ uri: image }}
+                                            style={{
+                                                width: screenWidth * 0.85,
+                                                height: screenHeight * 0.4,
+                                                borderRadius: 0,
+                                            }}
+                                            contentFit="contain"
+                                        />
+                                    </View>
                                 ))}
+                            </ScrollView>
+                        ) : (
+                            <View className="flex-1 items-center justify-center">
+                                <Ionicons name="leaf-outline" size={64} color="#9ca3af" />
+                                <Text className="text-neutral-400 mt-3" style={{ fontSize: 14 }}>Không có hình ảnh</Text>
                             </View>
                         );
                     })()}
                 </Animated.View>
 
-                <View className="px-6 pt-6">
+                {(() => {
+                    let imagesToShow: string[] = [];
+                    if (productData?.images) {
+                        if (Array.isArray(productData.images)) {
+                            imagesToShow = productData.images.filter((img: string) => img && img.trim() !== '');
+                        } else if (typeof productData.images === 'string' && productData.images.trim() !== '') {
+                            imagesToShow = [productData.images];
+                        }
+                    }
+                    if (imagesToShow.length === 0 && productData?.image) {
+                        imagesToShow = [productData.image];
+                    }
+
+                    return imagesToShow.length > 1 && (
+                        <View className="absolute bottom-8 left-0 right-0 flex-row justify-center space-x-1.5">
+                            {imagesToShow.map((_: any, index: number) => (
+                                <View
+                                    key={index}
+                                    style={{
+                                        width: index === selectedImageIndex ? 24 : 6,
+                                        height: 6,
+                                        borderRadius: 3,
+                                        backgroundColor: index === selectedImageIndex ? "#00A86B" : "#D1D5DB",
+                                        opacity: index === selectedImageIndex ? 1 : 0.5,
+                                    }}
+                                />
+                            ))}
+                        </View>
+                    );
+                })()}
+            </Animated.View>
+
+            <Animated.ScrollView
+                className="flex-1"
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00A86B" />
+                }
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 140 }}
+                onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                    { useNativeDriver: true }
+                )}
+                scrollEventThrottle={16}
+                style={{
+                    marginTop: screenHeight * 0.45,
+                    zIndex: 1,
+                }}
+            >
+                <View
+                    style={{
+                        marginTop: -28,
+                        backgroundColor: '#FFFFFF',
+                        borderTopLeftRadius: 28,
+                        borderTopRightRadius: 28,
+                        paddingTop: 60,
+                        paddingHorizontal: 18,
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: -2 },
+                        shadowOpacity: 0.03,
+                        shadowRadius: 10,
+                        elevation: 4,
+                    }}
+                >
                     <Animated.View
                         className="mb-2"
                         style={{
@@ -613,11 +740,25 @@ export default function ProductDetailScreen() {
                         >
                             Chọn số lượng
                         </Text>
-                            
+                        {typeof effectiveStock === 'number' && (
+                            <Text
+                                style={{
+                                    fontSize: 13,
+                                    color: effectiveStock === 0 ? '#EF4444' : '#6B7280',
+                                    marginBottom: 8,
+                                }}
+                            >
+                                Tồn kho: {effectiveStock} {normalizeUnit(productData?.unit) || ''}
+                            </Text>
+                        )}
+
                         <View className="flex-row items-center mb-4">
                             <Pressable
                                 onPress={() => quantity > 1 && handleQuantityChange(quantity - 1)}
                                 disabled={quantity <= 1}
+                                accessibilityLabel="Giảm số lượng"
+                                accessibilityHint="Giảm một đơn vị số lượng"
+                                accessibilityState={{ disabled: quantity <= 1 }}
                                 className="w-11 h-11 rounded-full items-center justify-center"
                                 style={{
                                     backgroundColor: quantity <= 1 ? '#F3F4F6' : '#FFFFFF',
@@ -636,39 +777,71 @@ export default function ProductDetailScreen() {
                                 className="flex-1 items-center justify-center mx-4"
                                 style={{ transform: [{ scale: quantityScaleAnim }] }}
                             >
-                                <Text
-                                    className="font-semibold"
+                                <TextInput
+                                    value={quantityInput}
+                                    onChangeText={handleQuantityInputChange}
+                                    onBlur={handleQuantityInputBlur}
+                                    onSubmitEditing={() => {
+                                        handleQuantityInputBlur();
+                                        Keyboard.dismiss();
+                                    }}
+                                    keyboardType="number-pad"
+                                    returnKeyType="done"
+                                    accessibilityLabel="Số lượng"
+                                    accessibilityHint="Nhập số lượng sản phẩm muốn đặt"
                                     style={{
                                         fontSize: 24,
                                         color: '#111827',
+                                        fontWeight: '600',
+                                        textAlign: 'center',
+                                        minWidth: 48,
                                     }}
-                                >
-                                    {quantity}
-                                </Text>
+                                />
                             </Animated.View>
 
                             <Pressable
                                 onPress={() => handleQuantityChange(quantity + 1)}
-                                disabled={quantity >= (productData?.stock || 99)}
+                                disabled={quantity >= (effectiveStock ?? 99)}
+                                accessibilityLabel="Tăng số lượng"
+                                accessibilityHint="Tăng một đơn vị số lượng"
+                                accessibilityState={{ disabled: quantity >= (productData?.stock || 99) }}
                                 className="w-11 h-11 rounded-full items-center justify-center"
                                 style={{
-                                    backgroundColor: quantity >= (productData?.stock || 99) ? '#F3F4F6' : '#00A86B',
+                                    backgroundColor: quantity >= (effectiveStock ?? 99) ? '#F3F4F6' : '#00A86B',
                                     borderWidth: 1,
-                                    borderColor: quantity >= (productData?.stock || 99) ? '#E5E7EB' : '#00A86B',
+                                    borderColor: quantity >= (effectiveStock ?? 99) ? '#E5E7EB' : '#00A86B',
                                 }}
                             >
                                 <Ionicons
                                     name="add"
                                     size={20}
-                                    color={quantity >= (productData?.stock || 99) ? '#9CA3AF' : '#FFFFFF'}
+                                    color={quantity >= (effectiveStock ?? 99) ? '#9CA3AF' : '#FFFFFF'}
                                 />
                             </Pressable>
                         </View>
 
+                        {quantityError && (
+                            <Text
+                                style={{
+                                    color: '#DC2626',
+                                    fontSize: 13,
+                                    marginBottom: 8,
+                                }}
+                            >
+                                {quantityError}
+                            </Text>
+                        )}
+
                         <Animated.View style={{ transform: [{ scale: cartButtonScaleAnim }] }}>
                             <Pressable
-                                onPress={handleAddToCart}
-                                disabled={productData?.isInStock === false}
+                                onPress={async () => {
+                                    if (quantityError || quantity <= 0) {
+                                        toast.error("Số lượng không hợp lệ", quantityError || "Vui lòng nhập số lượng hợp lệ.");
+                                        return;
+                                    }
+                                    await handleAddToCart();
+                                }}
+                                disabled={productData?.isInStock === false || !!quantityError || quantity <= 0}
                                 style={{
                                     height: 52,
                                     borderRadius: 26,
@@ -695,7 +868,7 @@ export default function ProductDetailScreen() {
                             </Pressable>
                         </Animated.View>
 
-                        {productData?.stock && productData.stock < 10 && (
+                        {typeof effectiveStock === 'number' && effectiveStock < 10 && (
                             <View className="mt-3 flex-row items-center">
                                 <Ionicons name="alert-circle" size={16} color="#F59E0B" />
                                 <Text
@@ -705,7 +878,7 @@ export default function ProductDetailScreen() {
                                         color: '#F59E0B',
                                     }}
                                 >
-                                    Chỉ còn {productData.stock} sản phẩm
+                                    Chỉ còn {effectiveStock} sản phẩm
                                 </Text>
                             </View>
                         )}
@@ -818,11 +991,14 @@ export default function ProductDetailScreen() {
                             </Pressable>
 
                             <Pressable
-                                onPress={() => {
-                                    handleAddToCart();
-                                    router.push("/(app)/(tabs)/cart");
+                                onPress={async () => {
+                                    if (quantityError || quantity <= 0) {
+                                        toast.error("Số lượng không hợp lệ", quantityError || "Vui lòng nhập số lượng hợp lệ.");
+                                        return;
+                                    }
+                                    await handleBuyNow();
                                 }}
-                                disabled={productData.isInStock === false}
+                                disabled={productData.isInStock === false || buyNowLoading || !!quantityError || quantity <= 0}
                                 className="flex-1"
                                 style={{
                                     height: 56,
@@ -839,16 +1015,32 @@ export default function ProductDetailScreen() {
                                     end={{ x: 1, y: 0 }}
                                     className="flex-1 items-center justify-center"
                                 >
-                                    <Text
-                                        className="font-bold"
-                                        style={{
-                                            fontSize: 17,
-                                            color: '#FFFFFF',
-                                            letterSpacing: 0.3,
-                                        }}
-                                    >
-                                        {productData.isInStock === false ? 'Hết hàng' : 'Mua ngay'}
-                                    </Text>
+                                    {buyNowLoading ? (
+                                        <View className="flex-row items-center">
+                                            <ActivityIndicator size="small" color="#FFFFFF" />
+                                            <Text
+                                                className="font-bold ml-3"
+                                                style={{
+                                                    fontSize: 16,
+                                                    color: '#FFFFFF',
+                                                    letterSpacing: 0.3,
+                                                }}
+                                            >
+                                                Đang xử lý...
+                                            </Text>
+                                        </View>
+                                    ) : (
+                                        <Text
+                                            className="font-bold"
+                                            style={{
+                                                fontSize: 17,
+                                                color: '#FFFFFF',
+                                                letterSpacing: 0.3,
+                                            }}
+                                        >
+                                            {productData.isInStock === false ? 'Hết hàng' : 'Mua ngay'}
+                                        </Text>
+                                    )}
                                 </LinearGradient>
                             </Pressable>
                         </View>

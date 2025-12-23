@@ -10,7 +10,6 @@ import {
     Platform,
     TouchableWithoutFeedback,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 interface LogoutButtonProps {
     onLogout: () => void;
@@ -121,14 +120,6 @@ export const LogoutButton = React.memo<LogoutButtonProps>(({ onLogout }) => {
                         { }
                         <View style={styles.handle} />
                         { }
-                        <View style={styles.iconContainer}>
-                            <Ionicons
-                                name="log-out-outline"
-                                size={32}
-                                color="#EF4444"
-                            />
-                        </View>
-                        { }
                         <Text style={styles.title}>Xác nhận đăng xuất</Text>
                         <Text style={styles.message}>
                             Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?
@@ -226,16 +217,6 @@ const styles = StyleSheet.create({
         borderRadius: 2,
         alignSelf: "center",
         marginBottom: 20,
-    },
-    iconContainer: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: "#FEE2E2",
-        alignItems: "center",
-        justifyContent: "center",
-        alignSelf: "center",
-        marginBottom: 16,
     },
     title: {
         fontSize: 20,
