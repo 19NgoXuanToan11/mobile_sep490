@@ -29,9 +29,9 @@ export const getStatusInfo = (status: Order["status"]): StatusInfo => {
     case "CONFIRMED":
       return {
         text: "Đã xác nhận",
-        color: "#047857",
-        bgColor: "#ecfdf5",
-        borderColor: "#10b981",
+        color: "#0ea5a4",
+        bgColor: "#ecfeff",
+        borderColor: "#2dd4bf",
         icon: "checkmark-done-outline",
       };
     case "PACKED":

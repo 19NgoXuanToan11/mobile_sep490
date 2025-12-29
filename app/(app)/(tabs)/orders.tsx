@@ -90,6 +90,7 @@ export default function OrdersScreen() {
     confirmed: new Animated.Value(0.8),
     shipped: new Animated.Value(0.8),
     delivered: new Animated.Value(0.8),
+    failed: new Animated.Value(0.8),
     cancelled: new Animated.Value(0.8),
   };
 
@@ -104,8 +105,10 @@ export default function OrdersScreen() {
         return "0";
       case "confirmed":
         return "1";
+      case "failed":
+        return "2";
       case "shipped":
-        return "3";
+        return "6";
       case "delivered":
         return "5";
       case "cancelled":
@@ -125,19 +128,48 @@ export default function OrdersScreen() {
     error,
   } = useInfiniteQuery({
     queryKey: ["orders", activeTab, debouncedSearch, selectedDate],
-    queryFn: ({ pageParam = 1 }) => {
+    queryFn: async ({ pageParam = 1 }) => {
+      const statusParam = getStatusFilter();
+      console.log('[DEBUG] fetching orders - activeTab:', activeTab, 'statusParam:', statusParam);
       if (selectedDate) {
-        return ordersApi.getByDate({
+        const res = await ordersApi.getByDate({
           date: selectedDate,
           pageIndex: pageParam,
           pageSize: 15,
         });
+        const count =
+          Array.isArray(res.data) ? res.data.length : res.data?.orders?.length ?? 0;
+        console.log('[DEBUG] ordersApi.getByDate returned count:', count);
+        return res;
       }
-      return ordersApi.getAll({
+
+      const res = await ordersApi.getAll({
         pageIndex: pageParam,
         pageSize: 15,
-        status: getStatusFilter(),
+        status: statusParam,
       });
+      try {
+        const ordersList = res.data?.orders ?? [];
+        console.log('[DEBUG] ordersApi.getAll returned statuses:', ordersList.map((o: any) => o.status));
+      } catch (e) {
+        console.log('[DEBUG] failed to log returned orders', e);
+      }
+      const returnedCount = (res.data?.orders ?? []).length;
+      if (statusParam === "0" && returnedCount === 0) {
+        console.log('[DEBUG] backend returned empty for status=0, falling back to client-side filter');
+        const resAll = await ordersApi.getAll({
+          pageIndex: pageParam,
+          pageSize: 15,
+        });
+        const allOrders = resAll.data?.orders ?? [];
+        const placedOrders = allOrders.filter((o: any) => (o.status === "PLACED" || o.status === "PENDING"));
+        console.log('[DEBUG] fallback filtered placed orders count:', placedOrders.length);
+        return {
+          success: true,
+          data: { orders: placedOrders, totalCount: placedOrders.length, hasNextPage: false },
+        } as any;
+      }
+      return res;
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, pages) => {
@@ -541,11 +573,11 @@ export default function OrdersScreen() {
       case "CONFIRMED":
         return {
           text: "Xác nhận",
-          color: "#047857",
-          bgColor: "#ecfdf5",
-          borderColor: "#10b981",
+          color: "#0ea5a4",
+          bgColor: "#ecfeff",
+          borderColor: "#2dd4bf",
           icon: "checkmark-done-outline",
-          gradient: ["#10b981", "#047857"],
+          gradient: ["#06b6d4", "#0ea5a4"],
         };
       case "PACKED":
         return {
@@ -675,6 +707,13 @@ export default function OrdersScreen() {
       bgColor: "#ecfdf5",
     },
     {
+      id: "placed",
+      label: "Chưa thanh toán",
+      icon: "receipt-outline",
+      color: "#f59e0b",
+      bgColor: "#fffbeb",
+    },
+    {
       id: "confirmed",
       label: "Xác nhận",
       icon: "checkmark-done-outline",
@@ -696,8 +735,15 @@ export default function OrdersScreen() {
       bgColor: "#ecfdf5",
     },
     {
-      id: "cancelled",
+      id: "failed",
       label: "Thất bại",
+      icon: "close-circle-outline",
+      color: "#ef4444",
+      bgColor: "#fef2f2",
+    },
+    {
+      id: "cancelled",
+      label: "Hủy đơn",
       icon: "close-circle-outline",
       color: "#ef4444",
       bgColor: "#fef2f2",
