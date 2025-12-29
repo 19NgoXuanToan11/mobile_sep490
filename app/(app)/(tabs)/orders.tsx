@@ -836,7 +836,7 @@ export default function OrdersScreen() {
               )}
 
             <View className="flex-row mt-4">
-              {order.status === "PLACED" && (
+              {["PLACED", "PENDING"].includes(order.status) && (
                 <TouchableOpacity
                   onPress={(e) => {
                     e.stopPropagation();
@@ -1198,7 +1198,7 @@ export default function OrdersScreen() {
         backgroundColor="transparent"
         translucent
       />
-  
+
       <View className="bg-white pt-12 pb-6">
         <View className="px-4 mb-4 flex-row gap-3">
           <TouchableOpacity
