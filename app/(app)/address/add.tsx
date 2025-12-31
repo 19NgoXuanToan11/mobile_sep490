@@ -92,7 +92,7 @@ export default function AddAddressScreen() {
     mutationFn: addressesApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
-      toast.success("Thành công 🎉", "Địa chỉ đã được thêm");
+      toast.success("Thành công", "Địa chỉ đã được thêm");
       router.back();
     },
     onError: () => {
