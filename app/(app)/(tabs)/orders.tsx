@@ -130,7 +130,6 @@ export default function OrdersScreen() {
     queryKey: ["orders", activeTab, debouncedSearch, selectedDate],
     queryFn: async ({ pageParam = 1 }) => {
       const statusParam = getStatusFilter();
-      console.log('[DEBUG] fetching orders - activeTab:', activeTab, 'statusParam:', statusParam);
       if (selectedDate) {
         const res = await ordersApi.getByDate({
           date: selectedDate,
@@ -139,7 +138,6 @@ export default function OrdersScreen() {
         });
         const count =
           Array.isArray(res.data) ? res.data.length : res.data?.orders?.length ?? 0;
-        console.log('[DEBUG] ordersApi.getByDate returned count:', count);
         return res;
       }
 
@@ -150,20 +148,16 @@ export default function OrdersScreen() {
       });
       try {
         const ordersList = res.data?.orders ?? [];
-        console.log('[DEBUG] ordersApi.getAll returned statuses:', ordersList.map((o: any) => o.status));
       } catch (e) {
-        console.log('[DEBUG] failed to log returned orders', e);
       }
       const returnedCount = (res.data?.orders ?? []).length;
       if (statusParam === "0" && returnedCount === 0) {
-        console.log('[DEBUG] backend returned empty for status=0, falling back to client-side filter');
         const resAll = await ordersApi.getAll({
           pageIndex: pageParam,
           pageSize: 15,
         });
         const allOrders = resAll.data?.orders ?? [];
         const placedOrders = allOrders.filter((o: any) => (o.status === "PLACED" || o.status === "PENDING"));
-        console.log('[DEBUG] fallback filtered placed orders count:', placedOrders.length);
         return {
           success: true,
           data: { orders: placedOrders, totalCount: placedOrders.length, hasNextPage: false },
