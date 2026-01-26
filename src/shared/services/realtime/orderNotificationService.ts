@@ -6,13 +6,10 @@ import {
   LogLevel,
 } from "@microsoft/signalr";
 import { AppState, AppStateStatus } from "react-native";
-import env from "../../config/env";
+import env from "../../../config/env";
 import { authStorage } from "../../lib/storage";
 import { useAuthStore, useNotificationStore } from "../../hooks";
 
-/**
- * Order status values matching backend PaymentStatus enum
- */
 export type OrderStatus =
   | "COMPLETED"
   | "CANCELLED"
@@ -25,10 +22,6 @@ export type OrderStatus =
   | "PACKED"
   | "SHIPPED";
 
-/**
- * Order status update message matching backend OrderStatusNotification
- * Backend sends: OrderId (long), Message (string), Status (string), Timestamp (DateTime)
- */
 export type OrderStatusUpdateMessage = {
   orderId: number;
   status: OrderStatus;

@@ -41,7 +41,7 @@ import {
 } from "../../../src/shared/lib/utils";
 import { Order } from "../../../src/types";
 import { useOrderStatusUpdates } from "../../../src/features/order/hooks/useOrderStatusUpdates";
-import { openPayment } from "../../../src/services/payment/vnpay";
+import { openPayment } from "../../../src/shared/services/payment/vnpay";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 

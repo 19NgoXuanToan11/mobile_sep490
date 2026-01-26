@@ -1,4 +1,4 @@
-import { CLOUDINARY } from "../config/cloudinary";
+import { CLOUDINARY } from "../../config/cloudinary";
 
 export type DirectUploadOptions = {
   fileUri: string;
@@ -36,7 +36,7 @@ export function uploadAvatarDirectToCloudinary(
   const promise = new Promise<string>((resolve, reject) => {
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable && onProgress) {
-        const percent = Math.round((event.loaded / event.total) * 100); 
+        const percent = Math.round((event.loaded / event.total) * 100);
         onProgress(Math.min(100, percent));
       }
     };

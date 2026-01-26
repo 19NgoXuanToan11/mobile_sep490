@@ -13,7 +13,7 @@ import { userPreferences } from "../src/shared/lib/storage";
 import { OpenAPI } from "../src/api";
 import env from "../src/config/env";
 import { initializeDeepLinkListener } from "../src/navigation/deeplink";
-import { orderNotificationService } from "../src/services/realtime/orderNotificationService";
+import { orderNotificationService } from "../src/shared/services/realtime/orderNotificationService";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();

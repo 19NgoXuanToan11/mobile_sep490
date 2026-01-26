@@ -353,6 +353,45 @@ export const ordersApi = {
       return { success: false, data: null as any, message: "Order not found" };
     }
   },
+
+  async getByDate(params: { date: string; pageIndex?: number; pageSize?: number }): Promise<ApiResponse<any>> {
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return { success: false, data: null, message: "Not authenticated" };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      const res = await OrderService.postApiV1OrderOrderListByDate({
+        pageIndex: params.pageIndex ?? 1,
+        pageSize: params.pageSize ?? 10,
+        requestBody: params.date,
+      });
+      return { success: true, data: (res as any)?.data ?? res };
+    } catch (error: any) {
+      return { success: false, data: null, message: error?.message || "Failed to fetch orders by date" };
+    }
+  },
+
+  async createOrderPayment(orderId: number): Promise<ApiResponse<any>> {
+    try {
+      const token = await authStorage.getAccessToken();
+      if (!token) {
+        return { success: false, data: null, message: "Not authenticated" };
+      }
+
+      OpenAPI.BASE = env.API_URL;
+      OpenAPI.TOKEN = token;
+
+      const result = await OrderService.postApiV1OrderCreateOrderPayment({ orderId });
+      const data = (result as any)?.data ?? result;
+      return { success: true, data, message: data.message || "Payment created" };
+    } catch (error: any) {
+      return { success: false, data: null, message: error?.response?.data?.message || error?.message || "Lỗi tạo thanh toán" };
+    }
+  },
 };
 
 export const addressesApi = {

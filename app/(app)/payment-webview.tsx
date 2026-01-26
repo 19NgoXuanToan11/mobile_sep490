@@ -17,7 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import { LinearGradient } from "expo-linear-gradient";
 import axios from "axios";
-import { completePaymentFlow } from "../../src/services/payment/vnpay";
+import { completePaymentFlow } from "../../src/shared/services/payment/vnpay";
 import env from "../../src/config/env";
 
 export default function PaymentWebViewScreen() {
