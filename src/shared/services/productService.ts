@@ -5,10 +5,10 @@ import {
   PaginatedResponse,
   FilterState,
 } from "../../types";
-import { OpenAPI, ProductService, CategoryService } from "../../api";
+import { OpenAPI, ProductService as ApiProductService, CategoryService } from "../../api";
 import env from "../../config/env";
 import { normalizeImageUrl } from "./utils/imageUtils";
-import { normalizeUnit } from "../lib/utils";
+import { normalizeUnit } from "../lib/helpers";
 
 export class ProductServiceClass {
   async getAll(
@@ -23,19 +23,21 @@ export class ProductServiceClass {
         filters?.categories && filters.categories.length > 0;
 
       const res = hasCategoryFilter
-        ? await ProductService.getApiV1ProductsProductFilter({
-            pageIndex: page,
-            pageSize: limit,
-            categoryId: Number(filters!.categories![0]),
-          })
-        : await ProductService.getApiV1ProductsProductsList({
-            pageIndex: page,
-            pageSize: limit,
-          });
+        ? await ApiProductService.getApiV1ProductsProductFilter({
+          pageIndex: page,
+          pageSize: limit,
+          categoryId: Number(filters!.categories![0]),
+        })
+        : await ApiProductService.getApiV1ProductsProductsList({
+          pageIndex: page,
+          pageSize: limit,
+        });
+
       const payload = res?.data ?? res;
       const items: Product[] = (payload?.items ?? payload?.data ?? []).map(
         (p: any) => this.mapProduct(p)
       );
+
       const pagination = payload?.pagination ?? {
         page,
         limit,
@@ -46,8 +48,9 @@ export class ProductServiceClass {
         hasNext: page * limit < Number(payload?.totalItemCount ?? items.length),
         hasPrev: page > 1,
       };
+
       return { success: true, data: { data: items, pagination } };
-    } catch (error) {
+    } catch {
       return {
         success: true,
         data: {
@@ -68,7 +71,7 @@ export class ProductServiceClass {
 
   async getById(id: string): Promise<ApiResponse<Product>> {
     try {
-      const res = await ProductService.getApiV1ProductsGetProduct({
+      const res = await ApiProductService.getApiV1ProductsGetProduct({
         productId: Number(id),
       });
       const p: any = res?.data ?? res;
@@ -92,8 +95,9 @@ export class ProductServiceClass {
 
       const product = this.mapProduct(p);
       product.images = images;
+
       return { success: true, data: product };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         data: null as any,
@@ -103,7 +107,7 @@ export class ProductServiceClass {
   }
 
   async getFeatured(limit = 6): Promise<ApiResponse<Product[]>> {
-    const res = await ProductService.getApiV1ProductsProductFilter({
+    const res = await ApiProductService.getApiV1ProductsProductFilter({
       pageIndex: 1,
       pageSize: limit,
       sortByStockAsc: false,
@@ -116,7 +120,7 @@ export class ProductServiceClass {
   }
 
   async search(query: string, limit = 20): Promise<ApiResponse<Product[]>> {
-    const res = await ProductService.getApiV1ProductsSearchProduct({
+    const res = await ApiProductService.getApiV1ProductsSearchProduct({
       productName: query,
       pageIndex: 1,
       pageSize: limit,
@@ -172,7 +176,7 @@ export class CategoryServiceClass {
         sortOrder: c.sortOrder ?? 0,
       }));
       return { success: true, data: items };
-    } catch (error) {
+    } catch {
       return { success: true, data: [], message: "Failed to fetch categories" };
     }
   }
@@ -192,7 +196,7 @@ export class CategoryServiceClass {
         sortOrder: c.sortOrder ?? 0,
       };
       return { success: true, data: category };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         data: null as any,

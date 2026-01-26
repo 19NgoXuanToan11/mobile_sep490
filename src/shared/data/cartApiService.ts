@@ -2,8 +2,8 @@ import { OpenAPI } from "../../api/core/OpenAPI";
 import { request as __request } from "../../api/core/request";
 import { ProductService } from "../../api";
 import env from "../../config/env";
-import { CartItem, Product, ApiResponse } from "../../types";
-import { generateId, normalizeUnit } from "../lib/utils";
+import { CartItem, Product } from "../../types";
+import { generateId, normalizeUnit } from "../lib/helpers";
 
 interface BackendCartResponse {
   paymentStatus?: number;
@@ -87,6 +87,7 @@ async function transformCartItem(
   item: BackendCartItem
 ): Promise<CartItem | null> {
   if (!item.productId) return null;
+
   let product: Product;
 
   if (item.product) {
@@ -150,12 +151,14 @@ async function transformCartItem(
         createdAt: p.createdAt ?? new Date().toISOString(),
         updatedAt: p.updatedAt ?? new Date().toISOString(),
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
+
   const quantity = Number(item.quantity ?? 1);
   const itemPrice = product.price;
+
   return {
     id: String(item.cartItemId ?? generateId("cart")),
     productId: String(item.productId),
@@ -180,6 +183,7 @@ export const realCartApi = {
         url: "/api/v1/account/cart-items",
       });
       const parsed = parseApiResponse<BackendCartResponse>(response);
+
       if (!parsed.success) {
         return {
           success: false,
@@ -204,13 +208,13 @@ export const realCartApi = {
           cartItems.push(transformedItem);
         }
       }
+
       return { success: true, data: cartItems };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         data: [],
-        message:
-          error instanceof Error ? error.message : "Failed to get cart items",
+        message: "Failed to get cart items",
       };
     }
   },
@@ -230,7 +234,9 @@ export const realCartApi = {
           quantity,
         },
       });
+
       const parsed = parseApiResponse(response);
+
       if (!parsed.success) {
         return {
           success: false,
@@ -240,12 +246,11 @@ export const realCartApi = {
       }
 
       return await this.getItems();
-    } catch (error) {
+    } catch {
       return {
         success: false,
         data: [],
-        message:
-          error instanceof Error ? error.message : "Failed to add item to cart",
+        message: "Failed to add item to cart",
       };
     }
   },
@@ -265,7 +270,9 @@ export const realCartApi = {
           quantity,
         },
       });
+
       const parsed = parseApiResponse(response);
+
       if (!parsed.success) {
         return {
           success: false,
@@ -275,12 +282,11 @@ export const realCartApi = {
       }
 
       return await this.getItems();
-    } catch (error) {
+    } catch {
       return {
         success: false,
         data: [],
-        message:
-          error instanceof Error ? error.message : "Failed to update cart item",
+        message: "Failed to update cart item",
       };
     }
   },
@@ -298,7 +304,9 @@ export const realCartApi = {
           productId: Number(productId),
         },
       });
+
       const parsed = parseApiResponse(response);
+
       if (!parsed.success) {
         return {
           success: false,
@@ -308,12 +316,11 @@ export const realCartApi = {
       }
 
       return await this.getItems();
-    } catch (error) {
+    } catch {
       return {
         success: false,
         data: [],
-        message:
-          error instanceof Error ? error.message : "Failed to remove cart item",
+        message: "Failed to remove cart item",
       };
     }
   },
@@ -321,11 +328,14 @@ export const realCartApi = {
   async clear(): Promise<{ success: boolean; data: null; message?: string }> {
     try {
       OpenAPI.BASE = env.API_URL;
+
       const response = await __request(OpenAPI, {
         method: "DELETE",
         url: "/api/v1/account/clear-cart",
       });
+
       const parsed = parseApiResponse(response);
+
       if (!parsed.success) {
         return {
           success: false,
@@ -333,13 +343,13 @@ export const realCartApi = {
           message: parsed.message ?? "Failed to clear cart",
         };
       }
+
       return { success: true, data: null };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         data: null,
-        message:
-          error instanceof Error ? error.message : "Failed to clear cart",
+        message: "Failed to clear cart",
       };
     }
   },

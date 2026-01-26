@@ -1,5 +1,5 @@
 import * as Linking from "expo-linking";
-import { completePaymentFlow } from "../services/payment/vnpay";
+import { completePaymentFlow } from "../shared/services/payment/vnpay";
 export const DEEP_LINK_SCHEME = "ifms";
 export const DEEP_LINK_PREFIX = `${DEEP_LINK_SCHEME}://`;
 export const DEEP_LINK_PATHS = {

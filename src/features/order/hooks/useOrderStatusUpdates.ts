@@ -5,7 +5,7 @@ import {
   orderNotificationService,
   OrderStatusUpdateMessage,
   OrderStatus,
-} from "../../../services/realtime/orderNotificationService";
+} from "../../../shared/services/realtime/orderNotificationService";
 import { useToast } from "../../../shared/ui/toast";
 import { useAuthStore } from "../../../shared/hooks";
 
@@ -93,40 +93,40 @@ function handleStatusNotification(
   switch (status) {
     case "COMPLETED":
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-        () => {}
+        () => { }
       );
       toast.success(
         "Đơn hàng hoàn thành",
         message ||
-          `Đơn hàng #${orderId} đã được hoàn thành thành công. Cảm ơn bạn đã mua sắm!`
+        `Đơn hàng #${orderId} đã được hoàn thành thành công. Cảm ơn bạn đã mua sắm!`
       );
       break;
 
     case "CANCELLED":
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
-        () => {}
+        () => { }
       );
       toast.error(
         "Đơn hàng đã hủy",
         message ||
-          `Đơn hàng #${orderId} đã bị hủy. Nếu bạn có thắc mắc, vui lòng liên hệ hỗ trợ.`
+        `Đơn hàng #${orderId} đã bị hủy. Nếu bạn có thắc mắc, vui lòng liên hệ hỗ trợ.`
       );
       break;
 
     case "DELIVERED":
-      const isShippingStatus = message?.toLowerCase().includes("on the way") || 
-                                message?.toLowerCase().includes("đang giao") ||
-                                message?.toLowerCase().includes("đang trên đường");
-      
+      const isShippingStatus = message?.toLowerCase().includes("on the way") ||
+        message?.toLowerCase().includes("đang giao") ||
+        message?.toLowerCase().includes("đang trên đường");
+
       if (isShippingStatus) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => { });
         toast.success(
           "Đơn hàng đang giao",
           message || `Đơn hàng #${orderId} đang trên đường giao đến bạn.`
         );
       } else {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-          () => {}
+          () => { }
         );
         toast.success(
           "Đơn hàng đã giao",
@@ -137,7 +137,7 @@ function handleStatusNotification(
 
     case "SHIPPING":
     case "SHIPPED":
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => { });
       toast.success(
         "Đơn hàng đang giao",
         message || `Đơn hàng #${orderId} đang trên đường giao đến bạn.`
@@ -147,18 +147,18 @@ function handleStatusNotification(
     case "CONFIRMED":
     case "PACKED":
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-        () => {}
+        () => { }
       );
       toast.success(
         "Đơn hàng đã xác nhận",
         message ||
-          `Đơn hàng #${orderId} đã được xác nhận và đang được chuẩn bị.`
+        `Đơn hàng #${orderId} đã được xác nhận và đang được chuẩn bị.`
       );
       break;
 
     case "FAILED":
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(
-        () => {}
+        () => { }
       );
       toast.error(
         "Đơn hàng thất bại",
@@ -168,7 +168,7 @@ function handleStatusNotification(
 
     default:
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-        () => {}
+        () => { }
       );
       toast.success(
         "Cập nhật đơn hàng",

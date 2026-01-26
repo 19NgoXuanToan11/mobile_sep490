@@ -7,7 +7,7 @@ import {
   paymentMethodsApi,
 } from "../../../shared/data/api";
 import { vnpayApi } from "../../../shared/data/paymentApiService";
-import { openPayment } from "../../../services/payment/vnpay";
+import { openPayment } from "../../../shared/services/payment/vnpay";
 import { useToast } from "../../../shared/ui/toast";
 import { useAuth, useCart } from "../../../shared/hooks";
 import { Address, PaymentMethod } from "../../../types";

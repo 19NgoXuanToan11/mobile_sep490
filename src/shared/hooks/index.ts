@@ -323,29 +323,9 @@ export const useNotificationStore = create<NotificationStore>()(
       notifications: [],
       unreadCount: 0,
       isLoading: false,
-      /**
-       *
-       * Load notifications from backend API.
-       *
-       * IMPORTANT:
-       * - The Zustand `persist` middleware already hydrates notifications from
-       *   AsyncStorage on app start.
-       * - While the backend notification API is not ready, this method should
-       *   be a NO-OP to avoid clearing locally persisted SignalR messages.
-       */
       loadNotifications: async () => {
         try {
           set({ isLoading: true });
-          /**
-           * TODO: When backend REST API for notifications is available:
-           * - Fetch latest notifications for the current user.
-           * - Merge them with existing local notifications if needed.
-           * - Update `notifications` and `unreadCount` accordingly.
-           *
-           * For now, we intentionally do nothing here so that:
-           * - Notifications pushed via SignalR and stored in AsyncStorage
-           *   remain available across app restarts.
-           */
         } catch (error) {
         } finally {
           set({ isLoading: false });

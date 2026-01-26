@@ -1,21 +1,17 @@
-export function removeDiacritics(str: string): string {
+function removeDiacritics(str: string): string {
   return str
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/đ/g, "d")
     .replace(/Đ/g, "D");
 }
-export function formatPhoneNumber(phone: string): string {
-  const cleaned = phone.replace(/\D/g, "");
-  if (cleaned.length === 10) {
-    return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
-  } else if (cleaned.length === 11) {
-    return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
-  }
-  return cleaned;
+
+function cleanPhoneNumber(phone: string): string {
+  return phone.replace(/\D/g, "");
 }
-export function validatePhoneNumber(phone: string): boolean {
-  const cleaned = phone.replace(/\D/g, "");
+
+function validatePhoneNumber(phone: string): boolean {
+  const cleaned = cleanPhoneNumber(phone);
 
   if (cleaned.length < 9 || cleaned.length > 11) {
     return false;
@@ -29,30 +25,36 @@ export function validatePhoneNumber(phone: string): boolean {
   const prefix = cleaned.slice(0, 2);
   return validPrefixes.includes(prefix);
 }
-export function getPhoneErrorMessage(phone: string): string | null {
+
+function getPhoneErrorMessage(phone: string): string | null {
   if (!phone || phone.trim() === "") {
     return "Vui lòng nhập số điện thoại";
   }
-  const cleaned = phone.replace(/\D/g, "");
+
+  const cleaned = cleanPhoneNumber(phone);
+
   if (!cleaned.startsWith("0")) {
     return "Số điện thoại phải bắt đầu bằng 0";
   }
+
   if (cleaned.length < 9) {
     return "Số điện thoại phải có ít nhất 9 số";
   }
+
   if (cleaned.length > 11) {
     return "Số điện thoại không được quá 11 số";
   }
+
   const validPrefixes = ["03", "05", "07", "08", "09"];
   const prefix = cleaned.slice(0, 2);
+
   if (!validPrefixes.includes(prefix)) {
     return "Số điện thoại không hợp lệ";
   }
+
   return null;
 }
-export function cleanPhoneNumber(phone: string): string {
-  return phone.replace(/\D/g, "");
-}
+
 export interface AddressFormData {
   customerName: string;
   phoneNumber: string;
@@ -61,6 +63,7 @@ export interface AddressFormData {
   wardCode: string;
   street: string;
 }
+
 export interface AddressValidationErrors {
   customerName?: string;
   phoneNumber?: string;
@@ -69,6 +72,7 @@ export interface AddressValidationErrors {
   wardCode?: string;
   street?: string;
 }
+
 export function validateAddressForm(
   data: Partial<AddressFormData>
 ): AddressValidationErrors {
@@ -104,8 +108,10 @@ export function validateAddressForm(
   } else if (data.street.length > 255) {
     errors.street = "Địa chỉ không được quá 255 ký tự";
   }
+
   return errors;
 }
+
 export function isAddressFormValid(data: Partial<AddressFormData>): boolean {
   const errors = validateAddressForm(data);
   return Object.keys(errors).length === 0;

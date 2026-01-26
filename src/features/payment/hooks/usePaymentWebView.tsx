@@ -4,10 +4,11 @@ import { router } from "expo-router";
 import * as Linking from "expo-linking";
 import axios from "axios";
 import { ordersApi } from "../../../shared/data/api";
+import { vnpayApi } from "../../../shared/data/paymentApiService";
 import { useToast } from "../../../shared/ui/toast";
 import { useCart } from "../../../shared/hooks";
 import env from "../../../config/env";
-import { completePaymentFlow } from "../../../services/payment/vnpay";
+import { completePaymentFlow } from "../../../shared/services/payment/vnpay";
 
 export interface PaymentResult {
   status: "success" | "failed";
@@ -135,7 +136,7 @@ export const usePaymentWebView = ({
       hasProcessedPaymentRef.current = true;
 
       try {
-        const paymentResult = await ordersApi.createOrderPayment(
+        const paymentResult = await vnpayApi.createOrderPayment(
           Number(finalOrderId)
         );
 
@@ -389,7 +390,7 @@ export const usePaymentWebView = ({
             }
             true;
           `);
-        } catch (error) { 
+        } catch (error) {
         }
       }
       setTimeout(() => {

@@ -7,8 +7,8 @@ import {
 } from "@microsoft/signalr";
 import { AppState, AppStateStatus } from "react-native";
 import env from "../../config/env";
-import { authStorage } from "../../shared/lib/storage";
-import { useAuthStore, useNotificationStore } from "../../shared/hooks";
+import { authStorage } from "../../lib/storage";
+import { useAuthStore, useNotificationStore } from "../../hooks";
 
 /**
  * Order status values matching backend PaymentStatus enum
@@ -42,7 +42,7 @@ const HUB_PATH = "/hubs/order-notification";
 const RECONNECT_DELAYS = [0, 2000, 5000, 10000, 15000];
 const isDev = process.env.NODE_ENV !== "production";
 
-class OrderNotificationService {
+export class OrderNotificationService {
   private connection: HubConnection | null = null;
   private initializing: Promise<void> | null = null;
   private listeners = new Set<Listener>();

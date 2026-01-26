@@ -1,6 +1,6 @@
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
-import { vnpayApi } from "../../shared/data/paymentApiService";
+import { vnpayApi } from "../../data/paymentApiService";
 
 export interface VNPayPaymentParams {
   orderId: number;

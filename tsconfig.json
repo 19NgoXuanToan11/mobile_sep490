@@ -7,7 +7,9 @@
       "@/*": ["./*"],
       "@/components/*": ["./shared/ui/*"],
       "@/hooks/*": ["./shared/hooks/*"],
-      "@/utils/*": ["./shared/lib/*"],
+      "@/lib/*": ["./shared/lib/*"],
+      "@/services/*": ["./shared/services/*"],
+      "@/utils/*": ["./shared/utils/*"],
       "@/types": ["./types"],
       "@/api/*": ["./api/*"],
       "@/config/*": ["./config/*"]

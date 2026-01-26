@@ -1,9 +1,9 @@
 import { useState, useRef, useCallback } from "react";
-import { pickAvatarImage } from "../utils/pickAvatarImage";
+import { pickAvatarImage } from "../shared/utils/pickAvatarImage";
 import {
   uploadAvatarDirectToCloudinary,
   CloudinaryUploadError,
-} from "../utils/uploadCloudinaryDirect";
+} from "../shared/utils/uploadCloudinaryDirect";
 import { profileApi } from "../shared/data/api";
 
 export function useUploadAvatar(userId: string | number): {
@@ -59,8 +59,8 @@ export function useUploadAvatar(userId: string | number): {
             err.message === "NETWORK_ERROR"
               ? "Lỗi kết nối mạng"
               : err.message === "INVALID_CLOUDINARY_RESPONSE"
-              ? "Phản hồi không hợp lệ từ Cloudinary"
-              : `Tải lên thất bại: ${err.message}`
+                ? "Phản hồi không hợp lệ từ Cloudinary"
+                : `Tải lên thất bại: ${err.message}`
           );
         }
         throw err;
